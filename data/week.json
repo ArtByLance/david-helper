@@ -1,0 +1,229 @@
+{
+  "sunday": [
+    {
+      "time": "08:00",
+      "label": "Breakfast",
+      "help1": "YOU WILL EAT AT 8:00"
+    },
+    {
+      "time": "10:15",
+      "label": "Service",
+      "help2": "SERVICE STARTS AT 10:15"
+    },
+    {
+      "time": "12:00",
+      "label": "Lunch",
+      "help1": "YOU WILL EAT AT 12:00",
+      "help2": "SOMEONE WILL COME GET YOU BEFORE LUNCH"
+    },
+    {
+      "time": "15:00",
+      "label": "Snack time"
+    },
+    {
+      "time": "17:00",
+      "label": "Supper",
+      "help1": "YOU WILL EAT AT 5:00"
+    },
+    {
+      "time": "18:00",
+      "label": "Movie"
+    },
+    {
+      "time": "21:00",
+      "label": "Bedtime"
+    }
+  ],
+  "monday": [
+    {
+      "time": "08:00",
+      "label": "Breakfast",
+      "help1": "YOU WILL EAT AT 8:00"
+    },
+    {
+      "time": "12:00",
+      "label": "Lunch",
+      "help1": "YOU WILL EAT AT 12:00",
+      "help2": "SOMEONE WILL COME GET YOU BEFORE LUNCH"
+    },
+    {
+      "time": "15:00",
+      "label": "Snack time"
+    },
+    {
+      "time": "17:00",
+      "label": "Supper",
+      "help1": "YOU WILL EAT AT 5:00"
+    },
+    {
+      "time": "18:00",
+      "label": "Movie"
+    },
+    {
+      "time": "21:00",
+      "label": "Bedtime"
+    }
+  ],
+  "tuesday": [
+    {
+      "time": "08:00",
+      "label": "Breakfast",
+      "help1": "YOU WILL EAT AT 8:00"
+    },
+    {
+      "time": "12:00",
+      "label": "Lunch",
+      "help1": "YOU WILL EAT AT 12:00",
+      "help2": "SOMEONE WILL COME GET YOU BEFORE LUNCH"
+    },
+    {
+      "time": "15:00",
+      "label": "Snack time"
+    },
+    {
+      "time": "17:00",
+      "label": "Supper",
+      "help1": "YOU WILL EAT AT 5:00"
+    },
+    {
+      "time": "18:00",
+      "label": "Movie"
+    },
+    {
+      "time": "21:00",
+      "label": "Bedtime"
+    }
+  ],
+  "wednesday": [
+    {
+      "time": "08:00",
+      "label": "Breakfast",
+      "help1": "YOU WILL EAT AT 8:00"
+    },
+    {
+      "time": "12:00",
+      "label": "Lunch",
+      "help1": "YOU WILL EAT AT 12:00",
+      "help2": "SOMEONE WILL COME GET YOU BEFORE LUNCH"
+    },
+    {
+      "time": "15:00",
+      "label": "Snack time"
+    },
+    {
+      "time": "17:00",
+      "label": "Supper",
+      "help1": "YOU WILL EAT AT 5:00"
+    },
+    {
+      "time": "18:00",
+      "label": "Movie"
+    },
+    {
+      "time": "18:30",
+      "label": "Service",
+      "help2": "SERVICE STARTS AT 6:30"
+    },
+    {
+      "time": "21:00",
+      "label": "Bedtime"
+    }
+  ],
+  "thursday": [
+    {
+      "time": "08:00",
+      "label": "Breakfast",
+      "help1": "YOU WILL EAT AT 8:00"
+    },
+    {
+      "time": "09:00",
+      "label": "Get laundry ready",
+      "help1": "LAUNDRY IS THIS MORNING",
+      "help2": "GET YOUR LAUNDRY READY FOR PICKUP",
+      "holdMinutes": 60
+    },
+    {
+      "time": "12:00",
+      "label": "Lunch",
+      "help1": "YOU WILL EAT AT 12:00",
+      "help2": "SOMEONE WILL COME GET YOU BEFORE LUNCH"
+    },
+    {
+      "time": "15:00",
+      "label": "Snack time"
+    },
+    {
+      "time": "17:00",
+      "label": "Supper",
+      "help1": "YOU WILL EAT AT 5:00"
+    },
+    {
+      "time": "18:00",
+      "label": "Movie"
+    },
+    {
+      "time": "21:00",
+      "label": "Bedtime"
+    }
+  ],
+  "friday": [
+    {
+      "time": "08:00",
+      "label": "Breakfast",
+      "help1": "YOU WILL EAT AT 8:00"
+    },
+    {
+      "time": "12:00",
+      "label": "Lunch",
+      "help1": "YOU WILL EAT AT 12:00",
+      "help2": "SOMEONE WILL COME GET YOU BEFORE LUNCH"
+    },
+    {
+      "time": "15:00",
+      "label": "Snack time"
+    },
+    {
+      "time": "17:00",
+      "label": "Supper",
+      "help1": "YOU WILL EAT AT 5:00"
+    },
+    {
+      "time": "18:00",
+      "label": "Movie"
+    },
+    {
+      "time": "21:00",
+      "label": "Bedtime"
+    }
+  ],
+  "saturday": [
+    {
+      "time": "08:00",
+      "label": "Breakfast",
+      "help1": "YOU WILL EAT AT 8:00"
+    },
+    {
+      "time": "12:00",
+      "label": "Lunch",
+      "help1": "YOU WILL EAT AT 12:00",
+      "help2": "SOMEONE WILL COME GET YOU BEFORE LUNCH"
+    },
+    {
+      "time": "15:00",
+      "label": "Snack time"
+    },
+    {
+      "time": "17:00",
+      "label": "Supper",
+      "help1": "YOU WILL EAT AT 5:00"
+    },
+    {
+      "time": "18:00",
+      "label": "Movie"
+    },
+    {
+      "time": "21:00",
+      "label": "Bedtime"
+    }
+  ]
+}

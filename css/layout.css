@@ -1,0 +1,364 @@
+/*
+  layout.css
+  ==========
+
+  Responsibility
+  --------------
+  This file handles ONLY box building and placement:
+    - page shell
+    - fixed 1920x1080 TV stage
+    - panel sizing
+    - spacing
+    - alignment
+    - progress shell geometry
+    - LED clock placement lane
+    - TODAY panel event row structure
+
+  Use case
+  --------
+  This screen is not a normal responsive website. It is a TV-first 16:9 board.
+  The goal is to preserve composition fidelity while still allowing local
+  browser development.
+
+  Local dev example
+  -----------------
+  With VS Code Live Server or a tiny local web server running, open:
+
+    http://localhost:5500/?debugNow=2026-04-01T11:32:00
+
+  Then resize the browser window as needed. The inner stage remains 1920x1080
+  and scales as one unit, which makes layout tuning much more predictable.
+
+  Editing guidance
+  ----------------
+  If something "looks wrong," check this file for:
+    - object size
+    - panel width / height
+    - margin / padding
+    - grid gaps
+    - alignment math
+
+  Do NOT put typography decisions here. Those belong in text.css.
+*/
+
+:root {
+  --stage-width: 1920;
+  --stage-height: 1080;
+
+  --header-height: 188px;
+  --stage-padding-x: 70px;
+  --stage-padding-top: 38px;
+  --stage-padding-bottom: 44px;
+
+  --main-top-gap: 10px;
+  --section-gap: 20px;
+  --timeline-lane-offset-y: -180px;
+
+  /* Main composition widths */
+  --next-width: 760px;
+  --clock-width: 280px;
+  --today-width: 690px;
+
+  /* NEXT card */
+  --next-card-width: 720px;
+  --next-card-min-height: 410px;
+  --next-card-radius: 22px;
+  --next-card-border: 7px;
+  --next-card-padding-top: 74px;
+  --next-card-padding-x: 42px;
+  --next-card-padding-bottom: 34px;
+
+  /* NEXT badge */
+  --next-badge-width: 160px;
+  --next-badge-height: 74px;
+  --next-badge-radius: 20px 20px 0 0;
+  --next-badge-overlap: 18px;
+
+  /* Status area inside NEXT card */
+  --status-gap: 18px;
+  --progress-width: 530px;
+  --progress-height: 42px;
+  --progress-radius: 2px;
+  --progress-fill-inset-y: 0px;
+  --progress-fill-inset-x: 0px;
+
+  --hs-pill-width: 470px;
+  --hs-pill-height: 104px;
+  --hs-pill-radius: 22px;
+
+  /* Help text */
+  --help-width: 720px;
+  --help-top-gap: 20px;
+
+  /* Clock lane */
+  --clock-width-px: 324px;
+  --clock-height-px: 182px;
+  --clock-left: 8px;
+
+  --line-thickness: 18px;
+  --line-right-overhang: -18px;
+
+  /* TODAY panel */
+  --today-tab-width: 190px;
+  --today-tab-height: 74px;
+  --today-tab-radius: 20px 20px 0 0;
+  --today-tab-offset-x: 38px;
+  --today-shift-right: 52px;
+  --today-overhang-right: 92px;
+  --today-overhang-bottom: 74px;
+
+  --today-panel-radius: 30px;
+  --today-panel-border: 8px;
+  --today-panel-min-height: 916px;
+  --today-panel-padding-top: 102px;
+  --today-panel-padding-x: 48px;
+  --today-panel-padding-bottom: 52px;
+  --today-row-gap: 34px;
+  --today-time-col: 142px;
+  --today-row-min-height: 50px;
+  --today-col-gap: 28px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: #c9d4df;
+}
+
+#app-shell {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+#tv-stage {
+  position: relative;
+  width: calc(var(--stage-width) * 1px);
+  height: calc(var(--stage-height) * 1px);
+  transform-origin: top left;
+  overflow: hidden;
+  background: #d7e0ea;
+}
+
+#header {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--header-height);
+  padding: var(--stage-padding-top) var(--stage-padding-x) 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+#header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+#top-prompt {
+  margin-top: 18px;
+  margin-right: 12px;
+}
+
+#main-layout {
+  position: absolute;
+  top: calc(var(--stage-padding-top) + var(--header-height) + var(--main-top-gap));
+  left: var(--stage-padding-x);
+  right: var(--stage-padding-x);
+  bottom: var(--stage-padding-bottom);
+  display: grid;
+  grid-template-columns: var(--next-width) var(--clock-width) var(--today-width);
+  column-gap: var(--section-gap);
+  align-items: start;
+}
+
+#next-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: var(--next-badge-height);
+}
+
+#next-badge {
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: var(--next-badge-width);
+  height: var(--next-badge-height);
+  border-radius: var(--next-badge-radius);
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+
+#next-card {
+  position: relative;
+  width: var(--next-card-width);
+  min-height: var(--next-card-min-height);
+  border-radius: var(--next-card-radius);
+  padding: var(--next-card-padding-top) var(--next-card-padding-x)
+    var(--next-card-padding-bottom);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#status-area {
+  width: 100%;
+  margin-top: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--status-gap);
+}
+
+#progress-shell {
+  width: var(--progress-width);
+  height: var(--progress-height);
+  border-radius: var(--progress-radius);
+  overflow: hidden;
+}
+
+#progress-fill {
+  width: 0%;
+  height: calc(100% - (var(--progress-fill-inset-y) * 2));
+  margin-top: var(--progress-fill-inset-y);
+  margin-left: var(--progress-fill-inset-x);
+  transition: width 700ms ease;
+}
+
+#happening-soon-pill {
+  width: var(--hs-pill-width);
+  height: var(--hs-pill-height);
+  border-radius: var(--hs-pill-radius);
+  display: grid;
+  place-items: center;
+}
+
+#help-text {
+  width: var(--help-width);
+  margin-top: var(--help-top-gap);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  padding-left: 16px;
+}
+
+#help1:empty,
+#help2:empty {
+  display: none;
+}
+
+#clock-section {
+  position: relative;
+  min-height: 900px;
+  margin-top: var(--timeline-lane-offset-y);
+}
+
+#led-clock {
+  position: absolute;
+  left: var(--clock-left);
+  top: 0;
+  width: var(--clock-width-px);
+  height: var(--clock-height-px);
+  display: grid;
+  place-items: center;
+  transform: translateY(0);
+  transition: transform 700ms ease;
+  z-index: 3;
+}
+
+#timeline-line {
+  position: absolute;
+  left: var(--clock-left);
+  right: auto;
+  width: calc(
+    var(--clock-width) - var(--clock-left) + var(--section-gap) +
+      var(--today-shift-right) + var(--today-width) + var(--today-overhang-right)
+  );
+  top: 0;
+  height: var(--line-thickness);
+  transform: translateY(0);
+  transition: transform 700ms ease;
+  z-index: 2;
+}
+
+#today-section {
+  position: relative;
+  min-height: 960px;
+  margin-top: var(--timeline-lane-offset-y);
+  margin-left: var(--today-shift-right);
+  margin-right: calc(var(--today-overhang-right) * -1);
+  margin-bottom: calc(var(--today-overhang-bottom) * -1);
+}
+
+#today-tab {
+  position: absolute;
+  top: 0;
+  left: var(--today-tab-offset-x);
+  width: var(--today-tab-width);
+  height: var(--today-tab-height);
+  border-radius: var(--today-tab-radius);
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+
+#today-panel {
+  margin-top: var(--today-tab-height);
+  width: calc(100% + var(--today-overhang-right));
+  border-radius: var(--today-panel-radius);
+  min-height: calc(var(--today-panel-min-height) + var(--today-overhang-bottom));
+  padding: var(--today-panel-padding-top) var(--today-panel-padding-x)
+    var(--today-panel-padding-bottom);
+}
+
+#today-events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--today-row-gap);
+  position: relative;
+}
+
+.today-event-row {
+  min-height: var(--today-row-min-height);
+  display: grid;
+  grid-template-columns: var(--today-time-col) 1fr;
+  align-items: center;
+  column-gap: var(--today-col-gap);
+}
+
+.today-event-row[data-past='true'] {
+  opacity: 0.48;
+}
+
+.today-event-row[data-focal='true'] {
+  opacity: 1;
+}
+
+.today-time,
+.today-label {
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none !important;
+}

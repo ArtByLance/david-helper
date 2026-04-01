@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>David Helper Dashboard</title>
+
+    <!--
+      David Helper Dashboard
+      ======================
+
+      Purpose
+      -------
+      This page is designed as a calm, TV-first orientation screen for David.
+      It is not a general website. It is a fixed 16:9 "TV canvas" that answers:
+
+        1) What day is it
+        2) What time is it
+        3) What's next
+        4) How long until that happens
+
+      Local development
+      -----------------
+      Open this through a local web server, not by double-clicking the file.
+      Example with Python:
+
+        python3 -m http.server 8000
+
+      Then visit:
+
+        http://localhost:8000
+
+      Helpful debug URL examples
+      --------------------------
+      Real time:
+        http://localhost:8000
+
+      Fake time for testing a specific moment:
+        http://localhost:8000/?debugNow=2026-04-01T11:32:00
+
+      Fake Thursday laundry state:
+        http://localhost:8000/?debugNow=2026-04-02T09:15:00
+
+      Notes
+      -----
+      - The layout is intentionally built around a fixed 1920x1080 stage
+      - JavaScript modules load data from /data/*.json
+      - CSS is split into layout.css and text.css to reduce drift in longer files
+    -->
+
+    <link rel="stylesheet" href="./css/layout.css" />
+    <link rel="stylesheet" href="./css/text.css" />
+  </head>
+  <body>
+    <div id="app-shell">
+      <div id="tv-stage" aria-label="David helper dashboard">
+        <header id="header">
+          <div id="header-left">
+            <div id="day-label">WEDNESDAY</div>
+            <div id="date-label">APRIL 1, 2026</div>
+            <div id="location-label">DELMAR GARDENS</div>
+          </div>
+
+          <div id="top-prompt" aria-label="Exit prompt">PRESS HOME OR BACK</div>
+        </header>
+
+        <main id="main-layout">
+          <section id="next-section" aria-label="Next event panel">
+            <div id="next-badge">NEXT</div>
+
+            <div id="next-card">
+              <div id="next-label">LUNCH</div>
+              <div id="next-time">AT 12:00</div>
+
+              <div id="status-area">
+                <div id="countdown-text">28 minutes to go</div>
+
+                <div id="progress-shell" aria-label="Progress toward next event">
+                  <div id="progress-fill"></div>
+                </div>
+
+                <div id="happening-soon-pill" hidden>HAPPENING SOON</div>
+              </div>
+            </div>
+
+            <div id="help-text" aria-label="Helper text">
+              <div id="help1">YOU WILL EAT AT 12:00</div>
+              <div id="help2">SOMEONE WILL COME GET YOU BEFORE LUNCH</div>
+            </div>
+          </section>
+
+          <section id="clock-section" aria-label="Current time marker">
+            <div id="led-clock" aria-label="Current time">11:32</div>
+            <div id="timeline-line" aria-hidden="true"></div>
+          </section>
+
+          <section id="today-section" aria-label="Today schedule">
+            <div id="today-tab">TODAY</div>
+            <div id="today-panel">
+              <div id="today-events"></div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>

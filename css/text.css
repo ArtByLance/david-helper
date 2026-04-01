@@ -1,0 +1,297 @@
+/*
+  text.css
+  ========
+
+  Responsibility
+  --------------
+  This file handles ONLY text styling and text-adjacent visual styling:
+    - font families
+    - font sizes
+    - font weights
+    - text colors
+    - line heights
+    - panel border / fill color styling
+    - badge / pill text appearance
+
+  Visual target
+  -------------
+  The desired screen is calm, high-contrast, and easy to trust from a distance.
+  Accent colors are tightly controlled:
+
+    - Red = NEXT system
+    - Blue = TODAY system
+    - Black / dark gray = primary reading text
+    - Gray = supporting text / past items
+
+  Do not treat this like a web marketing page. Too much saturation or too many
+  bold weights quickly make the screen feel noisy.
+*/
+
+@font-face {
+  font-family: 'DSEG7ClassicMini';
+  src: url('../assets/fonts/DSEG7ClassicMini-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --color-day: #000000;
+  --color-date: #0a0a0a;
+  --color-location: #0a0a0a;
+  --color-prompt: #66727f;
+
+  --color-next-accent: #ff1f1f;
+  --color-next-badge-bg: #ff1f1f;
+  --color-next-badge-text: #ffffff;
+  --color-next-card-bg: #f6f6f6;
+  --color-next-card-border: #ff1f1f;
+  --color-next-card-text: #000000;
+  --color-next-time: #7f7f7f;
+
+  --color-countdown: #ff1f1f;
+  --color-progress-shell: #d3d3d3;
+  --color-progress-fill: #ff1f1f;
+
+  --color-hs-bg: #39b45a;
+  --color-hs-text: #ffffff;
+
+  --color-help1: #000000;
+  --color-help2: #000000;
+
+  --color-clock-bg: #050505;
+  --color-clock-text: #ff1f1f;
+  --color-clock-border: #161616;
+  --color-line: rgba(255, 59, 59, 0.56);
+
+  --color-today-accent: #1f7edc;
+  --color-today-tab-bg: #1f7edc;
+  --color-today-tab-text: #ffffff;
+  --color-today-panel-bg: #f5f5f5;
+  --color-today-panel-border: #1f7edc;
+  --color-today-time: #7d7d7d;
+  --color-today-label: #000000;
+  --color-today-highlight: #000000;
+
+  --font-family-main: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --font-family-led: 'DSEG7ClassicMini', 'Courier New', Courier, monospace;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-family-main);
+}
+
+#day-label {
+  font-size: 90px;
+  line-height: 0.96;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: var(--color-day);
+  text-transform: uppercase;
+}
+
+#date-label {
+  font-size: 32px;
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: var(--color-date);
+  text-transform: uppercase;
+}
+
+#location-label {
+  font-size: 32px;
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: var(--color-location);
+  text-transform: uppercase;
+}
+
+#top-prompt {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--color-prompt);
+  text-transform: uppercase;
+}
+
+#next-badge {
+  background: var(--color-next-badge-bg);
+  color: var(--color-next-badge-text);
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+#next-card {
+  background: var(--color-next-card-bg);
+  color: var(--color-next-card-text);
+  border: 7px solid var(--color-next-card-border);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+#next-label {
+  width: 100%;
+  font-size: 88px;
+  line-height: 0.98;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  text-align: left;
+  color: var(--color-next-card-text);
+}
+
+#next-time {
+  margin-top: 10px;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--color-next-time);
+}
+
+#countdown-text {
+  font-size: 34px;
+  line-height: 1.04;
+  font-weight: 800;
+  color: var(--color-countdown);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+#progress-shell {
+  background: var(--color-progress-shell);
+}
+
+#progress-fill {
+  background: var(--color-progress-fill);
+}
+
+#happening-soon-pill {
+  background: var(--color-hs-bg);
+  color: var(--color-hs-text);
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.08);
+}
+
+#help1 {
+  font-size: 28px;
+  line-height: 1.12;
+  font-weight: 800;
+  color: var(--color-help1);
+  text-transform: uppercase;
+}
+
+#help2 {
+  font-size: 26px;
+  line-height: 1.14;
+  font-weight: 500;
+  color: var(--color-help2);
+  text-transform: uppercase;
+}
+
+#led-clock {
+  --clock-scale-y: 1.25;
+  background: var(--color-clock-bg);
+  color: var(--color-clock-text);
+  font-family: var(--font-family-led);
+  font-size: 84px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  display: grid;
+  place-items: center;
+  transform-origin: center center;
+  border-radius: 18px;
+  border: 3px solid var(--color-clock-border);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
+}
+
+.clock-time-strip {
+  display: grid;
+  grid-template-columns: 96px 24px 96px;
+  align-items: center;
+  column-gap: 12px;
+  justify-content: center;
+}
+
+.clock-time-strip.clock-single-hour {
+  transform: translateX(-24px);
+}
+
+.clock-hours,
+.clock-minutes,
+.clock-colon {
+  display: block;
+  line-height: 1;
+}
+
+.clock-hours {
+  width: 96px;
+  text-align: right;
+}
+
+.clock-colon {
+  width: 24px;
+  text-align: center;
+  transform: translateY(-1px);
+}
+
+.clock-minutes {
+  width: 96px;
+  text-align: left;
+}
+
+#timeline-line {
+  background: var(--color-line);
+}
+
+#today-tab {
+  background: var(--color-today-tab-bg);
+  color: var(--color-today-tab-text);
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+#today-panel {
+  background: var(--color-today-panel-bg);
+  color: var(--color-today-label);
+  border: 8px solid var(--color-today-panel-border);
+}
+
+.today-time {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--color-today-time);
+}
+
+.today-label {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--color-today-label);
+}
+
+.today-event-row[data-focal='true'] .today-time,
+.today-event-row[data-focal='true'] .today-label {
+  color: var(--color-today-highlight);
+}

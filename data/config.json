@@ -1,0 +1,14 @@
+{
+  "locationName": "DELMAR GARDENS",
+  "tickSeconds": 20,
+  "dayStartHour": 5,
+  "dayEndHour": 21,
+  "defaultHoldMinutes": 15,
+  "topPrompt": "PRESS HOME OR BACK",
+  "theme": {
+    "bg": "#dbe4ef",
+    "nextAccent": "#ff1a1a",
+    "todayAccent": "#1f78d1",
+    "happeningSoonAccent": "#26a653"
+  }
+}
