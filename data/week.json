@@ -4,7 +4,7 @@
       "time": "08:00",
       "label": "Breakfast",
       "help1": "YOU WILL EAT AT 8:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE BREAKFAST."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
     },
     {
       "time": "10:15",
@@ -16,7 +16,7 @@
       "time": "12:00",
       "label": "Lunch",
       "help1": "YOU WILL EAT AT 12:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE LUNCH."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
     },
     {
       "time": "15:00",
@@ -28,7 +28,7 @@
       "time": "17:00",
       "label": "Supper",
       "help1": "YOU WILL EAT AT 5:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE SUPPER."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
     },
     {
       "time": "18:00",
@@ -48,13 +48,13 @@
       "time": "08:00",
       "label": "Breakfast",
       "help1": "YOU WILL EAT AT 8:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE BREAKFAST."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
     },
     {
       "time": "12:00",
       "label": "Lunch",
       "help1": "YOU WILL EAT AT 12:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE LUNCH."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
     },
     {
       "time": "15:00",
@@ -66,7 +66,7 @@
       "time": "17:00",
       "label": "Supper",
       "help1": "YOU WILL EAT AT 5:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE SUPPER."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
     },
     {
       "time": "18:00",
@@ -86,13 +86,13 @@
       "time": "08:00",
       "label": "Breakfast",
       "help1": "YOU WILL EAT AT 8:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE BREAKFAST."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
     },
     {
       "time": "12:00",
       "label": "Lunch",
       "help1": "YOU WILL EAT AT 12:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE LUNCH."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
     },
     {
       "time": "15:00",
@@ -104,7 +104,7 @@
       "time": "17:00",
       "label": "Supper",
       "help1": "YOU WILL EAT AT 5:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE SUPPER."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
     },
     {
       "time": "18:00",
@@ -124,13 +124,13 @@
       "time": "08:00",
       "label": "Breakfast",
       "help1": "YOU WILL EAT AT 8:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE BREAKFAST."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
     },
     {
       "time": "12:00",
       "label": "Lunch",
       "help1": "YOU WILL EAT AT 12:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE LUNCH."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
     },
     {
       "time": "15:00",
@@ -142,7 +142,7 @@
       "time": "17:00",
       "label": "Supper",
       "help1": "YOU WILL EAT AT 5:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE SUPPER."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
     },
     {
       "time": "18:00",
@@ -168,20 +168,20 @@
       "time": "08:00",
       "label": "Breakfast",
       "help1": "YOU WILL EAT AT 8:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE BREAKFAST."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
     },
     {
       "time": "09:00",
-      "label": "Get Laundry Ready",
-      "help1": "LAUNDRY DAY IS AT 9:00.",
-      "help2": "PUT DIRTY CLOTHES IN THE HAMPER. SOMEONE WILL PICK THEM UP FOR WASHING.",
+      "label": "Laundry Day",
+      "help1": "PUT ANY DIRTY CLOTHES\nIN THE HAMPER.",
+      "help2": "SOMEONE WILL PICK THEM UP\nFOR WASHING.",
       "holdMinutes": 60
     },
     {
       "time": "12:00",
       "label": "Lunch",
       "help1": "YOU WILL EAT AT 12:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE LUNCH."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
     },
     {
       "time": "15:00",
@@ -193,7 +193,7 @@
       "time": "17:00",
       "label": "Supper",
       "help1": "YOU WILL EAT AT 5:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE SUPPER."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
     },
     {
       "time": "18:00",
@@ -213,13 +213,13 @@
       "time": "08:00",
       "label": "Breakfast",
       "help1": "YOU WILL EAT AT 8:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE BREAKFAST."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
     },
     {
       "time": "12:00",
       "label": "Lunch",
       "help1": "YOU WILL EAT AT 12:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE LUNCH."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
     },
     {
       "time": "15:00",
@@ -231,7 +231,7 @@
       "time": "17:00",
       "label": "Supper",
       "help1": "YOU WILL EAT AT 5:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE SUPPER."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
     },
     {
       "time": "18:00",
@@ -251,13 +251,13 @@
       "time": "08:00",
       "label": "Breakfast",
       "help1": "YOU WILL EAT AT 8:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE BREAKFAST."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
     },
     {
       "time": "12:00",
       "label": "Lunch",
       "help1": "YOU WILL EAT AT 12:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE LUNCH."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
     },
     {
       "time": "15:00",
@@ -269,7 +269,7 @@
       "time": "17:00",
       "label": "Supper",
       "help1": "YOU WILL EAT AT 5:00.",
-      "help2": "SOMEONE WILL COME GET YOU ABOUT 15 MINUTES BEFORE SUPPER."
+      "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
     },
     {
       "time": "18:00",
