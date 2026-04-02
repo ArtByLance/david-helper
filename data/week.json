@@ -31,7 +31,9 @@
     },
     {
       "time": "21:00",
-      "label": "Bedtime"
+      "label": "Bedtime",
+      "help1": "YOUR NORMAL BED TIME",
+      "help2": "YOU CAN GO TO BED WHENEVER YOU FEEL LIKE IT"
     }
   ],
   "monday": [
@@ -61,7 +63,9 @@
     },
     {
       "time": "21:00",
-      "label": "Bedtime"
+      "label": "Bedtime",
+      "help1": "YOUR NORMAL BED TIME",
+      "help2": "YOU CAN GO TO BED WHENEVER YOU FEEL LIKE IT"
     }
   ],
   "tuesday": [
@@ -91,7 +95,9 @@
     },
     {
       "time": "21:00",
-      "label": "Bedtime"
+      "label": "Bedtime",
+      "help1": "YOUR NORMAL BED TIME",
+      "help2": "YOU CAN GO TO BED WHENEVER YOU FEEL LIKE IT"
     }
   ],
   "wednesday": [
@@ -126,7 +132,9 @@
     },
     {
       "time": "21:00",
-      "label": "Bedtime"
+      "label": "Bedtime",
+      "help1": "YOUR NORMAL BED TIME",
+      "help2": "YOU CAN GO TO BED WHENEVER YOU FEEL LIKE IT"
     }
   ],
   "thursday": [
@@ -163,7 +171,9 @@
     },
     {
       "time": "21:00",
-      "label": "Bedtime"
+      "label": "Bedtime",
+      "help1": "YOUR NORMAL BED TIME",
+      "help2": "YOU CAN GO TO BED WHENEVER YOU FEEL LIKE IT"
     }
   ],
   "friday": [
@@ -193,7 +203,9 @@
     },
     {
       "time": "21:00",
-      "label": "Bedtime"
+      "label": "Bedtime",
+      "help1": "YOUR NORMAL BED TIME",
+      "help2": "YOU CAN GO TO BED WHENEVER YOU FEEL LIKE IT"
     }
   ],
   "saturday": [
@@ -223,7 +235,9 @@
     },
     {
       "time": "21:00",
-      "label": "Bedtime"
+      "label": "Bedtime",
+      "help1": "YOUR NORMAL BED TIME",
+      "help2": "YOU CAN GO TO BED WHENEVER YOU FEEL LIKE IT"
     }
   ]
 }
