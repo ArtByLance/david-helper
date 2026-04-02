@@ -14,10 +14,10 @@
  * Display states
  * --------------
  * 1) countdown
- *    Before event start time
+ *    Before the HAPPENING SOON pre-window starts
  *
  * 2) happeningSoon
- *    From event start time until holdMinutes expire
+ *    From 15 minutes before event start until 5 minutes after event start
  *
  * Progress bar behavior
  * ---------------------
@@ -68,7 +68,6 @@ export function isWithinActiveDayWindow(now, config) {
  *
  * @param {Date} now
  * @param {any[]} events
- * @param {{ defaultHoldMinutes?: number }} [config]
  * @returns {{
  *   state: 'countdown' | 'happeningSoon',
  *   previousEvent: any | null,
@@ -78,7 +77,10 @@ export function isWithinActiveDayWindow(now, config) {
  *   nowMinutes: number
  * }}
  */
-export function getFocalState(now, events, config = { defaultHoldMinutes: 0 }) {
+const SOON_LEAD_MINUTES = 15;
+const SOON_TAIL_MINUTES = 5;
+
+export function getFocalState(now, events) {
   const nowMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
 
   if (!events.length) {
@@ -95,10 +97,10 @@ export function getFocalState(now, events, config = { defaultHoldMinutes: 0 }) {
   for (let index = 0; index < events.length; index += 1) {
     const event = events[index];
     const eventStart = event.timeMinutes;
-    const holdMinutes = resolveHoldMinutes(event.holdMinutes, config.defaultHoldMinutes);
-    const eventEnd = eventStart + holdMinutes;
+    const soonStart = eventStart - SOON_LEAD_MINUTES;
+    const soonEnd = eventStart + SOON_TAIL_MINUTES;
 
-    if (nowMinutes >= eventStart && nowMinutes < eventEnd) {
+    if (nowMinutes >= soonStart && nowMinutes < soonEnd) {
       return {
         state: 'happeningSoon',
         previousEvent: index > 0 ? events[index - 1] : null,
@@ -109,7 +111,7 @@ export function getFocalState(now, events, config = { defaultHoldMinutes: 0 }) {
       };
     }
 
-    if (nowMinutes < eventStart) {
+    if (nowMinutes < soonStart) {
       return {
         state: 'countdown',
         previousEvent: index > 0 ? events[index - 1] : null,
@@ -183,23 +185,4 @@ export function formatNextTimeLabel(hhmm) {
  */
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
-}
-
-/**
- * Resolve hold duration with fallback and guardrails.
- *
- * @param {unknown} eventHoldMinutes
- * @param {unknown} defaultHoldMinutes
- * @returns {number}
- */
-function resolveHoldMinutes(eventHoldMinutes, defaultHoldMinutes) {
-  if (Number.isFinite(eventHoldMinutes)) {
-    return Math.max(0, Number(eventHoldMinutes));
-  }
-
-  if (Number.isFinite(defaultHoldMinutes)) {
-    return Math.max(0, Number(defaultHoldMinutes));
-  }
-
-  return 0;
 }
