@@ -51,7 +51,7 @@ import {
 import { renderView } from './render.js';
 import {
   fitStageToViewport,
-  measureEventRows,
+  layoutTodayEvents,
   getTargetY,
   positionTimeline
 } from './layout.js';
@@ -118,7 +118,7 @@ function updateScreen() {
 
   // Measure after render so row positions are current.
   requestAnimationFrame(() => {
-    const rowMap = measureEventRows();
+    const rowMap = layoutTodayEvents(viewModel.todayEvents);
     const targetY = getTargetY(
       {
         state: focalState.state,
@@ -169,7 +169,9 @@ function buildViewModel(now, config, events, focalState, progressFraction) {
     clockText: formatClock(now),
 
     todayEvents: events.map((event) => ({
+      eventKey: `${event.time}|${event.label}`,
       time: event.time,
+      timeMinutes: event.timeMinutes,
       timeDisplay: minutesToShortDisplay(event.timeMinutes),
       label: event.label,
       isPast: event.timeMinutes < focalState.nowMinutes && event !== focal,

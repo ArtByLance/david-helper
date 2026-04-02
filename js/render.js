@@ -85,8 +85,9 @@ function renderNextCard(dom, vm) {
   if (vm.showProgress) {
     dom.countdownText.classList.remove('hidden');
     dom.progressShell.classList.remove('hidden');
-    dom.countdownText.textContent = vm.countdownText || '';
-    dom.progressFill.style.width = `${Math.round(vm.progressFraction * 100)}%`;
+    renderCountdownText(dom.countdownText, vm.countdownText || '');
+    const remainingPercent = Math.max(0, Math.min(100, 100 - Math.round(vm.progressFraction * 100)));
+    dom.progressFill.style.width = `${remainingPercent}%`;
   }
 }
 
@@ -151,9 +152,14 @@ function renderTodayList(dom, vm) {
   for (const item of vm.todayEvents) {
     const row = document.createElement('div');
     row.className = 'today-event-row';
+    row.dataset.eventKey = item.eventKey ?? `${item.time}|${item.label}`;
     row.dataset.time = item.time;
+    row.dataset.timeMinutes = String(item.timeMinutes ?? '');
     row.dataset.past = String(item.isPast);
     row.dataset.focal = String(item.isFocal);
+    row.style.position = 'absolute';
+    row.style.left = '0';
+    row.style.right = '0';
 
     const time = document.createElement('div');
     time.className = 'today-time';
@@ -167,4 +173,53 @@ function renderTodayList(dom, vm) {
     row.appendChild(label);
     dom.todayEvents.appendChild(row);
   }
+}
+
+/**
+ * Render countdown as semantic tokens so numbers can be visually emphasized.
+ *
+ * @param {HTMLElement} target
+ * @param {string} countdownText
+ */
+function renderCountdownText(target, countdownText) {
+  const text = String(countdownText || '').trim();
+  target.innerHTML = '';
+  if (!text) return;
+
+  // Examples handled:
+  // "3 hours and 28 minutes to go"
+  // "45 minutes to go"
+  // "1 minute to go"
+  const twoUnitMatch = text.match(
+    /^(\d+)\s+(hour|hours)\s+and\s+(\d+)\s+(minute|minutes)\s+to\s+go$/i
+  );
+  if (twoUnitMatch) {
+    appendToken(target, twoUnitMatch[1], 'count-num');
+    appendToken(target, ` ${twoUnitMatch[2]} `, 'count-unit');
+    appendToken(target, twoUnitMatch[3], 'count-num');
+    appendToken(target, ` ${twoUnitMatch[4]} to go`, 'count-tail');
+    return;
+  }
+
+  const oneUnitMatch = text.match(/^(\d+)\s+(minute|minutes)\s+to\s+go$/i);
+  if (oneUnitMatch) {
+    appendToken(target, oneUnitMatch[1], 'count-num');
+    appendToken(target, ` ${oneUnitMatch[2]} to go`, 'count-tail');
+    return;
+  }
+
+  // Fallback to plain content if the format evolves.
+  target.textContent = text;
+}
+
+/**
+ * @param {HTMLElement} target
+ * @param {string} text
+ * @param {string} className
+ */
+function appendToken(target, text, className) {
+  const span = document.createElement('span');
+  span.className = className;
+  span.textContent = text;
+  target.appendChild(span);
 }
