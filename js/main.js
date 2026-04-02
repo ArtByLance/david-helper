@@ -49,6 +49,7 @@ import {
   minutesToShortDisplay
 } from './utils.js';
 import { renderView } from './render.js';
+import { renderExitPrompt } from './exit-prompt.js';
 import {
   fitStageToViewport,
   layoutTodayEvents,
@@ -115,6 +116,7 @@ function updateScreen() {
 
   const viewModel = buildViewModel(now, config, todaySchedule.events, focalState, progressFraction);
   renderView(viewModel);
+  renderExitPrompt(viewModel.topPrompt);
 
   // Measure after render so row positions are current.
   requestAnimationFrame(() => {

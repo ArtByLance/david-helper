@@ -85,7 +85,7 @@ select {
   line-height: 0.96;
   font-weight: 900;
   letter-spacing: 0.5px;
-  color: var(--color-day);
+  color: var(--color-today-panel-border);
   text-transform: uppercase;
 }
 
@@ -94,7 +94,7 @@ select {
   line-height: 1.08;
   font-weight: 600;
   letter-spacing: 0.1px;
-  color: #6c7075;
+  color: var(--color-today-panel-border);
   margin-left: 6px;
   text-transform: uppercase;
 }
@@ -104,18 +104,32 @@ select {
   line-height: 1.08;
   font-weight: 600;
   letter-spacing: 0.1px;
-  color: #6c7075;
+  color: var(--color-today-panel-border);
   margin-left: 6px;
   text-transform: uppercase;
 }
 
 #top-prompt {
-  font-size: 20px;
+  width: 842px;
+  height: 118px;
+  padding: 0;
+  background: #2fb24f;
+  color: #ffffff;
+  font-size: 40px;
   line-height: 1;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  color: var(--color-prompt);
-  text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: 0.1px;
+  text-transform: none;
+  display: block;
+  overflow: hidden;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#top-prompt .prompt-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* NEXT Card */
@@ -127,6 +141,7 @@ select {
   font-weight: 800;
   letter-spacing: 0.4px;
   text-transform: uppercase;
+  padding-top: 5px;
 }
 
 #next-card {
@@ -220,6 +235,7 @@ select {
   font-weight: 800;
   color: var(--color-help1);
   text-transform: uppercase;
+  white-space: pre-line;
 }
 
 #help2 {
@@ -228,6 +244,7 @@ select {
   font-weight: 500;
   color: var(--color-help2);
   text-transform: uppercase;
+  white-space: pre-line;
 }
 
 /* Clock */
@@ -248,39 +265,10 @@ select {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
 }
 
-.clock-time-strip {
-  display: grid;
-  grid-template-columns: 96px 24px 96px;
-  align-items: center;
-  column-gap: 12px;
-  justify-content: center;
-}
-
-.clock-time-strip.clock-single-hour {
-  transform: translateX(-24px);
-}
-
-.clock-hours,
-.clock-minutes,
-.clock-colon {
+#led-clock .clock-canvas {
   display: block;
-  line-height: 1;
-}
-
-.clock-hours {
-  width: 96px;
-  text-align: right;
-}
-
-.clock-colon {
-  width: 24px;
-  text-align: center;
-  transform: translateY(-1px);
-}
-
-.clock-minutes {
-  width: 96px;
-  text-align: left;
+  width: 100%;
+  height: 100%;
 }
 
 #timeline-line {
@@ -296,6 +284,7 @@ select {
   font-weight: 800;
   letter-spacing: 0.2px;
   text-transform: uppercase;
+  padding-top: 5px;
 }
 
 #today-panel {

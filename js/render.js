@@ -16,7 +16,6 @@ function getDom(root = document) {
     dayLabel: root.getElementById('day-label'),
     dateLabel: root.getElementById('date-label'),
     locationLabel: root.getElementById('location-label'),
-    topPrompt: root.getElementById('top-prompt'),
 
     nextLabel: root.getElementById('next-label'),
     nextTime: root.getElementById('next-time'),
@@ -57,7 +56,6 @@ function renderHeader(dom, vm) {
   dom.dayLabel.textContent = vm.dayLabel;
   dom.dateLabel.textContent = vm.dateLabel;
   dom.locationLabel.textContent = vm.locationLabel;
-  dom.topPrompt.textContent = vm.topPrompt;
 }
 
 /**
@@ -109,34 +107,108 @@ function renderClock(dom, vm) {
   const [rawHours = '', rawMinutes = ''] = rawClock.split(':');
   const hours = (rawHours.trim().replace(/^0+(?=\d)/, '') || '0').slice(-2);
   const minutes = rawMinutes.trim().padStart(2, '0').slice(-2);
+  drawLedClock(dom.ledClock, hours, minutes);
+  dom.ledClock.setAttribute('aria-label', `Current time ${hours}:${minutes}`);
+}
 
-  const clockStrip = document.createElement('div');
-  clockStrip.className = 'clock-time-strip';
-  if (hours.length === 1) {
-    clockStrip.classList.add('clock-single-hour');
+/**
+ * Draw clock text in canvas using actual glyph bounds so spacing is based
+ * on the rendered character edges instead of DOM text boxes.
+ *
+ * @param {HTMLElement} host
+ * @param {string} hours
+ * @param {string} minutes
+ */
+function drawLedClock(host, hours, minutes) {
+  if (!host) return;
+
+  const text = `${hours}:${minutes}`;
+  let canvas = host.querySelector('canvas.clock-canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'clock-canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    host.innerHTML = '';
+    host.appendChild(canvas);
   }
 
-  const hourGroup = document.createElement('span');
-  hourGroup.className = 'clock-hours';
-  hourGroup.textContent = hours;
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const width = Math.max(1, Math.round(host.clientWidth));
+  const height = Math.max(1, Math.round(host.clientHeight));
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
 
-  const separatorGroup = document.createElement('span');
-  separatorGroup.className = 'clock-colon';
-  separatorGroup.setAttribute('aria-hidden', 'true');
-  separatorGroup.textContent = ':';
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
 
-  const minuteGroup = document.createElement('span');
-  minuteGroup.className = 'clock-minutes';
-  minuteGroup.textContent = minutes;
+  const style = getComputedStyle(host);
+  const fontSize = style.fontSize || '84px';
+  const fontWeight = style.fontWeight || '700';
+  const fontFamily = style.fontFamily || 'sans-serif';
+  const fontSizePx = Number.parseFloat(fontSize) || 84;
+  const contentScale = 0.75; // Shrink the number container by 25%.
+  const scaledFontPx = Math.max(1, fontSizePx * contentScale);
+  ctx.font = `${fontWeight} ${scaledFontPx}px ${fontFamily}`;
+  ctx.fillStyle = style.color || '#ff1f1f';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
 
-  clockStrip.appendChild(hourGroup);
-  clockStrip.appendChild(separatorGroup);
-  clockStrip.appendChild(minuteGroup);
+  const chars = text.split('');
+  const glyphs = chars.map((char) => {
+    const m = ctx.measureText(char);
+    const left = Number.isFinite(m.actualBoundingBoxLeft) ? m.actualBoundingBoxLeft : 0;
+    const right = Number.isFinite(m.actualBoundingBoxRight) ? m.actualBoundingBoxRight : m.width;
+    const ascent = Number.isFinite(m.actualBoundingBoxAscent)
+      ? m.actualBoundingBoxAscent
+      : scaledFontPx * 0.75;
+    const descent = Number.isFinite(m.actualBoundingBoxDescent)
+      ? m.actualBoundingBoxDescent
+      : scaledFontPx * 0.25;
 
-  // Keep a clean spoken label for assistive technologies.
-  dom.ledClock.setAttribute('aria-label', `Current time ${hours}:${minutes}`);
-  dom.ledClock.innerHTML = '';
-  dom.ledClock.appendChild(clockStrip);
+    return {
+      char,
+      left,
+      right,
+      ascent,
+      descent,
+      inkWidth: Math.max(0, left + right)
+    };
+  });
+
+  // Smaller gap between regular digits, equal and slightly larger gap around colon.
+  const digitGap = Math.round(21 * contentScale);
+  const colonGap = Math.round(24 * contentScale);
+  let xInk = 0;
+  for (let i = 0; i < glyphs.length; i += 1) {
+    const g = glyphs[i];
+    g.inkLeft = xInk;
+    g.originX = g.inkLeft + g.left;
+    g.inkRight = g.inkLeft + g.inkWidth;
+
+    if (i < glyphs.length - 1) {
+      const next = glyphs[i + 1];
+      const gap = g.char === ':' || next.char === ':' ? colonGap : digitGap;
+      xInk = g.inkRight + gap;
+    } else {
+      xInk = g.inkRight;
+    }
+  }
+
+  const totalInkWidth = xInk;
+  const offsetX = (width - totalInkWidth) / 2;
+  // Use a stable reference string so vertical centering does not jitter by glyph.
+  const ref = ctx.measureText('88:88');
+  const refAscent = Number.isFinite(ref.actualBoundingBoxAscent) ? ref.actualBoundingBoxAscent : scaledFontPx * 0.75;
+  const refDescent = Number.isFinite(ref.actualBoundingBoxDescent) ? ref.actualBoundingBoxDescent : scaledFontPx * 0.25;
+  const baselineY = (height - (refAscent + refDescent)) / 2 + refAscent;
+
+  for (const g of glyphs) {
+    ctx.fillText(g.char, offsetX + g.originX, baselineY);
+  }
 }
 
 /**

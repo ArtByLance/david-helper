@@ -4,7 +4,7 @@
   "dayStartHour": 5,
   "dayEndHour": 21,
   "defaultHoldMinutes": 15,
-  "topPrompt": "PRESS HOME OR BACK",
+  "topPrompt": "FOR TV SAY  “ <b>COMPUTER HOME</b> ”",
   "theme": {
     "bg": "#dbe4ef",
     "nextAccent": "#ff1a1a",

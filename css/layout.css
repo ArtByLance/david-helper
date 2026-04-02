@@ -53,14 +53,15 @@
   --main-top-gap: 10px;
   --section-gap: 20px;
   --timeline-lane-offset-y: -180px;
+  --right-cluster-nudge-y: 72px;
 
   /* Main composition widths */
   --next-width: 760px;
-  --clock-width: 280px;
-  --today-width: 690px;
+  --clock-width: 252px;
+  --today-width: 621px;
 
   /* Shared panel system */
-  --panel-radius: 30px;
+  --panel-radius: 55px;
   --panel-border-width: 15px;
   --tab-radius: 22px 22px 0 0;
 
@@ -75,8 +76,10 @@
 
   /* NEXT badge */
   --next-badge-width: 160px;
-  --next-badge-height: 74px;
+  --next-badge-height: 59px;
   --next-badge-radius: var(--tab-radius);
+  --next-tab-offset-x: 50px;
+  --next-tab-top-offset-y: 15px;
 
   /* Status area inside NEXT card */
   --status-gap: 18px;
@@ -96,31 +99,33 @@
   --help-top-gap: 20px;
 
   /* Clock lane */
-  --clock-width-px: 324px;
-  --clock-height-px: 182px;
+  --clock-width-px: 292px;
+  --clock-height-px: 131px;
   --clock-left: -2px;
 
   --line-thickness: 8px;
 
   /* TODAY panel */
-  --today-tab-width: 190px;
-  --today-tab-height: 74px;
+  --today-tab-width: 171px;
+  --today-tab-height: 53px;
   --today-tab-radius: var(--tab-radius);
-  --today-tab-offset-x: 38px;
+  --today-tab-offset-x: 50px;
+  --today-tab-top-offset-y: 15px;
+  --today-section-nudge-y: 0px;
   --today-shift-right: 42px;
-  --today-overhang-right: 92px;
-  --today-overhang-bottom: 74px;
+  --today-overhang-right: 170px;
+  --today-overhang-bottom: 170px;
 
   --today-panel-radius: var(--panel-radius);
   --today-panel-border: var(--panel-border-width);
-  --today-panel-min-height: 916px;
-  --today-panel-padding-top: 102px;
+  --today-panel-min-height: 824px;
+  --today-panel-padding-top: 92px;
   --today-panel-padding-x: 18px;
-  --today-panel-padding-bottom: 52px;
+  --today-panel-padding-bottom: 47px;
   --today-row-gap: 34px;
-  --today-time-col: 150px;
-  --today-row-min-height: 50px;
-  --today-col-gap: 25px;
+  --today-time-col: 135px;
+  --today-row-min-height: 45px;
+  --today-col-gap: 23px;
 }
 
 * {
@@ -176,8 +181,10 @@ body {
 }
 
 #top-prompt {
-  margin-top: 18px;
-  margin-right: 12px;
+  position: absolute;
+  top: calc(var(--stage-padding-top) * -1);
+  right: calc(var(--stage-padding-x) * -1);
+  z-index: 5;
 }
 
 /* Main Columns */
@@ -200,13 +207,13 @@ body {
   flex-direction: column;
   align-items: flex-start;
   margin-top: 40px;
-  padding-top: var(--next-badge-height);
+  padding-top: calc(var(--next-badge-height) + var(--next-tab-top-offset-y));
 }
 
 #next-badge {
   position: absolute;
-  top: 0;
-  left: 24px;
+  top: var(--next-tab-top-offset-y);
+  left: var(--next-tab-offset-x);
   width: var(--next-badge-width);
   height: var(--next-badge-height);
   border-radius: var(--next-badge-radius);
@@ -281,7 +288,7 @@ body {
 #clock-section {
   position: relative;
   min-height: 900px;
-  margin-top: var(--timeline-lane-offset-y);
+  margin-top: calc(var(--timeline-lane-offset-y) + var(--right-cluster-nudge-y));
 }
 
 #led-clock {
@@ -316,7 +323,9 @@ body {
 #today-section {
   position: relative;
   min-height: 960px;
-  margin-top: var(--timeline-lane-offset-y);
+  margin-top: calc(
+    var(--timeline-lane-offset-y) + var(--right-cluster-nudge-y) + var(--today-section-nudge-y)
+  );
   margin-left: var(--today-shift-right);
   margin-right: calc(var(--today-overhang-right) * -1);
   margin-bottom: calc(var(--today-overhang-bottom) * -1);
@@ -324,7 +333,7 @@ body {
 
 #today-tab {
   position: absolute;
-  top: 0;
+  top: var(--today-tab-top-offset-y);
   left: var(--today-tab-offset-x);
   width: var(--today-tab-width);
   height: var(--today-tab-height);
@@ -335,7 +344,7 @@ body {
 }
 
 #today-panel {
-  margin-top: var(--today-tab-height);
+  margin-top: calc(var(--today-tab-height) + var(--today-tab-top-offset-y));
   width: calc(100% + var(--today-overhang-right));
   border-radius: var(--today-panel-radius);
   min-height: calc(var(--today-panel-min-height) + var(--today-overhang-bottom));
