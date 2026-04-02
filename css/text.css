@@ -37,12 +37,8 @@
 
 :root {
   --color-day: #000000;
-  --color-date: #0a0a0a;
-  --color-location: #0a0a0a;
   --color-prompt: #66727f;
 
-  --color-next-accent: #ff1f1f;
-  --color-next-badge-bg: #ff1f1f;
   --color-next-badge-text: #ffffff;
   --color-next-card-bg: #f6f6f6;
   --color-next-card-border: #ff1f1f;
@@ -62,16 +58,13 @@
   --color-clock-bg: #050505;
   --color-clock-text: #ff1f1f;
   --color-clock-border: #161616;
-  --color-line: rgba(255, 59, 59, 0.56);
+  --color-line: rgba(0, 0, 0, 0.14);
 
   --color-today-accent: #1f7edc;
-  --color-today-tab-bg: #1f7edc;
   --color-today-tab-text: #ffffff;
   --color-today-panel-bg: #f5f5f5;
   --color-today-panel-border: #1f7edc;
-  --color-today-time: #7d7d7d;
   --color-today-label: #000000;
-  --color-today-highlight: #000000;
 
   --font-family-main: Arial, 'Helvetica Neue', Helvetica, sans-serif;
   --font-family-led: 'DSEG7ClassicMini', 'Courier New', Courier, monospace;
@@ -86,6 +79,7 @@ select {
   font-family: var(--font-family-main);
 }
 
+/* Header Text */
 #day-label {
   font-size: 90px;
   line-height: 0.96;
@@ -98,18 +92,20 @@ select {
 #date-label {
   font-size: 32px;
   line-height: 1.08;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.1px;
-  color: var(--color-date);
+  color: #6c7075;
+  margin-left: 6px;
   text-transform: uppercase;
 }
 
 #location-label {
   font-size: 32px;
   line-height: 1.08;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.1px;
-  color: var(--color-location);
+  color: #6c7075;
+  margin-left: 6px;
   text-transform: uppercase;
 }
 
@@ -122,8 +118,9 @@ select {
   text-transform: uppercase;
 }
 
+/* NEXT Card */
 #next-badge {
-  background: var(--color-next-badge-bg);
+  background: var(--color-next-card-border);
   color: var(--color-next-badge-text);
   font-size: 36px;
   line-height: 1;
@@ -135,13 +132,13 @@ select {
 #next-card {
   background: var(--color-next-card-bg);
   color: var(--color-next-card-text);
-  border: 7px solid var(--color-next-card-border);
+  border: var(--next-card-border) solid var(--color-next-card-border);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
 #next-label {
   width: 100%;
-  font-size: 88px;
+  font-size: 62px;
   line-height: 0.98;
   font-weight: 800;
   text-transform: uppercase;
@@ -151,10 +148,10 @@ select {
 }
 
 #next-time {
-  margin-top: 10px;
-  font-size: 30px;
+  margin-top: 8px;
+  font-size: 45px;
   line-height: 1;
-  font-weight: 500;
+  font-weight: 800;
   letter-spacing: 0.1px;
   text-transform: uppercase;
   text-align: left;
@@ -162,16 +159,44 @@ select {
 }
 
 #countdown-text {
-  font-size: 34px;
-  line-height: 1.04;
+  font-size: 30px;
+  line-height: 1;
   font-weight: 800;
   color: var(--color-countdown);
   text-align: center;
-  text-transform: uppercase;
+  text-transform: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+#countdown-text .count-num {
+  font-size: 62px;
+  line-height: 0.9;
+  font-weight: 900;
+  color: var(--color-countdown);
+}
+
+#countdown-text .count-unit {
+  font-size: 35px;
+  line-height: 1;
+  font-weight: 600;
+  color: #ff6161;
+}
+
+#countdown-text .count-tail {
+  font-size: 35px;
+  line-height: 1;
+  font-weight: 700;
+  color: #ff6161;
 }
 
 #progress-shell {
   background: var(--color-progress-shell);
+  display: flex;
+  justify-content: flex-end;
 }
 
 #progress-fill {
@@ -190,7 +215,7 @@ select {
 }
 
 #help1 {
-  font-size: 28px;
+  font-size: 39px;
   line-height: 1.12;
   font-weight: 800;
   color: var(--color-help1);
@@ -198,13 +223,14 @@ select {
 }
 
 #help2 {
-  font-size: 26px;
+  font-size: 34px;
   line-height: 1.14;
   font-weight: 500;
   color: var(--color-help2);
   text-transform: uppercase;
 }
 
+/* Clock */
 #led-clock {
   --clock-scale-y: 1.25;
   background: var(--color-clock-bg);
@@ -261,8 +287,9 @@ select {
   background: var(--color-line);
 }
 
+/* TODAY Panel */
 #today-tab {
-  background: var(--color-today-tab-bg);
+  background: var(--color-today-panel-border);
   color: var(--color-today-tab-text);
   font-size: 38px;
   line-height: 1;
@@ -274,24 +301,38 @@ select {
 #today-panel {
   background: var(--color-today-panel-bg);
   color: var(--color-today-label);
-  border: 8px solid var(--color-today-panel-border);
+  border: var(--today-panel-border) solid var(--color-today-panel-border);
 }
 
+/* TODAY Rows */
 .today-time {
-  font-size: 34px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: var(--today-time-col);
+  transform: translateY(-50%);
+  font-size: 35px;
   line-height: 1;
   font-weight: 500;
-  color: var(--color-today-time);
+  color: #808080;
+  text-align: right;
 }
 
 .today-label {
-  font-size: 34px;
+  position: absolute;
+  top: 50%;
+  left: calc(var(--today-time-col) + var(--today-col-gap));
+  right: 0;
+  transform: translateY(-50%);
+  font-size: 46px;
   line-height: 1;
-  font-weight: 500;
-  color: var(--color-today-label);
+  font-weight: 800;
+  color: var(--color-today-accent);
+  text-align: left;
 }
 
-.today-event-row[data-focal='true'] .today-time,
+/* Non-past and focal labels intentionally share the same blue accent. */
+.today-event-row[data-past='false'] .today-label,
 .today-event-row[data-focal='true'] .today-label {
-  color: var(--color-today-highlight);
+  color: var(--color-today-panel-border);
 }

@@ -59,24 +59,29 @@
   --clock-width: 280px;
   --today-width: 690px;
 
+  /* Shared panel system */
+  --panel-radius: 30px;
+  --panel-border-width: 15px;
+  --tab-radius: 22px 22px 0 0;
+
   /* NEXT card */
   --next-card-width: 720px;
-  --next-card-min-height: 410px;
-  --next-card-radius: 22px;
-  --next-card-border: 7px;
+  --next-card-height: 510px;
+  --next-card-radius: var(--panel-radius);
+  --next-card-border: var(--panel-border-width);
   --next-card-padding-top: 74px;
   --next-card-padding-x: 42px;
-  --next-card-padding-bottom: 34px;
+  --next-card-padding-bottom: 54px;
 
   /* NEXT badge */
   --next-badge-width: 160px;
   --next-badge-height: 74px;
-  --next-badge-radius: 20px 20px 0 0;
-  --next-badge-overlap: 18px;
+  --next-badge-radius: var(--tab-radius);
 
   /* Status area inside NEXT card */
   --status-gap: 18px;
-  --progress-width: 530px;
+  --status-block-height: 166px;
+  --progress-width: 500px;
   --progress-height: 42px;
   --progress-radius: 2px;
   --progress-fill-inset-y: 0px;
@@ -84,7 +89,7 @@
 
   --hs-pill-width: 470px;
   --hs-pill-height: 104px;
-  --hs-pill-radius: 22px;
+  --hs-pill-radius: var(--panel-radius);
 
   /* Help text */
   --help-width: 720px;
@@ -93,36 +98,36 @@
   /* Clock lane */
   --clock-width-px: 324px;
   --clock-height-px: 182px;
-  --clock-left: 8px;
+  --clock-left: -2px;
 
-  --line-thickness: 18px;
-  --line-right-overhang: -18px;
+  --line-thickness: 8px;
 
   /* TODAY panel */
   --today-tab-width: 190px;
   --today-tab-height: 74px;
-  --today-tab-radius: 20px 20px 0 0;
+  --today-tab-radius: var(--tab-radius);
   --today-tab-offset-x: 38px;
-  --today-shift-right: 52px;
+  --today-shift-right: 42px;
   --today-overhang-right: 92px;
   --today-overhang-bottom: 74px;
 
-  --today-panel-radius: 30px;
-  --today-panel-border: 8px;
+  --today-panel-radius: var(--panel-radius);
+  --today-panel-border: var(--panel-border-width);
   --today-panel-min-height: 916px;
   --today-panel-padding-top: 102px;
-  --today-panel-padding-x: 48px;
+  --today-panel-padding-x: 18px;
   --today-panel-padding-bottom: 52px;
   --today-row-gap: 34px;
-  --today-time-col: 142px;
+  --today-time-col: 150px;
   --today-row-min-height: 50px;
-  --today-col-gap: 28px;
+  --today-col-gap: 25px;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* Stage Shell */
 html,
 body {
   width: 100%;
@@ -152,6 +157,7 @@ body {
   background: #d7e0ea;
 }
 
+/* Header */
 #header {
   position: absolute;
   inset: 0 0 auto 0;
@@ -174,6 +180,7 @@ body {
   margin-right: 12px;
 }
 
+/* Main Columns */
 #main-layout {
   position: absolute;
   top: calc(var(--stage-padding-top) + var(--header-height) + var(--main-top-gap));
@@ -186,11 +193,13 @@ body {
   align-items: start;
 }
 
+/* NEXT Column */
 #next-section {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  margin-top: 40px;
   padding-top: var(--next-badge-height);
 }
 
@@ -209,7 +218,7 @@ body {
 #next-card {
   position: relative;
   width: var(--next-card-width);
-  min-height: var(--next-card-min-height);
+  height: var(--next-card-height);
   border-radius: var(--next-card-radius);
   padding: var(--next-card-padding-top) var(--next-card-padding-x)
     var(--next-card-padding-bottom);
@@ -221,10 +230,11 @@ body {
 #status-area {
   width: 100%;
   margin-top: 34px;
+  min-height: var(--status-block-height);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: var(--status-gap);
 }
 
@@ -267,6 +277,7 @@ body {
   display: none;
 }
 
+/* Clock Lane */
 #clock-section {
   position: relative;
   min-height: 900px;
@@ -301,6 +312,7 @@ body {
   z-index: 2;
 }
 
+/* TODAY Column */
 #today-section {
   position: relative;
   min-height: 960px;
@@ -331,19 +343,15 @@ body {
     var(--today-panel-padding-bottom);
 }
 
+/* TODAY Rows (absolutely positioned by JS) */
 #today-events {
-  display: flex;
-  flex-direction: column;
-  gap: var(--today-row-gap);
   position: relative;
 }
 
 .today-event-row {
+  position: relative;
+  height: var(--today-row-min-height);
   min-height: var(--today-row-min-height);
-  display: grid;
-  grid-template-columns: var(--today-time-col) 1fr;
-  align-items: center;
-  column-gap: var(--today-col-gap);
 }
 
 .today-event-row[data-past='true'] {
