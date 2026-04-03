@@ -1,3 +1,8 @@
+/*
+  ============================================================
+  STAGE TOKENS
+  ============================================================
+*/
 :root {
   --stage-width: 1920;
   --stage-height: 1080;
@@ -43,16 +48,17 @@
   --clock-scale-y: 1.06;
 
   --encouragement-note-x: 500px;
-  --encouragement-note-y: 935px;
+  --encouragement-note-y: 915px;
   --encouragement-note-w: 360px;
   --encouragement-note-h: 145px;
   --encouragement-note-rotate: -6deg;
 
   /* NOW pointer image (tracks schedule Y) */
-  --now-flag-x: 1136px;
-  --now-flag-local-x: -83px;
-  --now-flag-w: 194px;
-  --now-flag-h: 82px;
+  --now-flag-local-x: -130px;
+  --now-flag-local-y: -25px;
+  --now-flag-rotate: 8deg;
+  --now-flag-w: 252px;
+  --now-flag-h: 107px;
 
   /* NEXT content geometry */
   --next-title-x: 30px;
@@ -72,6 +78,11 @@
   --today-row-min-height: 46px;
 }
 
+/*
+  ============================================================
+  PAGE SHELL
+  ============================================================
+*/
 * {
   box-sizing: border-box;
 }
@@ -105,7 +116,21 @@ body {
   background: #d7e0ea url("../assets/desk-scene.jpg") center / cover no-repeat;
 }
 
-/* Header / plaque / prompt */
+/*
+  ============================================================
+  MAIN STAGE LAYER
+  ============================================================
+*/
+#main-layout {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+  ============================================================
+  PLAQUE SURFACE
+  ============================================================
+*/
 #header {
   position: absolute;
   inset: 0;
@@ -126,12 +151,11 @@ body {
     scale(var(--plaque-scale-x), var(--plaque-scale-y));
 }
 
-/* Free-positioned stage groups */
-#main-layout {
-  position: absolute;
-  inset: 0;
-}
-
+/*
+  ============================================================
+  NEXT CARD SURFACE
+  ============================================================
+*/
 #next-section {
   position: absolute;
   left: var(--next-surface-x);
@@ -139,10 +163,6 @@ body {
   width: var(--next-surface-w);
   height: var(--next-surface-h);
   z-index: 4;
-}
-
-#next-badge {
-  display: none;
 }
 
 #next-surface-group {
@@ -160,20 +180,20 @@ body {
   padding: 0;
 }
 
-#next-group1 {
+#next-title-group {
   position: absolute;
   left: var(--next-title-x);
   top: var(--next-title-y);
 }
 
-#next-group2 {
+#next-help-group {
   position: absolute;
   left: var(--help-x);
   top: var(--help-y);
   width: 890px;
 }
 
-#next-group3 {
+#next-status-group {
   position: absolute;
   left: var(--next-status-x);
   top: var(--next-status-y);
@@ -182,7 +202,7 @@ body {
   transform: scale(0.75);
 }
 
-#next-group4 {
+#next-sticker-group {
   position: absolute;
   left: var(--hs-sticker-center-x);
   top: var(--hs-sticker-center-y);
@@ -200,27 +220,28 @@ body {
   gap: 10px;
 }
 
+#time-left-label {
+  position: absolute;
+  top: -60px;
+  right: 0;
+  pointer-events: none;
+}
+
 #progress-shell {
   position: relative;
-  width: 430px;
-  height: 34px;
+  width: 85%;
+  height: 66px;
+  margin-top: 0px;
   overflow: hidden;
 }
 
 #progress-fill {
   position: absolute;
-  right: 0;
-  top: 0;
+  right: 9px;
+  top: 9px;
   width: 0%;
-  height: 100%;
+  height: calc(100% - 18px);
   transition: width 700ms ease;
-}
-
-#happening-soon-pill {
-  width: 430px;
-  height: 84px;
-  display: grid;
-  place-items: center;
 }
 
 #help-text {
@@ -237,6 +258,11 @@ body {
   display: none;
 }
 
+/*
+  ============================================================
+  CLOCK SURFACE
+  ============================================================
+*/
 #clock-section {
   position: absolute;
   left: 0;
@@ -261,6 +287,11 @@ body {
   z-index: 3;
 }
 
+/*
+  ============================================================
+  ENCOURAGEMENT NOTE SURFACE
+  ============================================================
+*/
 #encouragement-note-section {
   position: absolute;
   left: var(--encouragement-note-x);
@@ -272,6 +303,11 @@ body {
   z-index: 2;
 }
 
+/*
+  ============================================================
+  SCHEDULE SURFACE
+  ============================================================
+*/
 #timeline-line {
   position: absolute;
   left: var(--now-flag-local-x);
@@ -290,10 +326,6 @@ body {
   width: var(--schedule-w);
   height: var(--schedule-h);
   z-index: 1;
-}
-
-#today-tab {
-  display: none;
 }
 
 #today-text-group {
@@ -347,6 +379,11 @@ body {
   white-space: nowrap;
 }
 
+/*
+  ============================================================
+  GLOBAL UTILITIES
+  ============================================================
+*/
 .hidden {
   display: none !important;
 }

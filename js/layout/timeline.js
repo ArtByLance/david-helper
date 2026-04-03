@@ -61,6 +61,11 @@ export function positionTimeline(targetY) {
   const stage = document.getElementById("tv-stage");
 
   if (!line || !scheduleGroup || !stage) return;
+  const rootStyle = getComputedStyle(document.documentElement);
+  const localYOffset =
+    Number.parseFloat(rootStyle.getPropertyValue("--now-flag-local-y")) || 0;
+  const localRotate =
+    rootStyle.getPropertyValue("--now-flag-rotate").trim() || "0deg";
   const groupRect = scheduleGroup.getBoundingClientRect();
   const stageRect = stage.getBoundingClientRect();
   const halfFlag = line.offsetHeight / 2;
@@ -72,9 +77,9 @@ export function positionTimeline(targetY) {
     stageRect.bottom - groupRect.top - halfFlag,
   );
   const clampedCenterY = clamp(targetY, minCenterY, maxCenterY);
-  const lineOffset = clampedCenterY - halfFlag;
+  const lineOffset = clampedCenterY - halfFlag + localYOffset;
 
-  line.style.transform = `translateY(${lineOffset}px) rotate(5deg)`;
+  line.style.transform = `translateY(${lineOffset}px) rotate(${localRotate})`;
 }
 
 function toEventKey(event) {

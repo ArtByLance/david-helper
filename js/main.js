@@ -2,30 +2,16 @@
  * main.js
  * =======
  *
- * Entry point and orchestration.
+ * This is the front door.
  *
- * Responsibilities
- * ----------------
- * - load data files
- * - build today's merged schedule
- * - compute the live view model
- * - render the screen
- * - measure rows and position the clock/line
- * - refresh every configured number of seconds
- * - rescale the TV stage when the browser window changes
+ * When the page wakes up, this file:
+ * - loads the data
+ * - figures out what matters right now
+ * - asks the renderer to paint it
+ * - keeps everything refreshed on a gentle timer
  *
- * Suggested local workflow
- * ------------------------
- * 1) Start a local server in the project root
- *      python3 -m http.server 8000
- *
- * 2) Open the app
- *      http://localhost:8000
- *
- * 3) Test a fake moment in time
- *      http://localhost:8000/?debugNow=2026-04-01T11:32:00
- *
- * 4) Keep VS Code Live Server or manual refresh running while tweaking layout
+ * If you are poking around later and wondering "where does the app actually
+ * start?", this is the answer.
  */
 
 import {
@@ -38,16 +24,8 @@ import {
   getNow,
   getFocalState,
   getProgressFraction,
-  formatNextTimeLabel,
   isWithinActiveDayWindow,
 } from "./time.js";
-import {
-  formatClock,
-  formatDateLabel,
-  formatDayLabel,
-  formatCountdown,
-  minutesToShortDisplay,
-} from "./utils.js";
 import { renderView } from "./render.js";
 import {
   fitStageToViewport,
@@ -55,7 +33,7 @@ import {
   getTargetY,
   positionTimeline,
 } from "./layout.js";
-import { getEncouragementPhrase } from "./encouragement-note.js";
+import { buildViewModel } from "./view-model.js";
 
 let appState = null;
 let tickHandle = null;
@@ -89,6 +67,8 @@ async function bootstrap() {
       todaySchedule,
     };
 
+    // Make the 1920x1080 stage behave nicely inside whatever browser window
+    // we happen to be using today.
     fitStageToViewport();
     updateScreen();
     startTickLoop(config.tickSeconds);
@@ -99,7 +79,11 @@ async function bootstrap() {
 }
 
 /**
- * Recompute the screen for the current moment and render it.
+ * Recompute the whole screen for "right now".
+ *
+ * In plain English:
+ * check the current time, decide what David should see, render it, then nudge
+ * the NOW pointer into the correct row after the DOM has its fresh layout.
  */
 function updateScreen() {
   if (!appState) return;
@@ -121,14 +105,14 @@ function updateScreen() {
 
   const viewModel = buildViewModel(
     now,
-    config,
     todaySchedule.events,
     focalState,
     progressFraction,
   );
   renderView(viewModel);
 
-  // Measure after render so row positions are current.
+  // We wait one frame so the browser has already placed the rows.
+  // Otherwise we'd be measuring yesterday's furniture arrangement.
   requestAnimationFrame(() => {
     const rowMap = layoutTodayEvents(viewModel.todayEvents);
     const targetY = getTargetY(
@@ -146,102 +130,11 @@ function updateScreen() {
 }
 
 /**
- * Convert raw app state into one clean view model for render.js.
- *
- * @param {Date} now
- * @param {any} config
- * @param {any[]} events
- * @param {any} focalState
- * @param {number} progressFraction
- * @returns {any}
- */
-function buildViewModel(now, config, events, focalState, progressFraction) {
-  const focalRaw = focalState.focalEvent;
-  const focalCluster = focalRaw
-    ? events.filter((event) => event.timeMinutes === focalRaw.timeMinutes)
-    : [];
-  const focal = focalCluster.length
-    ? choosePrimaryEvent(focalCluster)
-    : focalRaw;
-  const secondaryClusterItems = focalCluster.filter(
-    (event) =>
-      focal && !(event.time === focal.time && event.label === focal.label),
-  );
-  const showHappeningSoon =
-    focalState.state === "happeningSoon" && Boolean(focal);
-  const showCountdown = focalState.state === "countdown" && Boolean(focal);
-  const passedEventCount = events.filter(
-    (event) => event.timeMinutes < focalState.nowMinutes,
-  ).length;
-
-  return {
-    dayLabel: formatDayLabel(now),
-    dateLabel: formatDateLabel(now),
-    locationLabel: config.locationName,
-
-    nextLabel: focal?.label?.toUpperCase?.() ?? "",
-    nextTime: focal ? formatNextTimeLabel(focal.time) : "",
-    nextSecondary:
-      secondaryClusterItems.length > 0
-        ? `ALSO: ${secondaryClusterItems[0].label.toUpperCase()}`
-        : "",
-
-    state: focalState.state,
-    countdownText: showCountdown
-      ? formatCountdown(focalState.minutesUntilStart)
-      : "",
-    progressFraction,
-    showProgress: showCountdown,
-    showHappeningSoon,
-
-    help1: focal?.help1 ?? "",
-    help2: focal?.help2 ?? "",
-    encouragementNote: getEncouragementPhrase(passedEventCount),
-
-    clockText: formatClock(now),
-
-    todayEvents: events.map((event) => ({
-      eventKey: `${event.time}|${event.label}`,
-      time: event.time,
-      timeMinutes: event.timeMinutes,
-      timeDisplay: minutesToShortDisplay(event.timeMinutes),
-      label: event.label,
-      isPast: event.timeMinutes < focalState.nowMinutes && event !== focal,
-      isFocal: Boolean(focal) && event.timeMinutes === focal.timeMinutes,
-      isClustered: events.some(
-        (other) => other !== event && other.timeMinutes === event.timeMinutes,
-      ),
-    })),
-  };
-}
-
 /**
- * Pick a stable primary event when multiple events share one time.
- * Lower score wins.
+ * Start the refresh loop.
  *
- * @param {any[]} eventsAtSameTime
- * @returns {any}
- */
-function choosePrimaryEvent(eventsAtSameTime) {
-  if (!eventsAtSameTime.length) return null;
-
-  const score = (label) => {
-    const text = String(label || "").toLowerCase();
-    if (/(breakfast|lunch|supper|dinner|meal)/.test(text)) return 0;
-    if (/(medicine|medication|doctor|nurse|care)/.test(text)) return 1;
-    if (/(laundry|bath|bedtime|service|church)/.test(text)) return 2;
-    return 3;
-  };
-
-  return [...eventsAtSameTime].sort((a, b) => {
-    const scoreDiff = score(a.label) - score(b.label);
-    if (scoreDiff !== 0) return scoreDiff;
-    return String(a.label || "").localeCompare(String(b.label || ""));
-  })[0];
-}
-
-/**
- * Start the recurring update timer.
+ * This is intentionally boring: every few seconds, ask the screen to rethink
+ * itself from scratch. For a dashboard this small, boring is a feature.
  *
  * @param {number} tickSeconds
  */
@@ -258,7 +151,11 @@ function stopTickLoop() {
 }
 
 /**
- * Render a very simple visible error if required JSON files fail to load.
+ * Put a big friendly error on the stage if startup falls over.
+ *
+ * The goal here is not "perfect error UX."
+ * The goal is "future us can tell what broke without opening three tabs and
+ * muttering at the ceiling."
  *
  * @param {unknown} error
  */

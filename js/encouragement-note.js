@@ -1,21 +1,25 @@
 const ENCOURAGEMENT_PHRASES = [
-  "Today is going to\n    be a good day!",
-  "God is with me\n    today!",
-  "I can do this,\n    one step at a time.",
-  "Life is good\n    because God is good!",
-  "God loves me\n    today.",
-  "I'm not alone today,\n    God is with me!",
-  "Today I'll just\n    enjoy life.",
-  "Today is\n    a good day.",
-  "I will be\n    thankful today.",
-  "Remember:\n    Pray for your family!",
-  "Rest.\n    Trust God today.",
-  "I am loved\n    today.",
-  "God's got me!",
+  "Today is going to\nbe a good day",
+  "God is with me\ntoday",
+  "I can do this\none step at a time",
+  "Life is good\nbecause God is good",
+  "God loves me\ntoday",
+  "Im not alone today\nGod is with me",
+  "Today Ill just\nenjoy life",
+  "Today is\na good day",
+  "I will be\nthankful today",
+  "Remember\nPray for your family",
+  "Rest\nTrust God today",
+  "I am loved today",
+  "Gods got me",
 ];
 
 /**
- * Cycle through encouragement phrases based on how many events have passed.
+ * Pick today's encouragement note.
+ *
+ * The note advances when another schedule item is behind us.
+ * Once we reach the end of the list, we loop back around instead of trying to
+ * get clever. A simple little wheel is plenty here.
  *
  * @param {number} passedEventCount
  * @returns {string}
@@ -23,5 +27,7 @@ const ENCOURAGEMENT_PHRASES = [
 export function getEncouragementPhrase(passedEventCount) {
   if (!ENCOURAGEMENT_PHRASES.length) return "";
 
-  return "I'm not alone today,\n  God is with me!";
+  const safeCount = Math.max(0, Math.floor(passedEventCount || 0));
+  const index = safeCount % ENCOURAGEMENT_PHRASES.length;
+  return ENCOURAGEMENT_PHRASES[index];
 }

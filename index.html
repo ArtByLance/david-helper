@@ -63,15 +63,13 @@
         <main id="main-layout">
           <section id="next-section" aria-label="Next event panel">
             <div id="next-surface-group">
-              <div id="next-badge">NEXT</div>
-
               <div id="next-card">
-                <div id="next-group1" aria-label="Next title group">
+                <div id="next-title-group" aria-label="Next title group">
                   <div id="next-label">LUNCH</div>
                   <div id="next-time">AT 12:00</div>
                 </div>
 
-                <div id="next-group2" aria-label="Next helper group">
+                <div id="next-help-group" aria-label="Next helper group">
                   <div id="help-text" aria-label="Helper text">
                     <div id="help1">YOU WILL EAT AT 12:00</div>
                     <div id="help2">SOMEONE WILL COME GET YOU BEFORE LUNCH</div>
@@ -79,9 +77,10 @@
                   </div>
                 </div>
 
-                <div id="next-group3" aria-label="Next countdown group">
+                <div id="next-status-group" aria-label="Next countdown group">
                   <div id="status-area">
                     <div id="countdown-text">28 minutes to go</div>
+                    <div id="time-left-label" aria-hidden="true">TIME LEFT</div>
 
                     <div
                       id="progress-shell"
@@ -92,7 +91,7 @@
                   </div>
                 </div>
 
-                <div id="next-group4" aria-label="Next happening soon sticker group">
+                <div id="next-sticker-group" aria-label="Next happening soon sticker group">
                   <img
                     id="happening-soon-sticker"
                     src="./assets/happening-sticker.png"
@@ -113,7 +112,6 @@
           </section>
 
           <section id="today-section" aria-label="Today schedule">
-            <div id="today-tab">TODAY</div>
             <div id="today-text-group">
               <div id="timeline-line" aria-hidden="true"></div>
               <div id="date-label">APRIL 1, 2026</div>

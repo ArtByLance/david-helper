@@ -71,3 +71,13 @@ Supported override buckets:
 - At event time, screen changes to `HAPPENING SOON`
 - Progress bar is hidden during `HAPPENING SOON`
 - Clock and red line move down the TODAY schedule
+
+## Fire TV
+
+There is now a repo-specific Fire TV runbook in [FIRE-TV.md](./FIRE-TV.md).
+
+Short version:
+
+- quickest real-TV test: host this project on your LAN and open it in Web App Tester
+- best first ship path: hosted web app
+- no build step is required right now
