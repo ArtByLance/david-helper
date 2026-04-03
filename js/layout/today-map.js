@@ -1,141 +1,98 @@
 const DAY_START_MINUTES = 5 * 60;
-const DAY_END_MINUTES = 23 * 60;
-const TODAY_INNER_TOP_PAD = 0;
-const TODAY_INNER_BOTTOM_PAD = 90;
-const EVEN_WEIGHT = 0.06;
-const PROPORTIONAL_WEIGHT = 0.94;
-const MIN_VERTICAL_SPACING = 40;
 
 /**
- * Position TODAY rows using a hybrid model:
- * - mostly even list spacing
- * - partly proportional to real time of day
+ * Position TODAY rows as a simple evenly spaced list.
+ * Hybrid/time-weighted spacing is intentionally suspended for this phase.
  *
- * Returns center Y values relative to #today-section.
+ * Returns center Y values relative to #today-text-group.
  *
  * @param {{ eventKey?: string, time: string, timeMinutes?: number, label?: string }[]} todayEvents
  * @returns {Map<string, number>}
  */
 export function layoutTodayEvents(todayEvents) {
   const map = new Map();
-  const section = document.getElementById('today-section');
-  const panel = document.getElementById('today-panel');
-  const container = document.getElementById('today-events');
-  const rows = Array.from(document.querySelectorAll('.today-event-row'));
+  const section = document.getElementById("today-section");
+  const textGroup = document.getElementById("today-text-group");
+  const panel = document.getElementById("today-panel");
+  const container = document.getElementById("today-events");
+  const rows = Array.from(document.querySelectorAll(".today-event-row"));
 
-  if (!section || !panel || !container || !rows.length || !todayEvents?.length) {
+  if (
+    !section ||
+    !textGroup ||
+    !panel ||
+    !container ||
+    !rows.length ||
+    !todayEvents?.length
+  ) {
     return map;
   }
 
-  container.style.position = 'relative';
-  const panelStyle = getComputedStyle(panel);
-  const panelContentHeight = Math.max(
+  container.style.position = "relative";
+  const containerHeight = Math.max(
     1,
-    panel.clientHeight -
-      Number.parseFloat(panelStyle.paddingTop || '0') -
-      Number.parseFloat(panelStyle.paddingBottom || '0')
+    container.clientHeight || panel.clientHeight || section.clientHeight,
   );
-  container.style.height = `${Math.round(panelContentHeight)}px`;
+  container.style.height = `${Math.round(containerHeight)}px`;
 
-  const sectionRect = section.getBoundingClientRect();
+  const groupRect = textGroup.getBoundingClientRect();
+  const stage = document.getElementById("tv-stage");
+  const stageRect = stage ? stage.getBoundingClientRect() : null;
   const panelRect = panel.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
-  const panelTopInSection = panelRect.top - sectionRect.top;
-  const containerTopInSection = containerRect.top - sectionRect.top;
-
-  // Literal anchor targets:
-  // - 5:00 lands on TODAY panel top border
-  // - 23:00 lands on bottom of visible screen section
-  const topAnchorInContainer = panelTopInSection - containerTopInSection;
-  const bottomAnchorInContainer = section.clientHeight - containerTopInSection;
-  const usableTop = topAnchorInContainer + TODAY_INNER_TOP_PAD;
-  const usableBottom = Math.max(usableTop, bottomAnchorInContainer - TODAY_INNER_BOTTOM_PAD);
-  const usableHeight = Math.max(1, usableBottom - usableTop);
-  const dayStartYInSection = containerTopInSection + usableTop;
-
   const points = rows.map((row, index) => {
-    const item = todayEvents[index];
-    const timeMinutes = Number(row.dataset.timeMinutes ?? item?.timeMinutes ?? DAY_START_MINUTES);
     const rowHeight = Math.max(1, row.offsetHeight || 1);
-
-    const proportionalT = clamp(
-      (timeMinutes - DAY_START_MINUTES) / (DAY_END_MINUTES - DAY_START_MINUTES),
-      0,
-      1
-    );
-    const proportionalY = usableTop + proportionalT * usableHeight;
-
-    const evenT = rows.length === 1 ? 0.5 : index / (rows.length - 1);
-    const evenY = usableTop + evenT * usableHeight;
-
+    const t = rows.length === 1 ? 0.5 : index / (rows.length - 1);
+    const targetY = t * containerHeight;
+    const top = targetY - rowHeight / 2;
+    row.style.top = `${Math.round(top)}px`;
     return {
       row,
-      eventKey: row.dataset.eventKey ?? `${row.dataset.time ?? ''}|${item?.label ?? ''}`,
-      time: row.dataset.time ?? item?.time ?? '',
-      rowHeight,
-      targetY: EVEN_WEIGHT * evenY + PROPORTIONAL_WEIGHT * proportionalY
+      eventKey: row.dataset.eventKey ?? "",
+      time: row.dataset.time ?? "",
+      timeMinutes: Number(row.dataset.timeMinutes ?? DAY_START_MINUTES),
+      targetY,
     };
   });
 
-  const maxRowHeight = Math.max(...points.map((point) => point.rowHeight), 1);
-  const minGap = Math.max(MIN_VERTICAL_SPACING, Math.round(maxRowHeight * 0.55));
-
-  for (let index = 1; index < points.length; index += 1) {
-    points[index].targetY = Math.max(
-      points[index].targetY,
-      points[index - 1].targetY + minGap
-    );
-  }
-
-  const overflow = points[points.length - 1].targetY - usableBottom;
-  if (overflow > 0) {
-    for (const point of points) {
-      point.targetY -= overflow;
-    }
-  }
-
-  if (points[0].targetY < usableTop) {
-    const underflow = usableTop - points[0].targetY;
-    for (const point of points) {
-      point.targetY += underflow;
-    }
-  }
-
-  for (let index = points.length - 2; index >= 0; index -= 1) {
-    points[index].targetY = Math.min(
-      points[index].targetY,
-      points[index + 1].targetY - minGap
-    );
-  }
-  for (let index = 1; index < points.length; index += 1) {
-    points[index].targetY = Math.max(
-      points[index].targetY,
-      points[index - 1].targetY + minGap
-    );
-  }
-
+  // Measure final rendered row centers after transforms.
   for (const point of points) {
-    const top = point.targetY - point.rowHeight / 2;
-    point.row.style.top = `${Math.round(top)}px`;
-
-    const yInSection = containerTopInSection + point.targetY;
-    map.set(point.eventKey, yInSection);
-    map.set(point.time, yInSection);
+    const rowRect = point.row.getBoundingClientRect();
+    const yInGroup = rowRect.top - groupRect.top + rowRect.height / 2;
+    if (point.eventKey) map.set(point.eventKey, yInGroup);
+    if (point.time) map.set(point.time, yInGroup);
+    map.set(`__m:${point.timeMinutes}`, yInGroup);
   }
 
-  // Synthetic anchor when we're before the first scheduled event.
-  // This keeps 5:00 behavior stable even without an explicit 5:00 row.
-  map.set('__dayStart', dayStartYInSection);
+  // Time-cluster anchors for shared-time events.
+  const byMinute = new Map();
+  for (const point of points) {
+    const key = `__cluster:${point.timeMinutes}`;
+    if (!byMinute.has(key)) byMinute.set(key, []);
+    byMinute.get(key).push(point);
+  }
+  for (const [key, grouped] of byMinute.entries()) {
+    if (!grouped.length) continue;
+    const ys = [];
+    for (const point of grouped) {
+      const rowRect = point.row.getBoundingClientRect();
+      ys.push(rowRect.top - groupRect.top + rowRect.height / 2);
+    }
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const centerY = ys.reduce((sum, value) => sum + value, 0) / ys.length;
+    const minute = key.replace("__cluster:", "");
+    map.set(key, centerY);
+    map.set(`__clusterStart:${minute}`, minY);
+    map.set(`__clusterEnd:${minute}`, maxY);
+  }
+
+  // Stable time anchors for NOW flag range.
+  const dayStartYInGroup = panelRect.top - groupRect.top;
+  const dayEndYInGroup = stageRect
+    ? stageRect.bottom - groupRect.top
+    : textGroup.clientHeight;
+  map.set("__dayStart", dayStartYInGroup);
+  map.set("__screenBottom", dayEndYInGroup);
 
   return map;
-}
-
-/**
- * @param {number} value
- * @param {number} min
- * @param {number} max
- * @returns {number}
- */
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
 }

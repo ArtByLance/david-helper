@@ -1,138 +1,81 @@
-/*
-  layout.css
-  ==========
-
-  Responsibility
-  --------------
-  This file handles ONLY box building and placement:
-    - page shell
-    - fixed 1920x1080 TV stage
-    - panel sizing
-    - spacing
-    - alignment
-    - progress shell geometry
-    - LED clock placement lane
-    - TODAY panel event row structure
-
-  Use case
-  --------
-  This screen is not a normal responsive website. It is a TV-first 16:9 board.
-  The goal is to preserve composition fidelity while still allowing local
-  browser development.
-
-  Local dev example
-  -----------------
-  With VS Code Live Server or a tiny local web server running, open:
-
-    http://localhost:5500/?debugNow=2026-04-01T11:32:00
-
-  Then resize the browser window as needed. The inner stage remains 1920x1080
-  and scales as one unit, which makes layout tuning much more predictable.
-
-  Editing guidance
-  ----------------
-  If something "looks wrong," check this file for:
-    - object size
-    - panel width / height
-    - margin / padding
-    - grid gaps
-    - alignment math
-
-  Do NOT put typography decisions here. Those belong in text.css.
-*/
-
 :root {
   --stage-width: 1920;
   --stage-height: 1080;
 
-  --header-height: 188px;
-  --stage-padding-x: 70px;
-  --stage-padding-top: 38px;
-  --stage-padding-bottom: 44px;
+  /* Surface anchors from mock (1920x1080) */
+  --plaque-x: 0px;
+  --plaque-y: 140px;
+  --plaque-w: 720px;
+  --plaque-rotate-z: -2.4deg;
+  --plaque-rotate-y: 9deg;
+  --plaque-rotate-x: 1.2deg;
+  --plaque-scale-x: 0.96;
+  --plaque-scale-y: 0.86;
 
-  --main-top-gap: 10px;
-  --section-gap: 20px;
-  --timeline-lane-offset-y: -180px;
-  --right-cluster-nudge-y: 72px;
+  --next-surface-x: 36px;
+  --next-surface-y: 324px;
+  --next-surface-w: 1088px;
+  --next-surface-h: 604px;
+  --next-rotate-z: -3deg;
+  --next-rotate-y: -6deg;
+  --next-rotate-x: 1.4deg;
+  --next-scale-x: 0.985;
+  --next-scale-y: 0.98;
 
-  /* Main composition widths */
-  --next-width: 760px;
-  --clock-width: 252px;
-  --today-width: 621px;
+  --schedule-x: 1228px;
+  --schedule-y: 474px;
+  --schedule-w: 642px;
+  --schedule-h: 556px;
+  --schedule-rotate-z: -1.8deg;
+  --schedule-rotate-y: -1.2deg;
+  --schedule-rotate-x: 0deg;
+  --schedule-scale-x: 0.985;
+  --schedule-scale-y: 0.99;
 
-  /* Shared panel system */
-  --panel-radius: 55px;
-  --panel-border-width: 15px;
-  --tab-radius: 22px 22px 0 0;
+  --clock-face-x: 960px;
+  --clock-face-y: 62px;
+  --clock-face-w: 510px;
+  --clock-face-h: 164px;
+  --clock-rotate-z: -4deg;
+  --clock-rotate-y: -3.6deg;
+  --clock-rotate-x: 1.1deg;
+  --clock-scale-x: 1.03;
+  --clock-scale-y: 1.06;
 
-  /* NEXT card */
-  --next-card-width: 720px;
-  --next-card-height: 510px;
-  --next-card-radius: var(--panel-radius);
-  --next-card-border: var(--panel-border-width);
-  --next-card-padding-top: 74px;
-  --next-card-padding-x: 42px;
-  --next-card-padding-bottom: 54px;
+  --encouragement-note-x: 500px;
+  --encouragement-note-y: 935px;
+  --encouragement-note-w: 360px;
+  --encouragement-note-h: 145px;
+  --encouragement-note-rotate: -6deg;
 
-  /* NEXT badge */
-  --next-badge-width: 160px;
-  --next-badge-height: 59px;
-  --next-badge-radius: var(--tab-radius);
-  --next-tab-offset-x: 50px;
-  --next-tab-top-offset-y: 15px;
+  /* NOW pointer image (tracks schedule Y) */
+  --now-flag-x: 1136px;
+  --now-flag-local-x: -83px;
+  --now-flag-w: 194px;
+  --now-flag-h: 82px;
 
-  /* Status area inside NEXT card */
-  --status-gap: 18px;
-  --status-block-height: 166px;
-  --progress-width: 500px;
-  --progress-height: 42px;
-  --progress-radius: 2px;
-  --progress-fill-inset-y: 0px;
-  --progress-fill-inset-x: 0px;
+  /* NEXT content geometry */
+  --next-title-x: 30px;
+  --next-title-y: 38px;
+  --next-status-x: 600px;
+  --next-status-y: 400px;
+  --next-status-w: 430px;
+  --hs-sticker-center-x: 750px;
+  --hs-sticker-center-y: 440px;
+  --hs-sticker-scale: 0.9;
+  --help-x: 34px;
+  --help-y: 220px;
 
-  --hs-pill-width: 470px;
-  --hs-pill-height: 104px;
-  --hs-pill-radius: var(--panel-radius);
-
-  /* Help text */
-  --help-width: 720px;
-  --help-top-gap: 20px;
-
-  /* Clock lane */
-  --clock-width-px: 292px;
-  --clock-height-px: 131px;
-  --clock-left: -2px;
-
-  --line-thickness: 8px;
-
-  /* TODAY panel */
-  --today-tab-width: 171px;
-  --today-tab-height: 53px;
-  --today-tab-radius: var(--tab-radius);
-  --today-tab-offset-x: 50px;
-  --today-tab-top-offset-y: 15px;
-  --today-section-nudge-y: 0px;
-  --today-shift-right: 42px;
-  --today-overhang-right: 170px;
-  --today-overhang-bottom: 170px;
-
-  --today-panel-radius: var(--panel-radius);
-  --today-panel-border: var(--panel-border-width);
-  --today-panel-min-height: 824px;
-  --today-panel-padding-top: 92px;
-  --today-panel-padding-x: 18px;
-  --today-panel-padding-bottom: 47px;
-  --today-row-gap: 34px;
-  --today-time-col: 135px;
-  --today-row-min-height: 45px;
-  --today-col-gap: 23px;
+  /* TODAY content geometry */
+  --today-time-col: 176px;
+  --today-col-gap: 22px;
+  --today-row-min-height: 46px;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* Stage Shell */
 html,
 body {
   width: 100%;
@@ -142,7 +85,7 @@ body {
 }
 
 body {
-  background: #c9d4df;
+  background: #121212;
 }
 
 #app-shell {
@@ -159,124 +102,134 @@ body {
   height: calc(var(--stage-height) * 1px);
   transform-origin: top left;
   overflow: hidden;
-  background: #d7e0ea;
+  background: #d7e0ea url("../assets/desk-scene.jpg") center / cover no-repeat;
 }
 
-/* Header */
+/* Header / plaque / prompt */
 #header {
   position: absolute;
-  inset: 0 0 auto 0;
-  height: var(--header-height);
-  padding: var(--stage-padding-top) var(--stage-padding-x) 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  inset: 0;
 }
 
 #header-left {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-#top-prompt {
   position: absolute;
-  top: calc(var(--stage-padding-top) * -1);
-  right: calc(var(--stage-padding-x) * -1);
-  z-index: 5;
-}
-
-/* Main Columns */
-#main-layout {
-  position: absolute;
-  top: calc(var(--stage-padding-top) + var(--header-height) + var(--main-top-gap));
-  left: var(--stage-padding-x);
-  right: var(--stage-padding-x);
-  bottom: var(--stage-padding-bottom);
-  display: grid;
-  grid-template-columns: var(--next-width) var(--clock-width) var(--today-width);
-  column-gap: var(--section-gap);
-  align-items: start;
-}
-
-/* NEXT Column */
-#next-section {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-top: 40px;
-  padding-top: calc(var(--next-badge-height) + var(--next-tab-top-offset-y));
-}
-
-#next-badge {
-  position: absolute;
-  top: var(--next-tab-top-offset-y);
-  left: var(--next-tab-offset-x);
-  width: var(--next-badge-width);
-  height: var(--next-badge-height);
-  border-radius: var(--next-badge-radius);
-  display: grid;
-  place-items: center;
-  z-index: 2;
-}
-
-#next-card {
-  position: relative;
-  width: var(--next-card-width);
-  height: var(--next-card-height);
-  border-radius: var(--next-card-radius);
-  padding: var(--next-card-padding-top) var(--next-card-padding-x)
-    var(--next-card-padding-bottom);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-#status-area {
-  width: 100%;
-  margin-top: 34px;
-  min-height: var(--status-block-height);
+  left: var(--plaque-x);
+  top: var(--plaque-y);
+  width: var(--plaque-w);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--status-gap);
+  gap: 8px;
+  transform-origin: top left;
+  transform: perspective(1300px) rotateZ(var(--plaque-rotate-z))
+    rotateY(var(--plaque-rotate-y)) rotateX(var(--plaque-rotate-x))
+    scale(var(--plaque-scale-x), var(--plaque-scale-y));
+}
+
+/* Free-positioned stage groups */
+#main-layout {
+  position: absolute;
+  inset: 0;
+}
+
+#next-section {
+  position: absolute;
+  left: var(--next-surface-x);
+  top: var(--next-surface-y);
+  width: var(--next-surface-w);
+  height: var(--next-surface-h);
+  z-index: 4;
+}
+
+#next-badge {
+  display: none;
+}
+
+#next-surface-group {
+  position: absolute;
+  inset: 0;
+  transform-origin: top left;
+  transform: perspective(1500px) rotateZ(var(--next-rotate-z))
+    rotateY(var(--next-rotate-y)) rotateX(var(--next-rotate-x))
+    scale(var(--next-scale-x), var(--next-scale-y));
+}
+
+#next-card {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+}
+
+#next-group1 {
+  position: absolute;
+  left: var(--next-title-x);
+  top: var(--next-title-y);
+}
+
+#next-group2 {
+  position: absolute;
+  left: var(--help-x);
+  top: var(--help-y);
+  width: 890px;
+}
+
+#next-group3 {
+  position: absolute;
+  left: var(--next-status-x);
+  top: var(--next-status-y);
+  width: var(--next-status-w);
+  transform-origin: top left;
+  transform: scale(0.75);
+}
+
+#next-group4 {
+  position: absolute;
+  left: var(--hs-sticker-center-x);
+  top: var(--hs-sticker-center-y);
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  z-index: 1;
+}
+
+#status-area {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
 
 #progress-shell {
-  width: var(--progress-width);
-  height: var(--progress-height);
-  border-radius: var(--progress-radius);
+  position: relative;
+  width: 430px;
+  height: 34px;
   overflow: hidden;
 }
 
 #progress-fill {
+  position: absolute;
+  right: 0;
+  top: 0;
   width: 0%;
-  height: calc(100% - (var(--progress-fill-inset-y) * 2));
-  margin-top: var(--progress-fill-inset-y);
-  margin-left: var(--progress-fill-inset-x);
+  height: 100%;
   transition: width 700ms ease;
 }
 
 #happening-soon-pill {
-  width: var(--hs-pill-width);
-  height: var(--hs-pill-height);
-  border-radius: var(--hs-pill-radius);
+  width: 430px;
+  height: 84px;
   display: grid;
   place-items: center;
 }
 
 #help-text {
-  width: var(--help-width);
-  margin-top: var(--help-top-gap);
+  position: relative;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
-  text-align: left;
-  padding-left: 16px;
+  gap: 3.75px;
 }
 
 #help1:empty,
@@ -284,77 +237,95 @@ body {
   display: none;
 }
 
-/* Clock Lane */
 #clock-section {
-  position: relative;
-  min-height: 900px;
-  margin-top: calc(var(--timeline-lane-offset-y) + var(--right-cluster-nudge-y));
+  position: absolute;
+  left: 0;
+  top: var(--schedule-y);
+  width: 100%;
+  height: calc(var(--stage-height) - var(--schedule-y));
+  pointer-events: none;
 }
 
 #led-clock {
   position: absolute;
-  left: var(--clock-left);
-  top: 0;
-  width: var(--clock-width-px);
-  height: var(--clock-height-px);
+  left: var(--clock-face-x);
+  top: calc(var(--clock-face-y) - var(--schedule-y));
+  width: var(--clock-face-w);
+  height: var(--clock-face-h);
   display: grid;
   place-items: center;
-  transform: translateY(0);
-  transition: transform 700ms ease;
+  transform-origin: center center;
+  transform: perspective(1400px) rotateZ(var(--clock-rotate-z))
+    rotateY(var(--clock-rotate-y)) rotateX(var(--clock-rotate-x))
+    scale(var(--clock-scale-x), var(--clock-scale-y));
   z-index: 3;
+}
+
+#encouragement-note-section {
+  position: absolute;
+  left: var(--encouragement-note-x);
+  top: var(--encouragement-note-y);
+  width: var(--encouragement-note-w);
+  height: var(--encouragement-note-h);
+  transform: rotate(var(--encouragement-note-rotate));
+  transform-origin: center center;
+  z-index: 2;
 }
 
 #timeline-line {
   position: absolute;
-  left: var(--clock-left);
-  right: auto;
-  width: calc(
-    var(--clock-width) - var(--clock-left) + var(--section-gap) +
-      var(--today-shift-right) + var(--today-width) + var(--today-overhang-right)
-  );
+  left: var(--now-flag-local-x);
   top: 0;
-  height: var(--line-thickness);
+  width: var(--now-flag-w);
+  height: var(--now-flag-h);
   transform: translateY(0);
   transition: transform 700ms ease;
-  z-index: 2;
+  z-index: 6;
 }
 
-/* TODAY Column */
 #today-section {
-  position: relative;
-  min-height: 960px;
-  margin-top: calc(
-    var(--timeline-lane-offset-y) + var(--right-cluster-nudge-y) + var(--today-section-nudge-y)
-  );
-  margin-left: var(--today-shift-right);
-  margin-right: calc(var(--today-overhang-right) * -1);
-  margin-bottom: calc(var(--today-overhang-bottom) * -1);
+  position: absolute;
+  left: var(--schedule-x);
+  top: var(--schedule-y);
+  width: var(--schedule-w);
+  height: var(--schedule-h);
+  z-index: 1;
 }
 
 #today-tab {
+  display: none;
+}
+
+#today-text-group {
   position: absolute;
-  top: var(--today-tab-top-offset-y);
-  left: var(--today-tab-offset-x);
-  width: var(--today-tab-width);
-  height: var(--today-tab-height);
-  border-radius: var(--today-tab-radius);
-  display: grid;
-  place-items: center;
+  inset: 0;
+  transform: perspective(2200px) rotateZ(var(--schedule-rotate-z))
+    rotateY(var(--schedule-rotate-y)) rotateX(var(--schedule-rotate-x))
+    scale(var(--schedule-scale-x), var(--schedule-scale-y)) translate(20px, 8px);
+  transform-origin: top left;
+}
+
+#today-section #date-label {
+  position: absolute;
+  left: 49%;
+  width: 100%;
+  top: -5px;
+  text-align: center;
+  transform: translateX(-50%) translateX(100px) rotate(0.5deg);
   z-index: 2;
+  pointer-events: none;
 }
 
 #today-panel {
-  margin-top: calc(var(--today-tab-height) + var(--today-tab-top-offset-y));
-  width: calc(100% + var(--today-overhang-right));
-  border-radius: var(--today-panel-radius);
-  min-height: calc(var(--today-panel-min-height) + var(--today-overhang-bottom));
-  padding: var(--today-panel-padding-top) var(--today-panel-padding-x)
-    var(--today-panel-padding-bottom);
+  position: absolute;
+  inset: 0;
+  padding: 72px 10px 20px;
 }
 
-/* TODAY Rows (absolutely positioned by JS) */
 #today-events {
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .today-event-row {
@@ -363,11 +334,11 @@ body {
   min-height: var(--today-row-min-height);
 }
 
-.today-event-row[data-past='true'] {
-  opacity: 0.48;
+.today-event-row[data-past="true"] {
+  opacity: 0.72;
 }
 
-.today-event-row[data-focal='true'] {
+.today-event-row[data-focal="true"] {
   opacity: 1;
 }
 

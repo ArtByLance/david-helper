@@ -32,36 +32,36 @@ import {
   loadConfig,
   loadWeekData,
   loadScheduleOverrides,
-  buildTodaySchedule
-} from './data.js';
+  buildTodaySchedule,
+} from "./data.js";
 import {
   getNow,
   getFocalState,
   getProgressFraction,
   formatNextTimeLabel,
-  isWithinActiveDayWindow
-} from './time.js';
+  isWithinActiveDayWindow,
+} from "./time.js";
 import {
   formatClock,
   formatDateLabel,
   formatDayLabel,
   formatCountdown,
-  minutesToShortDisplay
-} from './utils.js';
-import { renderView } from './render.js';
-import { renderExitPrompt } from './exit-prompt.js';
+  minutesToShortDisplay,
+} from "./utils.js";
+import { renderView } from "./render.js";
 import {
   fitStageToViewport,
   layoutTodayEvents,
   getTargetY,
-  positionTimeline
-} from './layout.js';
+  positionTimeline,
+} from "./layout.js";
+import { getEncouragementPhrase } from "./encouragement-note.js";
 
 let appState = null;
 let tickHandle = null;
 
-window.addEventListener('DOMContentLoaded', bootstrap);
-window.addEventListener('resize', () => {
+window.addEventListener("DOMContentLoaded", bootstrap);
+window.addEventListener("resize", () => {
   fitStageToViewport();
   requestAnimationFrame(updateScreen);
 });
@@ -71,17 +71,22 @@ async function bootstrap() {
     const [config, weekData, scheduleData] = await Promise.all([
       loadConfig(),
       loadWeekData(),
-      loadScheduleOverrides()
+      loadScheduleOverrides(),
     ]);
 
     const now = getNow();
-    const todaySchedule = buildTodaySchedule(now, weekData, scheduleData, config);
+    const todaySchedule = buildTodaySchedule(
+      now,
+      weekData,
+      scheduleData,
+      config,
+    );
 
     appState = {
       config,
       weekData,
       scheduleData,
-      todaySchedule
+      todaySchedule,
     };
 
     fitStageToViewport();
@@ -105,18 +110,23 @@ function updateScreen() {
   const activeWindow = isWithinActiveDayWindow(now, config);
 
   const progressFraction =
-    activeWindow && focalState.state === 'countdown'
+    activeWindow && focalState.state === "countdown"
       ? getProgressFraction(
           focalState.nowMinutes,
           focalState.previousEvent,
           focalState.focalEvent,
-          config
+          config,
         )
       : 0;
 
-  const viewModel = buildViewModel(now, config, todaySchedule.events, focalState, progressFraction);
+  const viewModel = buildViewModel(
+    now,
+    config,
+    todaySchedule.events,
+    focalState,
+    progressFraction,
+  );
   renderView(viewModel);
-  renderExitPrompt(viewModel.topPrompt);
 
   // Measure after render so row positions are current.
   requestAnimationFrame(() => {
@@ -127,9 +137,9 @@ function updateScreen() {
         previousEvent: focalState.previousEvent,
         focalEvent: focalState.focalEvent,
         nowMinutes: focalState.nowMinutes,
-        progressFraction
+        progressFraction,
       },
-      rowMap
+      rowMap,
     );
     positionTimeline(targetY);
   });
@@ -146,27 +156,47 @@ function updateScreen() {
  * @returns {any}
  */
 function buildViewModel(now, config, events, focalState, progressFraction) {
-  const focal = focalState.focalEvent;
-  const showHappeningSoon = focalState.state === 'happeningSoon' && Boolean(focal);
-  const showCountdown = focalState.state === 'countdown' && Boolean(focal);
+  const focalRaw = focalState.focalEvent;
+  const focalCluster = focalRaw
+    ? events.filter((event) => event.timeMinutes === focalRaw.timeMinutes)
+    : [];
+  const focal = focalCluster.length
+    ? choosePrimaryEvent(focalCluster)
+    : focalRaw;
+  const secondaryClusterItems = focalCluster.filter(
+    (event) =>
+      focal && !(event.time === focal.time && event.label === focal.label),
+  );
+  const showHappeningSoon =
+    focalState.state === "happeningSoon" && Boolean(focal);
+  const showCountdown = focalState.state === "countdown" && Boolean(focal);
+  const passedEventCount = events.filter(
+    (event) => event.timeMinutes < focalState.nowMinutes,
+  ).length;
 
   return {
     dayLabel: formatDayLabel(now),
     dateLabel: formatDateLabel(now),
     locationLabel: config.locationName,
-    topPrompt: config.topPrompt,
 
-    nextLabel: focal?.label?.toUpperCase?.() ?? '',
-    nextTime: focal ? formatNextTimeLabel(focal.time) : '',
+    nextLabel: focal?.label?.toUpperCase?.() ?? "",
+    nextTime: focal ? formatNextTimeLabel(focal.time) : "",
+    nextSecondary:
+      secondaryClusterItems.length > 0
+        ? `ALSO: ${secondaryClusterItems[0].label.toUpperCase()}`
+        : "",
 
     state: focalState.state,
-    countdownText: showCountdown ? formatCountdown(focalState.minutesUntilStart) : '',
+    countdownText: showCountdown
+      ? formatCountdown(focalState.minutesUntilStart)
+      : "",
     progressFraction,
     showProgress: showCountdown,
     showHappeningSoon,
 
-    help1: focal?.help1 ?? '',
-    help2: focal?.help2 ?? '',
+    help1: focal?.help1 ?? "",
+    help2: focal?.help2 ?? "",
+    encouragementNote: getEncouragementPhrase(passedEventCount),
 
     clockText: formatClock(now),
 
@@ -177,9 +207,37 @@ function buildViewModel(now, config, events, focalState, progressFraction) {
       timeDisplay: minutesToShortDisplay(event.timeMinutes),
       label: event.label,
       isPast: event.timeMinutes < focalState.nowMinutes && event !== focal,
-      isFocal: focal?.time === event.time && focal?.label === event.label
-    }))
+      isFocal: Boolean(focal) && event.timeMinutes === focal.timeMinutes,
+      isClustered: events.some(
+        (other) => other !== event && other.timeMinutes === event.timeMinutes,
+      ),
+    })),
   };
+}
+
+/**
+ * Pick a stable primary event when multiple events share one time.
+ * Lower score wins.
+ *
+ * @param {any[]} eventsAtSameTime
+ * @returns {any}
+ */
+function choosePrimaryEvent(eventsAtSameTime) {
+  if (!eventsAtSameTime.length) return null;
+
+  const score = (label) => {
+    const text = String(label || "").toLowerCase();
+    if (/(breakfast|lunch|supper|dinner|meal)/.test(text)) return 0;
+    if (/(medicine|medication|doctor|nurse|care)/.test(text)) return 1;
+    if (/(laundry|bath|bedtime|service|church)/.test(text)) return 2;
+    return 3;
+  };
+
+  return [...eventsAtSameTime].sort((a, b) => {
+    const scoreDiff = score(a.label) - score(b.label);
+    if (scoreDiff !== 0) return scoreDiff;
+    return String(a.label || "").localeCompare(String(b.label || ""));
+  })[0];
 }
 
 /**
@@ -205,7 +263,7 @@ function stopTickLoop() {
  * @param {unknown} error
  */
 function renderFatalError(error) {
-  const stage = document.getElementById('tv-stage');
+  const stage = document.getElementById("tv-stage");
   if (!stage) return;
 
   stage.innerHTML = `
@@ -227,7 +285,7 @@ function renderFatalError(error) {
           Open the browser console for details.
         </div>
         <pre style="margin-top: 28px; font-size: 20px; white-space: pre-wrap; color: #333;">${String(
-          error
+          error,
         )}</pre>
       </div>
     </div>

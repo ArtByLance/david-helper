@@ -1,73 +1,40 @@
-/*
-  text.css
-  ========
-
-  Responsibility
-  --------------
-  This file handles ONLY text styling and text-adjacent visual styling:
-    - font families
-    - font sizes
-    - font weights
-    - text colors
-    - line heights
-    - panel border / fill color styling
-    - badge / pill text appearance
-
-  Visual target
-  -------------
-  The desired screen is calm, high-contrast, and easy to trust from a distance.
-  Accent colors are tightly controlled:
-
-    - Red = NEXT system
-    - Blue = TODAY system
-    - Black / dark gray = primary reading text
-    - Gray = supporting text / past items
-
-  Do not treat this like a web marketing page. Too much saturation or too many
-  bold weights quickly make the screen feel noisy.
-*/
-
 @font-face {
-  font-family: 'DSEG7ClassicMini';
-  src: url('../assets/fonts/DSEG7ClassicMini-Bold.ttf') format('truetype');
+  font-family: "DSEG7ClassicMini";
+  src: url("../assets/fonts/DSEG7ClassicMini-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Vtks Hunt";
+  src: url("../assets/fonts/Vtks Hunt.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Chalk Board";
+  src: url("../assets/fonts/Chalk Board.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --color-day: #000000;
-  --color-prompt: #66727f;
+  --font-family-main: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --font-family-led: "DSEG7ClassicMini", "Courier New", Courier, monospace;
+  --font-family-plaque: "Garamond", "Baskerville", "Times New Roman", serif;
+  --font-family-note:
+    "Chalk Board", "Chalkboard SE", "Marker Felt", "Comic Sans MS",
+    "Bradley Hand", "Segoe Print", cursive;
 
-  --color-next-badge-text: #ffffff;
-  --color-next-card-bg: #f6f6f6;
-  --color-next-card-border: #ff1f1f;
-  --color-next-card-text: #000000;
-  --color-next-time: #7f7f7f;
-
-  --color-countdown: #ff1f1f;
-  --color-progress-shell: #d3d3d3;
-  --color-progress-fill: #ff1f1f;
-
-  --color-hs-bg: #39b45a;
-  --color-hs-text: #ffffff;
-
-  --color-help1: #000000;
-  --color-help2: #000000;
-
-  --color-clock-bg: #050505;
-  --color-clock-text: #ff1f1f;
-  --color-clock-border: #161616;
-  --color-line: rgba(0, 0, 0, 0.14);
-
-  --color-today-accent: #1f7edc;
-  --color-today-tab-text: #ffffff;
-  --color-today-panel-bg: #f5f5f5;
-  --color-today-panel-border: #1f7edc;
-  --color-today-label: #000000;
-
-  --font-family-main: Arial, 'Helvetica Neue', Helvetica, sans-serif;
-  --font-family-led: 'DSEG7ClassicMini', 'Courier New', Courier, monospace;
+  --ink-black: #111111;
+  --ink-gray: #6f6f6f;
+  --ink-blue: #1f4f8c;
+  --ink-red: #bf1616;
+  --ink-red-soft: #cf3b3b;
 }
 
 html,
@@ -79,190 +46,154 @@ select {
   font-family: var(--font-family-main);
 }
 
-/* Header Text */
+/* Plaque text */
 #day-label {
-  font-size: 90px;
-  line-height: 0.96;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  color: var(--color-today-panel-border);
+  font-family: var(--font-family-plaque);
+  font-size: 96px;
+  line-height: 0.92;
+  font-weight: 700;
+  letter-spacing: 0.36px;
+  color: #111111;
+  opacity: 0.7;
   text-transform: uppercase;
 }
 
 #date-label {
-  font-size: 32px;
-  line-height: 1.08;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  color: var(--color-today-panel-border);
-  margin-left: 6px;
-  text-transform: uppercase;
-}
-
-#location-label {
-  font-size: 32px;
-  line-height: 1.08;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-  color: var(--color-today-panel-border);
-  margin-left: 6px;
-  text-transform: uppercase;
-}
-
-#top-prompt {
-  width: 842px;
-  height: 118px;
-  padding: 0;
-  background: #2fb24f;
-  color: #ffffff;
-  font-size: 40px;
+  font-family: var(--font-family-plaque);
+  font-size: 37px;
   line-height: 1;
-  font-weight: 400;
-  letter-spacing: 0.1px;
-  text-transform: none;
-  display: block;
-  overflow: hidden;
-  border-radius: 0;
-  box-shadow: none;
+  font-weight: 620;
+  color: #686662;
+  text-transform: uppercase;
 }
 
-#top-prompt .prompt-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* NEXT Card */
+/* NEXT envelope text */
 #next-badge {
-  background: var(--color-next-card-border);
-  color: var(--color-next-badge-text);
-  font-size: 36px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  padding-top: 5px;
+  display: none;
 }
 
 #next-card {
-  background: var(--color-next-card-bg);
-  color: var(--color-next-card-text);
-  border: var(--next-card-border) solid var(--color-next-card-border);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 #next-label {
   width: 100%;
-  font-size: 62px;
-  line-height: 0.98;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
-  text-align: left;
-  color: var(--color-next-card-text);
-}
-
-#next-time {
-  margin-top: 8px;
-  font-size: 45px;
-  line-height: 1;
-  font-weight: 800;
+  font-size: 90px;
+  line-height: 0.95;
+  font-weight: 900;
   letter-spacing: 0.1px;
   text-transform: uppercase;
   text-align: left;
-  color: var(--color-next-time);
+  color: var(--ink-red);
+}
+
+#next-time {
+  display: block;
+  margin: 10px 0 0;
+  font-size: 58px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--ink-red-soft);
+}
+
+#next-secondary {
+  margin-top: 12px;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: #8e1f1f;
 }
 
 #countdown-text {
-  font-size: 30px;
+  width: 430px;
+  font-size: 34px;
   line-height: 1;
   font-weight: 800;
-  color: var(--color-countdown);
-  text-align: center;
+  color: var(--ink-red);
+  text-align: right;
   text-transform: none;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   white-space: nowrap;
 }
 
 #countdown-text .count-num {
-  font-size: 62px;
-  line-height: 0.9;
+  font-size: 66px;
+  line-height: 1;
   font-weight: 900;
-  color: var(--color-countdown);
+  color: var(--ink-red);
+  display: inline-flex;
+  align-items: center;
 }
 
-#countdown-text .count-unit {
-  font-size: 35px;
+#countdown-text .count-unit,
+#countdown-text .count-tail {
+  font-size: 34px;
   line-height: 1;
   font-weight: 600;
-  color: #ff6161;
-}
-
-#countdown-text .count-tail {
-  font-size: 35px;
-  line-height: 1;
-  font-weight: 700;
-  color: #ff6161;
+  color: var(--ink-red);
+  display: inline-flex;
+  align-items: center;
 }
 
 #progress-shell {
-  background: var(--color-progress-shell);
-  display: flex;
-  justify-content: flex-end;
+  background: rgba(139, 98, 64, 0.5);
 }
 
 #progress-fill {
-  background: var(--color-progress-fill);
+  background: rgba(197, 59, 69, 0.9);
 }
 
-#happening-soon-pill {
-  background: var(--color-hs-bg);
-  color: var(--color-hs-text);
-  font-size: 38px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.08);
+#happening-soon-sticker {
+  display: block;
+  transform: scale(var(--hs-sticker-scale));
+  transform-origin: center center;
+  max-width: none;
 }
 
 #help1 {
-  font-size: 39px;
-  line-height: 1.12;
-  font-weight: 800;
-  color: var(--color-help1);
+  font-size: 38px;
+  line-height: 1.275;
+  font-weight: 900;
+  color: var(--ink-blue);
   text-transform: uppercase;
   white-space: pre-line;
 }
 
 #help2 {
-  font-size: 34px;
-  line-height: 1.14;
-  font-weight: 500;
-  color: var(--color-help2);
+  font-size: 30px;
+  line-height: 1.275;
+  font-weight: 550;
+  color: var(--ink-blue);
   text-transform: uppercase;
   white-space: pre-line;
 }
 
-/* Clock */
+/* Clock display text only, projected into photo device */
 #led-clock {
-  --clock-scale-y: 1.25;
-  background: var(--color-clock-bg);
-  color: var(--color-clock-text);
+  --clock-scale-y: 1;
+  background: transparent;
+  color: #ff1f1f;
   font-family: var(--font-family-led);
-  font-size: 84px;
+  font-size: 132px;
   line-height: 1;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: 7px;
+  font-variant-numeric: tabular-nums;
   display: grid;
   place-items: center;
   transform-origin: center center;
-  border-radius: 18px;
-  border: 3px solid var(--color-clock-border);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
+  border: 0;
+  box-shadow: none;
 }
 
 #led-clock .clock-canvas {
@@ -271,39 +202,52 @@ select {
   height: 100%;
 }
 
-#timeline-line {
-  background: var(--color-line);
+#encouragement-note-text {
+  width: 100%;
+  height: 100%;
+  padding: 10px 14px 10px 22px;
+  color: #6b4aa5;
+  font-family: var(--font-family-note);
+  font-size: 40px;
+  line-height: 1.2;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 1.2px;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: pre-wrap;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  transform: rotate(-5deg) scaleX(1.12);
+  transform-origin: left center;
 }
 
-/* TODAY Panel */
+/* NOW pointer image replacing old red line */
+#timeline-line {
+  background: url("../assets/now-flag.png") center / contain no-repeat;
+}
+
+/* Schedule text on right paper */
 #today-tab {
-  background: var(--color-today-panel-border);
-  color: var(--color-today-tab-text);
-  font-size: 38px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-  padding-top: 5px;
+  display: none;
 }
 
 #today-panel {
-  background: var(--color-today-panel-bg);
-  color: var(--color-today-label);
-  border: var(--today-panel-border) solid var(--color-today-panel-border);
+  background: transparent;
+  border: 0;
 }
 
-/* TODAY Rows */
 .today-time {
   position: absolute;
   top: 50%;
   left: 0;
   width: var(--today-time-col);
   transform: translateY(-50%);
-  font-size: 35px;
+  font-size: 34px;
   line-height: 1;
   font-weight: 500;
-  color: #808080;
+  color: #151515;
   text-align: right;
 }
 
@@ -313,15 +257,37 @@ select {
   left: calc(var(--today-time-col) + var(--today-col-gap));
   right: 0;
   transform: translateY(-50%);
-  font-size: 46px;
+  font-size: 30px;
   line-height: 1;
-  font-weight: 800;
-  color: var(--color-today-accent);
+  font-weight: 500;
+  color: #111111;
   text-align: left;
 }
 
-/* Non-past and focal labels intentionally share the same blue accent. */
-.today-event-row[data-past='false'] .today-label,
-.today-event-row[data-focal='true'] .today-label {
-  color: var(--color-today-panel-border);
+.today-event-row[data-past="true"] .today-time {
+  color: #4f4f4f;
+}
+
+.today-event-row[data-past="true"] .today-label {
+  color: #4f4f4f;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.today-event-row[data-past="false"] .today-time,
+.today-event-row[data-focal="true"] .today-time {
+  color: #111111;
+}
+
+.today-event-row[data-past="false"] .today-label,
+.today-event-row[data-focal="true"] .today-label {
+  color: #111111;
+}
+
+.today-event-row[data-focal="true"] .today-label {
+  font-weight: 700;
+}
+
+.today-event-row[data-clustered="true"] .today-label {
+  font-weight: 600;
 }

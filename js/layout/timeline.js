@@ -18,66 +18,190 @@
  * @returns {number}
  */
 export function getTargetY(layoutState, rowMap) {
-  if (!layoutState.focalEvent) return 0;
+  const timeAnchoredY = getTimeAnchoredY(layoutState.nowMinutes, rowMap);
+  if (!layoutState.focalEvent) {
+    return timeAnchoredY;
+  }
 
-  const focalY =
-    rowMap.get(toEventKey(layoutState.focalEvent)) ??
-    rowMap.get(layoutState.focalEvent.time) ??
-    0;
-  if (layoutState.state === 'happeningSoon') {
+  // For duplicate-time blocks, use the start anchor while approaching that time.
+  let focalY = getEventY(layoutState.focalEvent, rowMap, "start");
+  if (!isUsableY(focalY)) {
+    focalY = timeAnchoredY;
+  }
+  if (layoutState.state === "happeningSoon") {
     return focalY;
   }
 
-  const previousY = layoutState.previousEvent
-    ? rowMap.get(toEventKey(layoutState.previousEvent)) ??
-      rowMap.get(layoutState.previousEvent.time)
-    : rowMap.get('__dayStart') ?? null;
+  let previousY = layoutState.previousEvent
+    ? getEventY(layoutState.previousEvent, rowMap, "end")
+    : (rowMap.get("__dayStart") ?? null);
 
-  if (previousY == null) {
+  if (!isUsableY(previousY)) {
+    previousY = rowMap.get("__dayStart") ?? 0;
+  }
+
+  if (!isUsableY(previousY)) {
     return focalY;
   }
 
-  return previousY + (focalY - previousY) * layoutState.progressFraction;
+  const blendedY =
+    previousY + (focalY - previousY) * layoutState.progressFraction;
+  return isUsableY(blendedY) ? blendedY : timeAnchoredY;
 }
 
 /**
- * Position both the LED clock and the red line around the same center Y.
+ * Position the NOW pointer PNG to track the computed schedule Y.
+ * The LED clock is now fixed on the photo device and does not move.
  *
  * @param {number} targetY
  */
 export function positionTimeline(targetY) {
-  const clock = document.getElementById('led-clock');
-  const line = document.getElementById('timeline-line');
-  const stage = document.getElementById('tv-stage');
-  const clockSection = document.getElementById('clock-section');
+  const line = document.getElementById("timeline-line");
+  const scheduleGroup = document.getElementById("today-text-group");
+  const stage = document.getElementById("tv-stage");
 
-  if (!clock || !line || !stage || !clockSection) return;
-
-  const clockScaleRaw = getComputedStyle(clock).getPropertyValue('--clock-scale-y');
-  const clockScaleY = Number.parseFloat(clockScaleRaw) || 1;
-  const scaledClockHeight = clock.offsetHeight * clockScaleY;
-
-  // Clamp movement so the clock never drops below the stage bottom edge.
-  // This prevents the stretched LED clock from being visually clipped.
+  if (!line || !scheduleGroup || !stage) return;
+  const groupRect = scheduleGroup.getBoundingClientRect();
   const stageRect = stage.getBoundingClientRect();
-  const clockSectionRect = clockSection.getBoundingClientRect();
-  const stageBottomInClockSection = stageRect.bottom - clockSectionRect.top;
-  const minCenterY = scaledClockHeight / 2;
-  const maxCenterY = stageBottomInClockSection - scaledClockHeight / 2;
-  const clampedTargetY = clamp(targetY, minCenterY, maxCenterY);
+  const halfFlag = line.offsetHeight / 2;
 
-  // Centering should use the untransformed box height; scaleY around center
-  // does not move the element's center point.
-  const clockOffset = clampedTargetY - clock.offsetHeight / 2;
-  const lineOffset = clampedTargetY - line.offsetHeight / 2;
+  // Hard visual clamp in pixels so the flag never goes off-screen.
+  const minCenterY = halfFlag;
+  const maxCenterY = Math.max(
+    minCenterY,
+    stageRect.bottom - groupRect.top - halfFlag,
+  );
+  const clampedCenterY = clamp(targetY, minCenterY, maxCenterY);
+  const lineOffset = clampedCenterY - halfFlag;
 
-  clock.style.transform = `translateY(${clockOffset}px) scaleY(${clockScaleY})`;
-  line.style.transform = `translateY(${lineOffset}px)`;
+  line.style.transform = `translateY(${lineOffset}px) rotate(5deg)`;
 }
 
 function toEventKey(event) {
-  if (!event) return '';
-  return `${event.time ?? ''}|${event.label ?? ''}`;
+  if (!event) return "";
+  return `${event.time ?? ""}|${event.label ?? ""}`;
+}
+
+/**
+ * @param {any} event
+ * @param {Map<string, number>} rowMap
+ * @param {'center' | 'start' | 'end'} [anchor]
+ * @returns {number}
+ */
+function getEventY(event, rowMap, anchor = "center") {
+  if (!event) return 0;
+  const minuteKey = String(event.timeMinutes);
+  const clusterStart = rowMap.get(`__clusterStart:${minuteKey}`);
+  const clusterEnd = rowMap.get(`__clusterEnd:${minuteKey}`);
+  const clusterCenter = rowMap.get(`__cluster:${minuteKey}`);
+
+  if (anchor === "start" && Number.isFinite(clusterStart)) {
+    return Number(clusterStart);
+  }
+  if (anchor === "end" && Number.isFinite(clusterEnd)) {
+    return Number(clusterEnd);
+  }
+  if (anchor === "center" && Number.isFinite(clusterCenter)) {
+    return Number(clusterCenter);
+  }
+
+  const mappedY =
+    rowMap.get(`__cluster:${event.timeMinutes}`) ??
+    rowMap.get(toEventKey(event)) ??
+    rowMap.get(event.time) ??
+    rowMap.get(`__m:${event.timeMinutes}`);
+
+  if (Number.isFinite(mappedY) && mappedY > 0) {
+    return mappedY;
+  }
+
+  // Fallback: measure the rendered row directly.
+  const group = document.getElementById("today-text-group");
+  if (!group) return 0;
+  const groupRect = group.getBoundingClientRect();
+
+  const exactSelector = `.today-event-row[data-event-key="${cssEscape(
+    toEventKey(event),
+  )}"]`;
+  let row = document.querySelector(exactSelector);
+
+  if (!row && event.time) {
+    row = document.querySelector(
+      `.today-event-row[data-time="${cssEscape(event.time)}"]`,
+    );
+  }
+
+  if (!row) return 0;
+  const rowRect = row.getBoundingClientRect();
+  return rowRect.top - groupRect.top + rowRect.height / 2;
+}
+
+/**
+ * For times with no focal event (before first or after last),
+ * use fixed day anchors:
+ * - 5:00 AM => day-start anchor
+ * - 11:00 PM and later => screen bottom
+ *
+ * @param {number} nowMinutes
+ * @param {Map<string, number>} rowMap
+ * @returns {number}
+ */
+function getTimeAnchoredY(nowMinutes, rowMap) {
+  let startY = rowMap.get("__dayStart");
+  let endY = rowMap.get("__screenBottom");
+
+  if (!isUsableY(startY) || !isUsableY(endY) || endY <= startY) {
+    const section = document.getElementById("today-section");
+    const group = document.getElementById("today-text-group");
+    const stage = document.getElementById("tv-stage");
+
+    if (section && group) {
+      const groupRect = group.getBoundingClientRect();
+      startY = 0;
+      endY = group.clientHeight || section.clientHeight;
+
+      if (stage) {
+        const stageRect = stage.getBoundingClientRect();
+        endY = stageRect.bottom - groupRect.top;
+      }
+    }
+  }
+
+  if (!isUsableY(startY)) startY = 0;
+  if (!isUsableY(endY) || endY <= startY) {
+    endY = Math.max(startY + 1, 600);
+  }
+
+  const now = Number(nowMinutes);
+  if (!Number.isFinite(now)) {
+    return startY;
+  }
+
+  const dayStart = 5 * 60;
+  const dayEnd = 23 * 60;
+  const t = clamp((now - dayStart) / (dayEnd - dayStart), 0, 1);
+  return startY + (endY - startY) * t;
+}
+
+/**
+ * @param {number | null | undefined} value
+ * @returns {boolean}
+ */
+function isUsableY(value) {
+  return Number.isFinite(value) && Number(value) >= 0;
+}
+
+/**
+ * Minimal CSS.escape fallback for attribute selectors.
+ * @param {string} value
+ * @returns {string}
+ */
+function cssEscape(value) {
+  const source = String(value ?? "");
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(source);
+  }
+  return source.replace(/["\\]/g, "\\$&");
 }
 
 /**

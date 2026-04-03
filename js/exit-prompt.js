@@ -94,8 +94,8 @@ export function renderExitPrompt(text) {
   }
 
   const inkWidth = Math.max(1, maxInkRight - minInkLeft);
-  const promptOffsetX = -19;
-  const promptOffsetY = 14;
+  const promptOffsetX = -8;
+  const promptOffsetY = 8;
   const originX = (width - inkWidth) / 2 - minInkLeft + promptOffsetX;
   const baselineY =
     (height - (maxAscent + maxDescent)) / 2 + maxAscent + promptOffsetY;
