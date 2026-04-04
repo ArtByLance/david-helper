@@ -4,7 +4,13 @@ const DAY_START_MINUTES = 5 * 60;
  * Position TODAY rows as a simple evenly spaced list.
  * Hybrid/time-weighted spacing is intentionally suspended for this phase.
  *
- * Returns center Y values relative to #today-text-group.
+ * Returns center Y values in the local layout space of #today-text-group.
+ *
+ * Important:
+ * The schedule paper is visually transformed in CSS, but the NOW flag lives
+ * inside that same transformed group. So the flag must follow local layout
+ * coordinates, not already-transformed screen pixels, or it will drift more
+ * and more as it moves down the page.
  *
  * @param {{ eventKey?: string, time: string, timeMinutes?: number, label?: string }[]} todayEvents
  * @returns {Map<string, number>}
@@ -35,10 +41,6 @@ export function layoutTodayEvents(todayEvents) {
   );
   container.style.height = `${Math.round(containerHeight)}px`;
 
-  const groupRect = textGroup.getBoundingClientRect();
-  const stage = document.getElementById("tv-stage");
-  const stageRect = stage ? stage.getBoundingClientRect() : null;
-  const panelRect = panel.getBoundingClientRect();
   const points = rows.map((row, index) => {
     const rowHeight = Math.max(1, row.offsetHeight || 1);
     const t = rows.length === 1 ? 0.5 : index / (rows.length - 1);
@@ -54,10 +56,10 @@ export function layoutTodayEvents(todayEvents) {
     };
   });
 
-  // Measure final rendered row centers after transforms.
+  // Measure row centers in the group's own local layout coordinates.
   for (const point of points) {
-    const rowRect = point.row.getBoundingClientRect();
-    const yInGroup = rowRect.top - groupRect.top + rowRect.height / 2;
+    const yInGroup =
+      getOffsetWithinAncestor(point.row, textGroup) + point.row.offsetHeight / 2;
     if (point.eventKey) map.set(point.eventKey, yInGroup);
     if (point.time) map.set(point.time, yInGroup);
     map.set(`__m:${point.timeMinutes}`, yInGroup);
@@ -74,8 +76,9 @@ export function layoutTodayEvents(todayEvents) {
     if (!grouped.length) continue;
     const ys = [];
     for (const point of grouped) {
-      const rowRect = point.row.getBoundingClientRect();
-      ys.push(rowRect.top - groupRect.top + rowRect.height / 2);
+      ys.push(
+        getOffsetWithinAncestor(point.row, textGroup) + point.row.offsetHeight / 2,
+      );
     }
     const minY = Math.min(...ys);
     const maxY = Math.max(...ys);
@@ -87,12 +90,32 @@ export function layoutTodayEvents(todayEvents) {
   }
 
   // Stable time anchors for NOW flag range.
-  const dayStartYInGroup = panelRect.top - groupRect.top;
-  const dayEndYInGroup = stageRect
-    ? stageRect.bottom - groupRect.top
-    : textGroup.clientHeight;
+  const dayStartYInGroup = getOffsetWithinAncestor(panel, textGroup);
+  const dayEndYInGroup = Math.max(textGroup.clientHeight, section.clientHeight);
   map.set("__dayStart", dayStartYInGroup);
   map.set("__screenBottom", dayEndYInGroup);
 
   return map;
+}
+
+/**
+ * Return the local Y offset of an element inside an ancestor.
+ *
+ * Think of this as "how far down the paper is this thing before any fancy
+ * perspective effects get painted on top?"
+ *
+ * @param {HTMLElement} element
+ * @param {HTMLElement} ancestor
+ * @returns {number}
+ */
+function getOffsetWithinAncestor(element, ancestor) {
+  let offset = 0;
+  let current = element;
+
+  while (current && current !== ancestor) {
+    offset += current.offsetTop || 0;
+    current = /** @type {HTMLElement | null} */ (current.offsetParent);
+  }
+
+  return current === ancestor ? offset : 0;
 }

@@ -58,26 +58,18 @@ export function getTargetY(layoutState, rowMap) {
 export function positionTimeline(targetY) {
   const line = document.getElementById("timeline-line");
   const scheduleGroup = document.getElementById("today-text-group");
-  const stage = document.getElementById("tv-stage");
 
-  if (!line || !scheduleGroup || !stage) return;
+  if (!line || !scheduleGroup) return;
   const rootStyle = getComputedStyle(document.documentElement);
-  const localYOffset =
-    Number.parseFloat(rootStyle.getPropertyValue("--now-flag-local-y")) || 0;
   const localRotate =
     rootStyle.getPropertyValue("--now-flag-rotate").trim() || "0deg";
-  const groupRect = scheduleGroup.getBoundingClientRect();
-  const stageRect = stage.getBoundingClientRect();
   const halfFlag = line.offsetHeight / 2;
 
-  // Hard visual clamp in pixels so the flag never goes off-screen.
+  // Clamp in the schedule group's own local coordinates.
   const minCenterY = halfFlag;
-  const maxCenterY = Math.max(
-    minCenterY,
-    stageRect.bottom - groupRect.top - halfFlag,
-  );
+  const maxCenterY = Math.max(minCenterY, scheduleGroup.clientHeight - halfFlag);
   const clampedCenterY = clamp(targetY, minCenterY, maxCenterY);
-  const lineOffset = clampedCenterY - halfFlag + localYOffset;
+  const lineOffset = clampedCenterY - halfFlag;
 
   line.style.transform = `translateY(${lineOffset}px) rotate(${localRotate})`;
 }
@@ -120,10 +112,9 @@ function getEventY(event, rowMap, anchor = "center") {
     return mappedY;
   }
 
-  // Fallback: measure the rendered row directly.
+  // Fallback: measure the row directly in local layout coordinates.
   const group = document.getElementById("today-text-group");
   if (!group) return 0;
-  const groupRect = group.getBoundingClientRect();
 
   const exactSelector = `.today-event-row[data-event-key="${cssEscape(
     toEventKey(event),
@@ -137,8 +128,7 @@ function getEventY(event, rowMap, anchor = "center") {
   }
 
   if (!row) return 0;
-  const rowRect = row.getBoundingClientRect();
-  return rowRect.top - groupRect.top + rowRect.height / 2;
+  return getOffsetWithinAncestor(row, group) + row.offsetHeight / 2;
 }
 
 /**
@@ -158,17 +148,10 @@ function getTimeAnchoredY(nowMinutes, rowMap) {
   if (!isUsableY(startY) || !isUsableY(endY) || endY <= startY) {
     const section = document.getElementById("today-section");
     const group = document.getElementById("today-text-group");
-    const stage = document.getElementById("tv-stage");
 
     if (section && group) {
-      const groupRect = group.getBoundingClientRect();
-      startY = 0;
+      startY = getOffsetWithinAncestor(section.querySelector("#today-panel"), group);
       endY = group.clientHeight || section.clientHeight;
-
-      if (stage) {
-        const stageRect = stage.getBoundingClientRect();
-        endY = stageRect.bottom - groupRect.top;
-      }
     }
   }
 
@@ -207,6 +190,25 @@ function cssEscape(value) {
     return CSS.escape(source);
   }
   return source.replace(/["\\]/g, "\\$&");
+}
+
+/**
+ * Return how far down an element sits within an ancestor before transforms.
+ *
+ * @param {Element | null} element
+ * @param {HTMLElement} ancestor
+ * @returns {number}
+ */
+function getOffsetWithinAncestor(element, ancestor) {
+  let offset = 0;
+  let current = /** @type {HTMLElement | null} */ (element);
+
+  while (current && current !== ancestor) {
+    offset += current.offsetTop || 0;
+    current = /** @type {HTMLElement | null} */ (current.offsetParent);
+  }
+
+  return current === ancestor ? offset : 0;
 }
 
 /**

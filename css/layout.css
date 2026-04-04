@@ -55,7 +55,6 @@
 
   /* NOW pointer image (tracks schedule Y) */
   --now-flag-local-x: -130px;
-  --now-flag-local-y: 45px;
   --now-flag-rotate: 8deg;
   --now-flag-w: 252px;
   --now-flag-h: 107px;
