@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">David Screen</string>
+  <string name="reconnecting_message">Reconnecting…</string>
+  <string name="retry">Retry</string>
+</resources>
+

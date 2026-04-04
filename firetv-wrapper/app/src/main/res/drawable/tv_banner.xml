@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <shape android:shape="rectangle">
+      <solid android:color="#111111" />
+    </shape>
+  </item>
+  <item
+    android:bottom="42dp"
+    android:drawable="@drawable/ic_david_mark"
+    android:left="112dp"
+    android:right="112dp"
+    android:top="42dp" />
+</layer-list>
+

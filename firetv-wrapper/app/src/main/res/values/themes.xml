@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <style name="Theme.DavidScreen" parent="Theme.AppCompat.NoActionBar">
+    <item name="android:windowBackground">@color/david_black</item>
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    <item name="android:navigationBarColor">@android:color/black</item>
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:windowContentTransitions">false</item>
+    <item name="android:colorBackground">@color/david_black</item>
+    <item name="android:textColorPrimary">@color/david_white</item>
+    <item name="android:textColorSecondary">@color/david_white</item>
+    <item name="colorPrimary">@color/david_blue</item>
+    <item name="colorPrimaryDark">@color/david_black</item>
+    <item name="colorAccent">@color/david_blue</item>
+    <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+  </style>
+</resources>
+
