@@ -1,8 +1,3 @@
-/*
-  ============================================================
-  FONTS AND SHARED INK COLORS
-  ============================================================
-*/
 @font-face {
   font-family: "DSEG7ClassicMini";
   src: url("../assets/fonts/DSEG7ClassicMini-Bold.ttf") format("truetype");
@@ -20,300 +15,314 @@
 }
 
 :root {
-  --font-family-main: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  --font-family-led: "DSEG7ClassicMini", "Courier New", Courier, monospace;
-  --font-family-plaque: "Garamond", "Baskerville", "Times New Roman", serif;
-  --font-family-note:
-    "Chalk Board", "Chalkboard SE", "Marker Felt", "Comic Sans MS",
-    "Bradley Hand", "Segoe Print", cursive;
-
-  --ink-black: #111111;
-  --ink-gray: #6f6f6f;
-  --ink-blue: #1f4f8c;
-  --ink-red: #bf1616;
-  --ink-red-soft: #cf3b3b;
+  --font-main: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --font-led: "DSEG7ClassicMini", "Courier New", Courier, monospace;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-note: "Chalk Board", "Chalkboard SE", "Marker Felt", cursive;
 }
 
 html,
 body,
-button,
-input,
-textarea,
-select {
-  font-family: var(--font-family-main);
+button {
+  font-family: var(--font-main);
 }
 
-/*
-  ============================================================
-  PLAQUE SURFACE
-  ============================================================
-*/
-#day-label {
-  font-family: var(--font-family-plaque);
-  font-size: 96px;
-  line-height: 0.92;
-  font-weight: 700;
-  letter-spacing: 0.36px;
-  color: #111111;
-  opacity: 0.7;
-  text-transform: uppercase;
-}
-
-#date-label {
-  font-family: var(--font-family-plaque);
-  font-size: 37px;
+.screen-kicker {
+  font-size: 24px;
   line-height: 1;
-  font-weight: 620;
-  color: #686662;
+  font-weight: 800;
+  color: var(--muted-ink);
   text-transform: uppercase;
 }
 
-/*
-  ============================================================
-  NEXT CARD SURFACE
-  ============================================================
-*/
-#next-card {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+h1,
+h2,
+p {
+  margin: 0;
 }
 
-#next-label {
-  width: 100%;
-  font-size: 76.5px;
-  line-height: 0.95;
+.home-header h1,
+.today-header h1,
+.shelf-header h1 {
+  margin-top: 8px;
+  font-family: var(--font-serif);
+  font-size: 84px;
+  line-height: 0.94;
+  color: var(--ink);
+}
+
+.home-header h1 {
+  font-size: 78px;
+}
+
+.home-shelf-label,
+.back-home-button {
+  font-size: 23px;
+  line-height: 1;
   font-weight: 900;
-  letter-spacing: 0.1px;
+  color: #2d1d11;
   text-transform: uppercase;
-  text-align: left;
-  color: var(--ink-red);
 }
 
-#next-time {
+.preview-calendar span,
+.preview-note span {
   display: block;
-  margin: 10px 0 0;
-  font-size: 58px;
+  font-size: 19px;
   line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0;
+  font-weight: 900;
+  color: var(--muted-ink);
   text-transform: uppercase;
-  text-align: left;
-  color: var(--ink-red-soft);
 }
 
-#next-secondary {
-  margin-top: 12px;
-  font-size: 28px;
+.preview-calendar strong {
+  display: block;
+  margin-top: 14px;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  line-height: 1.04;
+  color: var(--ink);
+}
+
+.preview-clock {
+  color: #f2342b;
+  font-family: var(--font-led);
+  font-size: 39px;
   line-height: 1;
   font-weight: 700;
-  letter-spacing: 0.2px;
-  text-transform: uppercase;
-  color: #8e1f1f;
+  letter-spacing: 1.5px;
 }
 
-#countdown-text {
-  width: 100%;
-  margin-top: -10px;
+.preview-meals span {
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.preview-meals strong {
+  font-family: var(--font-serif);
+  font-size: 23px;
+  line-height: 1;
+}
+
+.preview-note strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-serif);
+  font-size: 27px;
+  line-height: 1.04;
+  color: var(--ink);
+}
+
+.today-date {
+  margin-top: 12px;
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 1;
+  color: var(--muted-ink);
+}
+
+.tablet-clock {
+  color: #f2342b;
+  font-family: var(--font-led);
+  font-size: 54px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.paper-title {
+  font-family: var(--font-serif);
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.meal-time {
   font-size: 34px;
   line-height: 1;
   font-weight: 800;
-  color: var(--ink-red);
-  text-align: right;
-  text-transform: none;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  white-space: nowrap;
+  color: inherit;
 }
 
-#countdown-text .count-num {
-  font-size: 66px;
-  line-height: 1;
-  font-weight: 900;
-  color: var(--ink-red);
-  display: inline-flex;
-  align-items: center;
-}
-
-#countdown-text .count-unit,
-#countdown-text .count-tail {
-  font-size: 34px;
-  line-height: 1;
-  font-weight: 600;
-  color: var(--ink-red);
-  display: inline-flex;
-  align-items: center;
-}
-
-#time-left-label {
-  font-size: 34px;
-  line-height: 1;
-  font-weight: 300;
-  font-style: normal;
-  letter-spacing: 0.4px;
-  color: #533b26;
-  text-align: right;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-#progress-shell {
-  background: rgba(83, 59, 38, 0.2);
-}
-
-#progress-fill {
-  background: var(--ink-red);
-}
-
-#happening-soon-sticker {
-  display: block;
-  transform: scale(var(--hs-sticker-scale));
-  transform-origin: center center;
-  max-width: none;
-}
-
-#help1 {
-  font-size: 38px;
-  line-height: 1.275;
-  font-weight: 900;
-  color: var(--ink-blue);
-  text-transform: uppercase;
-  white-space: pre-line;
-}
-
-#help2 {
-  font-size: 30px;
-  line-height: 1.275;
-  font-weight: 550;
-  color: var(--ink-blue);
-  text-transform: uppercase;
-  white-space: pre-line;
-}
-
-/*
-  ============================================================
-  CLOCK SURFACE
-  ============================================================
-*/
-#led-clock {
-  background: transparent;
-  color: #ff1f1f;
-  font-family: var(--font-family-led);
-  font-size: 132px;
+.meal-label {
+  font-family: var(--font-serif);
+  font-size: 46px;
   line-height: 1;
   font-weight: 700;
-  letter-spacing: 7px;
-  font-variant-numeric: tabular-nums;
-  display: grid;
-  place-items: center;
-  transform-origin: center center;
-  border: 0;
-  box-shadow: none;
+  color: inherit;
 }
 
-#led-clock .clock-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+.next-flag {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 
-/*
-  ============================================================
-  ENCOURAGEMENT NOTE SURFACE
-  ============================================================
-*/
-#encouragement-note-text {
-  width: 100%;
-  height: 100%;
-  padding: 10px 14px;
-  color: #6b4aa5;
-  font-family: var(--font-family-note);
-  font-size: 37px;
-  line-height: 1.2;
-  font-weight: 600;
-  font-style: italic;
-  letter-spacing: 1.2px;
+.note-label {
+  font-size: 23px;
+  line-height: 1;
+  font-weight: 900;
+  color: var(--blue-ink);
+  text-transform: uppercase;
+}
+
+.today-note h2 {
+  font-family: var(--font-serif);
+  font-size: 54px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.note-time,
+.note-place {
+  margin-top: 12px;
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 800;
+  color: var(--blue-ink);
+}
+
+.today-note p {
+  margin-top: 20px;
+  font-size: 30px;
+  line-height: 1.25;
+  color: #403322;
+}
+
+.shelf-section h2 {
+  margin: 0 0 16px 24px;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 900;
+  color: #fff4d7;
+  text-shadow: 0 2px 2px rgba(49, 25, 10, 0.35);
+}
+
+.item-title {
+  font-size: 27px;
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: 0;
   text-align: center;
   text-transform: uppercase;
-  white-space: pre-line;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: rotate(-5deg) scaleX(1.12);
-  transform-origin: center center;
 }
 
-/*
-  ============================================================
-  SCHEDULE SURFACE
-  ============================================================
-*/
-#timeline-line {
-  background: url("../assets/now-flag.png") center / contain no-repeat;
+.dvd-case .item-title {
+  font-size: 32px;
+  line-height: 1.05;
 }
 
-#today-panel {
-  background: transparent;
-  border: 0;
-}
-
-.today-time {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: var(--today-time-col);
-  transform: translateY(-50%);
-  font-size: 34px;
+.cover-category {
+  font-size: 22px;
   line-height: 1;
-  font-weight: 500;
-  color: #151515;
-  text-align: right;
+  font-weight: 900;
+  color: rgba(255, 248, 236, 0.76);
+  text-transform: uppercase;
 }
 
-.today-label {
-  position: absolute;
-  top: 50%;
-  left: calc(var(--today-time-col) + var(--today-col-gap));
-  right: 0;
-  transform: translateY(-50%);
-  font-size: 30px;
+.taken-card h2 {
+  font-family: var(--font-serif);
+  font-size: 70px;
+  line-height: 0.96;
+}
+
+.taken-card p {
+  font-size: 31px;
+  line-height: 1.25;
+  color: rgba(255, 248, 236, 0.88);
+}
+
+.primary-action,
+.secondary-action {
+  font-size: 27px;
   line-height: 1;
-  font-weight: 500;
-  color: #111111;
-  text-align: left;
+  font-weight: 900;
+  letter-spacing: 0;
 }
 
-.today-event-row[data-past="true"] .today-time {
-  color: #4f4f4f;
-}
-
-.today-event-row[data-past="true"] .today-label {
-  color: #4f4f4f;
-  font-weight: 500;
-  text-transform: none;
-}
-
-.today-event-row[data-past="false"] .today-time,
-.today-event-row[data-focal="true"] .today-time {
-  color: #111111;
-}
-
-.today-event-row[data-past="false"] .today-label,
-.today-event-row[data-focal="true"] .today-label {
-  color: #111111;
-}
-
-.today-event-row[data-focal="true"] .today-label {
+.reader-book-title {
+  font-family: var(--font-serif);
+  font-size: 38px;
+  line-height: 1;
   font-weight: 700;
+  color: var(--ink);
 }
 
-.today-event-row[data-highlight="true"] .today-time,
-.today-event-row[data-highlight="true"] .today-label {
-  color: var(--ink-blue);
+.reader-page-count {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--muted-ink);
 }
 
-.today-event-row[data-highlight="true"] .today-label {
+.reader-text {
+  font-family: var(--font-serif);
+  font-size: 43px;
+  line-height: 1.34;
+  color: var(--ink);
+}
+
+.the-end {
+  margin-bottom: 28px;
+  font-family: var(--font-serif);
+  font-size: 72px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.reader-end p {
+  font-size: 32px;
+  line-height: 1.2;
+  color: var(--muted-ink);
+}
+
+.reader-end h1 {
+  margin-top: 12px;
+  font-family: var(--font-serif);
+  font-size: 62px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.handoff-card h1 {
+  margin: 20px 0 34px;
+  font-family: var(--font-serif);
+  font-size: 76px;
+  line-height: 0.96;
+  color: var(--ink);
+}
+
+.handoff-card p {
+  margin-top: 16px;
+  font-size: 38px;
+  line-height: 1.25;
+  color: #3d3023;
+}
+
+.handoff-card button {
+  margin-top: 48px;
+  align-self: flex-start;
+}
+
+#meal-name {
+  font-size: 23px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
+
+#meal-time-left {
+  font-size: 17px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+#meal-message {
+  font-size: 17px;
+  line-height: 1;
   font-weight: 700;
+  color: rgba(248, 238, 217, 0.82);
 }

@@ -1,15 +1,14 @@
-# David Helper Dashboard
+# David's Stuff
 
-A TV-first orientation screen for David.
+A portrait tablet companion app for David.
 
-## What it does
+The app is meant to feel like one familiar physical place: David's personal shelf unit. The home screen shows three shelves:
 
-The screen is designed to answer four simple questions:
+- Today Shelf
+- Shows Shelf
+- Books Shelf
 
-1. What day is it
-2. What time is it
-3. What's next
-4. How long until it happens
+Tapping a shelf expands it. Books and shows come off the shelf before David chooses `READ`, `WATCH`, or `PUT BACK`.
 
 ## Local development
 
@@ -28,59 +27,33 @@ http://localhost:8000
 ### Test a fake point in time
 
 ```text
-http://localhost:8000/?debugNow=2026-04-01T11:32:00
+http://localhost:8000/?debugNow=2026-03-04T10:20:00
 ```
 
-Useful examples:
+## Current Structure
 
-- `?debugNow=2026-04-01T11:32:00` → countdown to lunch
-- `?debugNow=2026-04-01T12:00:00` → HAPPENING SOON state for lunch
-- `?debugNow=2026-04-02T09:15:00` → Thursday laundry hold window
+- `index.html` provides the kiosk-safe portrait stage and compact meal timer.
+- `js/main.js` owns app state, shelf expansion, reader flow, watch handoff, and meal timing.
+- `js/app-data.js` contains sample meals, today-only notes, books, and shows.
+- `js/playback.js` contains the playback abstraction and current VoiceMonkey adapter.
+- `css/layout.css` and `css/text.css` define the physical shelf, paper, and card styling.
 
-## Data files
+## Meal Timer
 
-### `data/config.json`
-App-wide settings like:
-- location name
-- tick frequency
-- active day window
-- default hold duration
-- top-right prompt
+The persistent meal timer shows only the next meal:
 
-### `data/daily.json`
-The fixed every-day anchors.
+- Breakfast: 7:00 AM
+- Lunch: 12:00 PM
+- Supper: 5:00 PM
 
-### `data/weekly.json`
-Reliable recurring weekly overrides by weekday.
+After supper it shows `REST WHEN READY`.
 
-### `data/monthly.json`
-Date-specific overrides.
+## Playback
 
-## Override strategy
+The shelf UI calls:
 
-Most of the time, the daily anchors remain the same.
-Weekly events layer on top of that baseline, and monthly events layer on top of both.
+```js
+PlaybackService.play(item)
+```
 
-Both weekly and monthly support:
-- `add`
-- `remove`
-- `replace`
-
-## Current implementation notes
-
-- Fixed 1920x1080 inner stage
-- Browser scales that stage to fit your viewport
-- Countdown runs until event time
-- At event time, screen changes to `HAPPENING SOON`
-- Progress bar is hidden during `HAPPENING SOON`
-- Clock and red line move down the TODAY schedule
-
-## Fire TV
-
-There is now a repo-specific Fire TV runbook in [FIRE-TV.md](./FIRE-TV.md).
-
-Short version:
-
-- quickest real-TV test: host this project on your LAN and open it in Web App Tester
-- best first ship path: hosted web app
-- no build step is required right now
+The current adapter is VoiceMonkey. Future Plex playback should be added behind the same service boundary so the shelf UI does not change.
