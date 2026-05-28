@@ -81,7 +81,7 @@ select {
 
 #next-label {
   width: 100%;
-  font-size: 90px;
+  font-size: 76.5px;
   line-height: 0.95;
   font-weight: 900;
   letter-spacing: 0.1px;
@@ -309,6 +309,11 @@ select {
   font-weight: 700;
 }
 
-.today-event-row[data-clustered="true"] .today-label {
-  font-weight: 600;
+.today-event-row[data-highlight="true"] .today-time,
+.today-event-row[data-highlight="true"] .today-label {
+  color: var(--ink-blue);
+}
+
+.today-event-row[data-highlight="true"] .today-label {
+  font-weight: 700;
 }

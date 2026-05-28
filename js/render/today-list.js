@@ -16,6 +16,8 @@ export function renderTodayList(dom, vm) {
     row.dataset.eventKey = item.eventKey ?? `${item.time}|${item.label}`;
     row.dataset.time = item.time;
     row.dataset.timeMinutes = String(item.timeMinutes ?? "");
+    row.dataset.source = item.source ?? "daily";
+    row.dataset.highlight = String(Boolean(item.highlight));
     row.dataset.past = String(item.isPast);
     row.dataset.focal = String(item.isFocal);
     row.dataset.clustered = String(item.isClustered);

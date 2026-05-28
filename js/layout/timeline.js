@@ -1,11 +1,10 @@
+const SHOW_TIMELINE_DEBUG = false;
+
 /**
- * Compute the Y target for the LED clock and line.
+ * Compute the NOW target Y inside the schedule's local coordinate space.
  *
- * Rules
- * -----
- * - countdown state: interpolate between previous event row and focal row
- * - happeningSoon state: snap to focal row center
- * - if no previous row exists, snap directly to focal row
+ * Most of the day, the marker follows the time ruler.
+ * During the happening-soon window, it snaps to the focal event row instead.
  *
  * @param {{
  *   state: 'countdown' | 'happeningSoon',
@@ -19,34 +18,16 @@
  */
 export function getTargetY(layoutState, rowMap) {
   const timeAnchoredY = getTimeAnchoredY(layoutState.nowMinutes, rowMap);
-  if (!layoutState.focalEvent) {
+  if (!layoutState.focalEvent || layoutState.state !== "happeningSoon") {
     return timeAnchoredY;
   }
 
-  // For duplicate-time blocks, use the start anchor while approaching that time.
+  // Shared-time blocks should point at the top of the cluster.
   let focalY = getEventY(layoutState.focalEvent, rowMap, "start");
   if (!isUsableY(focalY)) {
     focalY = timeAnchoredY;
   }
-  if (layoutState.state === "happeningSoon") {
-    return focalY;
-  }
-
-  let previousY = layoutState.previousEvent
-    ? getEventY(layoutState.previousEvent, rowMap, "end")
-    : (rowMap.get("__dayStart") ?? null);
-
-  if (!isUsableY(previousY)) {
-    previousY = rowMap.get("__dayStart") ?? 0;
-  }
-
-  if (!isUsableY(previousY)) {
-    return focalY;
-  }
-
-  const blendedY =
-    previousY + (focalY - previousY) * layoutState.progressFraction;
-  return isUsableY(blendedY) ? blendedY : timeAnchoredY;
+  return focalY;
 }
 
 /**
@@ -57,21 +38,86 @@ export function getTargetY(layoutState, rowMap) {
  */
 export function positionTimeline(targetY) {
   const line = document.getElementById("timeline-line");
-  const scheduleGroup = document.getElementById("today-text-group");
 
-  if (!line || !scheduleGroup) return;
+  if (!line) return;
   const rootStyle = getComputedStyle(document.documentElement);
-  const localRotate =
-    rootStyle.getPropertyValue("--now-flag-rotate").trim() || "0deg";
-  const halfFlag = line.offsetHeight / 2;
+  const localRotate = rootStyle.getPropertyValue("--now-flag-rotate").trim() || "0deg";
+  const rotationDegrees = Number.parseFloat(localRotate) || 0;
+  const rotationRadians = (rotationDegrees * Math.PI) / 180;
+  const tipXOffset = readCssNumber(rootStyle, "--now-flag-tip-x-offset", line.offsetWidth);
+  const tipYOffset = readCssNumber(rootStyle, "--now-flag-tip-y-offset", line.offsetHeight / 2);
+  const targetYNudge = readCssNumber(rootStyle, "--now-flag-target-y-nudge", 0);
+  const centerX = line.offsetWidth / 2;
+  const centerY = line.offsetHeight / 2;
+  const rotatedTipYOffset =
+    centerY +
+    Math.sin(rotationRadians) * (tipXOffset - centerX) +
+    Math.cos(rotationRadians) * (tipYOffset - centerY);
 
-  // Clamp in the schedule group's own local coordinates.
-  const minCenterY = halfFlag;
-  const maxCenterY = Math.max(minCenterY, scheduleGroup.clientHeight - halfFlag);
-  const clampedCenterY = clamp(targetY, minCenterY, maxCenterY);
-  const lineOffset = clampedCenterY - halfFlag;
+  // Let the full-day ruler extend beyond the visible paper.
+  // Midnight and late-night positions can live just off-screen.
+  const lineOffset = targetY + targetYNudge - rotatedTipYOffset;
 
   line.style.transform = `translateY(${lineOffset}px) rotate(${localRotate})`;
+}
+
+/**
+ * Draw temporary guide lines so we can see the timeline math on the paper.
+ *
+ * This is intentionally loud and obvious while we debug.
+ *
+ * @param {Map<string, number>} rowMap
+ * @param {number} targetY
+ */
+export function renderTimelineDebug(rowMap, targetY) {
+  const group = document.getElementById("today-text-group");
+  if (!group) return;
+
+  if (!SHOW_TIMELINE_DEBUG) {
+    const existingLayer = document.getElementById("timeline-debug-layer");
+    if (existingLayer) existingLayer.remove();
+    return;
+  }
+
+  let layer = document.getElementById("timeline-debug-layer");
+  if (!layer) {
+    layer = document.createElement("div");
+    layer.id = "timeline-debug-layer";
+    layer.style.position = "absolute";
+    layer.style.inset = "0";
+    layer.style.pointerEvents = "none";
+    layer.style.zIndex = "20";
+    group.appendChild(layer);
+  }
+
+  layer.innerHTML = "";
+
+  const guides = [
+    { label: "TOP", y: rowMap.get("__dayStart"), color: "#00e5ff" },
+    { label: "FIRST EVENT", y: rowMap.get("__firstEventY"), color: "#7c4dff" },
+    { label: "BOTTOM", y: rowMap.get("__screenBottom"), color: "#ff9800" },
+    { label: "NOW TARGET", y: targetY, color: "#ff1744" },
+  ];
+
+  for (const [key, value] of rowMap.entries()) {
+    if (!key.startsWith("__m:")) continue;
+    const minute = Number(key.slice(4));
+    if (!Number.isFinite(minute) || !Number.isFinite(value)) continue;
+    guides.push({
+      label: minuteToLabel(minute),
+      y: value,
+      color: "#7cff7c",
+    });
+  }
+
+  const seen = new Set();
+  for (const guide of guides) {
+    if (!Number.isFinite(guide.y)) continue;
+    const dedupeKey = `${guide.label}|${guide.y}`;
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    layer.appendChild(makeGuideLine(guide.label, Number(guide.y), guide.color));
+  }
 }
 
 function toEventKey(event) {
@@ -132,10 +178,14 @@ function getEventY(event, rowMap, anchor = "center") {
 }
 
 /**
- * For times with no focal event (before first or after last),
- * use fixed day anchors:
- * - 5:00 AM => day-start anchor
- * - 11:00 PM and later => screen bottom
+ * Build the full-day time ruler for the schedule paper.
+ *
+ * Key anchors:
+ * - 00:00 -> TOP
+ * - first event -> first event row
+ * - in-between events -> row-to-row interpolation
+ * - last event -> last event row
+ * - 23:59 -> BOTTOM
  *
  * @param {number} nowMinutes
  * @param {Map<string, number>} rowMap
@@ -144,6 +194,10 @@ function getEventY(event, rowMap, anchor = "center") {
 function getTimeAnchoredY(nowMinutes, rowMap) {
   let startY = rowMap.get("__dayStart");
   let endY = rowMap.get("__screenBottom");
+  const firstMinute = rowMap.get("__firstEventMinute");
+  const firstY = rowMap.get("__firstEventY");
+  const lastMinute = rowMap.get("__lastEventMinute");
+  const lastY = rowMap.get("__lastEventY");
 
   if (!isUsableY(startY) || !isUsableY(endY) || endY <= startY) {
     const section = document.getElementById("today-section");
@@ -165,10 +219,57 @@ function getTimeAnchoredY(nowMinutes, rowMap) {
     return startY;
   }
 
-  const dayStart = 5 * 60;
-  const dayEnd = 23 * 60;
-  const t = clamp((now - dayStart) / (dayEnd - dayStart), 0, 1);
-  return startY + (endY - startY) * t;
+  // Midnight must land on the exact TOP anchor with no interpolation.
+  if (now <= 0) {
+    return startY;
+  }
+
+  // Treat the midnight-to-first-event span as its own exact segment.
+  // This guarantees 00:00 lands on TOP and the first event lands on its row.
+  if (
+    Number.isFinite(firstMinute) &&
+    Number.isFinite(firstY) &&
+    firstMinute > 0 &&
+    now <= firstMinute
+  ) {
+    const t = clamp(now / firstMinute, 0, 1);
+    return startY + (firstY - startY) * t;
+  }
+
+  // After the last event, keep mapping real clock time through the final
+  // stretch of the day so the marker can travel from the last row to BOTTOM.
+  if (
+    Number.isFinite(lastMinute) &&
+    Number.isFinite(lastY) &&
+    lastMinute < (24 * 60) - 1 &&
+    now >= lastMinute
+  ) {
+    const span = Math.max(1, ((24 * 60) - 1) - lastMinute);
+    const t = clamp((now - lastMinute) / span, 0, 1);
+    return lastY + (endY - lastY) * t;
+  }
+
+  const anchors = getTimeAnchors(rowMap, startY, endY);
+  if (!anchors.length) {
+    return startY;
+  }
+
+  if (now <= anchors[0].minute) {
+    return anchors[0].y;
+  }
+
+  for (let index = 1; index < anchors.length; index += 1) {
+    const previous = anchors[index - 1];
+    const next = anchors[index];
+
+    if (now <= next.minute) {
+      const span = Math.max(1, next.minute - previous.minute);
+      const t = clamp((now - previous.minute) / span, 0, 1);
+      return previous.y + (next.y - previous.y) * t;
+    }
+  }
+
+  return anchors[anchors.length - 1].y;
 }
 
 /**
@@ -176,7 +277,18 @@ function getTimeAnchoredY(nowMinutes, rowMap) {
  * @returns {boolean}
  */
 function isUsableY(value) {
-  return Number.isFinite(value) && Number(value) >= 0;
+  return Number.isFinite(value);
+}
+
+/**
+ * @param {CSSStyleDeclaration} styles
+ * @param {string} name
+ * @param {number} fallback
+ * @returns {number}
+ */
+function readCssNumber(styles, name, fallback) {
+  const parsed = Number.parseFloat(styles.getPropertyValue(name));
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 /**
@@ -209,6 +321,91 @@ function getOffsetWithinAncestor(element, ancestor) {
   }
 
   return current === ancestor ? offset : 0;
+}
+
+/**
+ * Build a simple time-to-Y ruler for the day.
+ *
+ * We use:
+ * - top of paper at midnight
+ * - each schedule row at its own event time
+ * - bottom of paper at 11:59 PM
+ *
+ * That gives the NOW flag a consistent "where should this be at this clock
+ * time?" answer without depending on whichever event happens to be focal.
+ *
+ * @param {Map<string, number>} rowMap
+ * @param {number} startY
+ * @param {number} endY
+ * @returns {{ minute: number, y: number }[]}
+ */
+function getTimeAnchors(rowMap, startY, endY) {
+  const anchors = [{ minute: 0, y: startY }];
+
+  for (const [key, value] of rowMap.entries()) {
+    if (!key.startsWith("__m:") || !isUsableY(value)) continue;
+    const minute = Number(key.slice(4));
+    if (!Number.isFinite(minute)) continue;
+    anchors.push({ minute, y: Number(value) });
+  }
+
+  anchors.push({ minute: (24 * 60) - 1, y: endY });
+
+  anchors.sort((a, b) => a.minute - b.minute);
+
+  const deduped = [];
+  for (const anchor of anchors) {
+    const previous = deduped[deduped.length - 1];
+    if (previous && previous.minute === anchor.minute) {
+      previous.y = anchor.y;
+    } else {
+      deduped.push(anchor);
+    }
+  }
+
+  return deduped;
+}
+
+/**
+ * @param {string} label
+ * @param {number} y
+ * @param {string} color
+ * @returns {HTMLDivElement}
+ */
+function makeGuideLine(label, y, color) {
+  const line = document.createElement("div");
+  line.style.position = "absolute";
+  line.style.left = "0";
+  line.style.right = "0";
+  line.style.top = `${Math.round(y)}px`;
+  line.style.borderTop = `2px dashed ${color}`;
+  line.style.opacity = "0.95";
+
+  const tag = document.createElement("div");
+  tag.textContent = label;
+  tag.style.position = "absolute";
+  tag.style.right = "6px";
+  tag.style.top = "-14px";
+  tag.style.padding = "1px 4px";
+  tag.style.background = color;
+  tag.style.color = "#111";
+  tag.style.font = "700 12px/1 monospace";
+  tag.style.borderRadius = "3px";
+  tag.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.2)";
+
+  line.appendChild(tag);
+  return line;
+}
+
+/**
+ * @param {number} minute
+ * @returns {string}
+ */
+function minuteToLabel(minute) {
+  const hours24 = Math.floor(minute / 60);
+  const minutes = minute % 60;
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+  return `${hours12}:${String(minutes).padStart(2, "0")}`;
 }
 
 /**

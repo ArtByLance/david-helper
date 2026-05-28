@@ -21,7 +21,7 @@
   --next-surface-y: 324px;
   --next-surface-w: 1088px;
   --next-surface-h: 604px;
-  --next-rotate-z: -3deg;
+  --next-rotate-z: -2deg;
   --next-rotate-y: -6deg;
   --next-rotate-x: 1.4deg;
   --next-scale-x: 0.985;
@@ -53,11 +53,19 @@
   --encouragement-note-h: 145px;
   --encouragement-note-rotate: -6deg;
 
-  /* NOW pointer image (tracks schedule Y) */
+  /* NOW flag tuning
+     - top/bottom overscan define the day ruler beyond the visible paper
+     - tip offsets describe where the arrow point sits inside the PNG
+     - target nudge is a final visual calibration after ruler math is correct */
   --now-flag-local-x: -130px;
   --now-flag-rotate: 8deg;
   --now-flag-w: 252px;
   --now-flag-h: 107px;
+  --now-track-top-overscan: -100px;
+  --now-track-bottom-overscan: 40px;
+  --now-flag-tip-x-offset: 238px;
+  --now-flag-tip-y-offset: 63px;
+  --now-flag-target-y-nudge: 18px;
 
   /* NEXT content geometry */
   --next-title-x: 30px;
@@ -330,6 +338,7 @@ body {
 #today-text-group {
   position: absolute;
   inset: 0;
+  overflow: visible;
   transform: perspective(2200px) rotateZ(var(--schedule-rotate-z))
     rotateY(var(--schedule-rotate-y)) rotateX(var(--schedule-rotate-x))
     scale(var(--schedule-scale-x), var(--schedule-scale-y)) translate(20px, 8px);

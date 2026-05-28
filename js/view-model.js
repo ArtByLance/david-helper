@@ -40,12 +40,19 @@ export function buildViewModel(now, events, focalState, progressFraction) {
   const focal = focalCluster.length
     ? choosePrimaryEvent(focalCluster)
     : focalRaw;
+  // After the final event, keep showing the last meaningful item through
+  // midnight even though there is no future focal event anymore.
+  const fallbackEvent = !focal && focalState.previousEvent
+    ? focalState.previousEvent
+    : null;
+  const displayEvent = focal ?? fallbackEvent;
   const secondaryClusterItems = focalCluster.filter(
     (event) =>
       focal && !(event.time === focal.time && event.label === focal.label),
   );
   const showHappeningSoon =
-    focalState.state === "happeningSoon" && Boolean(focal);
+    (focalState.state === "happeningSoon" && Boolean(focal)) ||
+    (!focal && Boolean(fallbackEvent));
   const showCountdown = focalState.state === "countdown" && Boolean(focal);
   const passedEventCount = countPassedEvents(events, focalState.nowMinutes);
 
@@ -53,8 +60,8 @@ export function buildViewModel(now, events, focalState, progressFraction) {
     dayLabel: formatDayLabel(now),
     dateLabel: formatDateLabel(now),
 
-    nextLabel: focal?.label?.toUpperCase?.() ?? "",
-    nextTime: focal ? formatNextTimeLabel(focal.time) : "",
+    nextLabel: displayEvent?.label?.toUpperCase?.() ?? "",
+    nextTime: displayEvent ? formatNextTimeLabel(displayEvent.time) : "",
     nextSecondary:
       secondaryClusterItems.length > 0
         ? `ALSO: ${secondaryClusterItems[0].label.toUpperCase()}`
@@ -68,12 +75,12 @@ export function buildViewModel(now, events, focalState, progressFraction) {
     showProgress: showCountdown,
     showHappeningSoon,
 
-    help1: focal?.help1 ?? "",
-    help2: focal?.help2 ?? "",
+    help1: displayEvent?.help1 ?? "",
+    help2: displayEvent?.help2 ?? "",
     encouragementNote: getEncouragementPhrase(passedEventCount),
 
     clockText: formatClock(now),
-    todayEvents: buildTodayEventViewModels(events, focal, focalState.nowMinutes),
+    todayEvents: buildTodayEventViewModels(events, displayEvent, focalState.nowMinutes),
   };
 }
 
@@ -131,8 +138,10 @@ function buildTodayEventViewModels(events, focal, nowMinutes) {
     timeMinutes: event.timeMinutes,
     timeDisplay: minutesToShortDisplay(event.timeMinutes),
     label: event.label,
+    source: event.source ?? "daily",
+    highlight: Boolean(event.highlight),
     isPast: event.timeMinutes < nowMinutes && event !== focal,
-    isFocal: Boolean(focal) && event.timeMinutes === focal.timeMinutes,
+    isFocal: event === focal,
     isClustered: events.some(
       (other) => other !== event && other.timeMinutes === event.timeMinutes,
     ),

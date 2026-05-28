@@ -1,8 +1,8 @@
 const DAY_START_MINUTES = 5 * 60;
 
 /**
- * Position TODAY rows as a simple evenly spaced list.
- * Hybrid/time-weighted spacing is intentionally suspended for this phase.
+ * Position TODAY rows as a simple evenly spaced list and expose the time
+ * anchors the NOW ruler needs.
  *
  * Returns center Y values in the local layout space of #today-text-group.
  *
@@ -22,6 +22,7 @@ export function layoutTodayEvents(todayEvents) {
   const panel = document.getElementById("today-panel");
   const container = document.getElementById("today-events");
   const rows = Array.from(document.querySelectorAll(".today-event-row"));
+  const rootStyle = getComputedStyle(document.documentElement);
 
   if (
     !section ||
@@ -52,9 +53,14 @@ export function layoutTodayEvents(todayEvents) {
       eventKey: row.dataset.eventKey ?? "",
       time: row.dataset.time ?? "",
       timeMinutes: Number(row.dataset.timeMinutes ?? DAY_START_MINUTES),
-      targetY,
     };
   });
+
+  const sortedMinutes = [...new Set(
+    points
+      .map((point) => point.timeMinutes)
+      .filter((value) => Number.isFinite(value)),
+  )].sort((a, b) => a - b);
 
   // Measure row centers in the group's own local layout coordinates.
   for (const point of points) {
@@ -89,11 +95,37 @@ export function layoutTodayEvents(todayEvents) {
     map.set(`__clusterEnd:${minute}`, maxY);
   }
 
-  // Stable time anchors for NOW flag range.
-  const dayStartYInGroup = getOffsetWithinAncestor(panel, textGroup);
-  const dayEndYInGroup = Math.max(textGroup.clientHeight, section.clientHeight);
+  // Stable day-range anchors used by the timeline ruler.
+  const panelTopInGroup = getOffsetWithinAncestor(panel, textGroup);
+  const panelBottomInGroup = panelTopInGroup + (panel.clientHeight || section.clientHeight);
+  const dayStartYInGroup =
+    readPx(rootStyle.getPropertyValue("--now-track-top-overscan")) ?? 0;
+  const dayEndYInGroup =
+    panelBottomInGroup +
+    (readPx(rootStyle.getPropertyValue("--now-track-bottom-overscan")) ?? 0);
   map.set("__dayStart", dayStartYInGroup);
   map.set("__screenBottom", dayEndYInGroup);
+  if (sortedMinutes.length) {
+    const firstMinute = sortedMinutes[0];
+    const lastMinute = sortedMinutes[sortedMinutes.length - 1];
+    const firstEventY =
+      map.get(`__clusterStart:${firstMinute}`) ??
+      map.get(`__cluster:${firstMinute}`) ??
+      map.get(`__m:${firstMinute}`);
+    const lastEventY =
+      map.get(`__clusterEnd:${lastMinute}`) ??
+      map.get(`__cluster:${lastMinute}`) ??
+      map.get(`__m:${lastMinute}`);
+
+    if (Number.isFinite(firstEventY)) {
+      map.set("__firstEventMinute", firstMinute);
+      map.set("__firstEventY", Number(firstEventY));
+    }
+    if (Number.isFinite(lastEventY)) {
+      map.set("__lastEventMinute", lastMinute);
+      map.set("__lastEventY", Number(lastEventY));
+    }
+  }
 
   return map;
 }
@@ -118,4 +150,15 @@ function getOffsetWithinAncestor(element, ancestor) {
   }
 
   return current === ancestor ? offset : 0;
+}
+
+/**
+ * Read a CSS pixel token like "26px" into a number.
+ *
+ * @param {string} value
+ * @returns {number | null}
+ */
+function readPx(value) {
+  const parsed = Number.parseFloat(String(value).trim());
+  return Number.isFinite(parsed) ? parsed : null;
 }

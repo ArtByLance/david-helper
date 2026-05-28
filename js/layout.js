@@ -9,4 +9,4 @@
 
 export { fitStageToViewport } from './layout/fit-stage.js';
 export { layoutTodayEvents } from './layout/today-map.js';
-export { getTargetY, positionTimeline } from './layout/timeline.js';
+export { getTargetY, positionTimeline, renderTimelineDebug } from './layout/timeline.js';
