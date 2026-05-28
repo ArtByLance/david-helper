@@ -7,3 +7,6 @@ Desktop.ini
 *.swp
 *.swo
 *~
+
+# Local asset backups
+assets/*-old.jpg
