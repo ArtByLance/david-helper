@@ -1,0 +1,97 @@
+{
+  "sunday": {
+    "remove": ["10:00"],
+    "add": [
+      {
+        "time": "09:00",
+        "label": "Sunday School",
+        "help1": "SUNDAY SCHOOL STARTS AT 9:00.",
+        "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT TO GO."
+      },
+      {
+        "time": "10:15",
+        "label": "Church",
+        "help1": "CHURCH STARTS AT 10:15.",
+        "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT TO GO."
+      }
+    ]
+  },
+  "monday": {
+    "add": [
+      {
+        "time": "18:30",
+        "label": "Sing-A-Long",
+        "help1": "SING-A-LONG STARTS AT 6:30.",
+        "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT TO GO."
+      }
+    ]
+  },
+  "tuesday": {
+    "add": []
+  },
+  "wednesday": {
+    "add": [
+      {
+        "time": "09:45",
+        "label": "Shopping Trip",
+        "help1": "SHOPPING TRIP STARTS AT 9:45.",
+        "help2": "SOMEONE WILL HELP YOU GET READY TO GO."
+      },
+      {
+        "time": "18:45",
+        "label": "Bible Study",
+        "help1": "BIBLE STUDY STARTS AT 6:45.",
+        "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT TO GO."
+      }
+    ]
+  },
+  "thursday": {
+    "add": [
+      {
+        "time": "09:00",
+        "label": "Laundry Day",
+        "help1": "PUT ANY DIRTY CLOTHES\nIN THE HAMPER.",
+        "help2": "SOMEONE WILL PICK THEM UP\nFOR WASHING.",
+        "holdMinutes": 60
+      },
+      {
+        "time": "14:30",
+        "label": "Social Hour",
+        "help1": "SOCIAL HOUR STARTS AT 2:30.",
+        "help2": "IT IS A GOOD TIME TO GET A SNACK\nAND BE AROUND OTHER PEOPLE."
+      }
+    ]
+  },
+  "friday": {
+    "add": [
+      {
+        "time": "11:30",
+        "label": "Lunch Outing",
+        "help1": "LUNCH OUTING STARTS AT 11:30.",
+        "help2": "SOMEONE WILL HELP YOU GET READY TO GO."
+      },
+      {
+        "time": "14:30",
+        "label": "Ice Cream Social",
+        "help1": "ICE CREAM SOCIAL STARTS AT 2:30.",
+        "help2": "IT IS A GOOD TIME TO GET A TREAT\nAND BE AROUND OTHER PEOPLE."
+      }
+    ]
+  },
+  "saturday": {
+    "add": [
+      {
+        "time": "14:30",
+        "label": "Happy Hour",
+        "help1": "HAPPY HOUR STARTS AT 2:30.",
+        "help2": "IT IS A GOOD TIME TO GET A SNACK\nAND BE AROUND OTHER PEOPLE."
+      },
+      {
+        "time": "15:00",
+        "label": "Live Entertainment",
+        "help1": "LIVE ENTERTAINMENT STARTS AT 3:00.",
+        "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT TO GO."
+      }
+    ]
+  }
+}

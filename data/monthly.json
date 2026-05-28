@@ -1,0 +1,85 @@
+{
+  "2026-04-01": {
+    "add": [
+      {
+        "time": "10:30",
+        "label": "Planet Earth: Nature",
+        "help1": "PLANET EARTH STARTS AT 10:30.",
+        "help2": "IT IS A CALM NATURE SHOW IN THE THEATER ROOM."
+      }
+    ]
+  },
+  "2026-04-03": {
+    "add": [
+      {
+        "time": "12:00",
+        "label": "Good Friday Service",
+        "help1": "GOOD FRIDAY SERVICE IS TODAY.",
+        "help2": "SERVICE STARTS AT 12:00."
+      }
+    ]
+  },
+  "2026-04-05": {
+    "replace": [
+      {
+        "matchTime": "12:00",
+        "event": {
+          "time": "12:00",
+          "label": "Easter Luncheon",
+          "help1": "EASTER LUNCHEON IS TODAY AT 12:00.",
+          "help2": "THERE WILL ALSO BE SPECIAL ENTERTAINMENT AFTER LUNCH."
+        }
+      }
+    ]
+  },
+  "2026-04-15": {
+    "add": [
+      {
+        "time": "10:30",
+        "label": "Planet Earth: Nature",
+        "help1": "PLANET EARTH STARTS AT 10:30.",
+        "help2": "IT IS A CALM NATURE SHOW IN THE THEATER ROOM."
+      }
+    ]
+  },
+  "2026-04-16": {
+    "add": [
+      {
+        "time": "13:30",
+        "label": "Communion",
+        "help1": "COMMUNION IS TODAY AT 1:30.",
+        "help2": "IT IS A SPECIAL CHURCH SERVICE IN THE AFTERNOON."
+      }
+    ]
+  },
+  "2026-04-20": {
+    "add": [
+      {
+        "time": "19:00",
+        "label": "Community Band",
+        "help1": "THE COMMUNITY BAND STARTS AT 7:00.",
+        "help2": "THERE WILL BE LIVE MUSIC THIS EVENING."
+      }
+    ]
+  },
+  "2026-04-26": {
+    "add": [
+      {
+        "time": "14:00",
+        "label": "Live Music",
+        "help1": "LIVE ENTERTAINMENT STARTS AT 2:00.",
+        "help2": "JENI MICHELSON WILL BE PERFORMING TODAY."
+      }
+    ]
+  },
+  "2026-04-29": {
+    "add": [
+      {
+        "time": "10:30",
+        "label": "Planet Earth: Nature",
+        "help1": "PLANET EARTH STARTS AT 10:30.",
+        "help2": "IT IS A CALM NATURE SHOW IN THE THEATER ROOM."
+      }
+    ]
+  }
+}

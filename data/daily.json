@@ -1,0 +1,44 @@
+[
+  {
+    "time": "08:00",
+    "label": "Breakfast",
+    "help1": "YOU WILL EAT AT 8:00.",
+    "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE BREAKFAST."
+  },
+  {
+    "time": "10:00",
+    "label": "Exercise",
+    "help1": "EXERCISE STARTS AT 10:00.",
+    "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT HELP GETTING THERE."
+  },
+  {
+    "time": "12:00",
+    "label": "Lunch",
+    "help1": "YOU WILL EAT AT 12:00.",
+    "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE LUNCH."
+  },
+  {
+    "time": "14:30",
+    "label": "Snack Time",
+    "help1": "SNACK TIME STARTS AT 2:30.",
+    "help2": "IT IS A GOOD TIME TO GET A SNACK\nAND BE AROUND OTHER PEOPLE."
+  },
+  {
+    "time": "17:00",
+    "label": "Supper",
+    "help1": "YOU WILL EAT AT 5:00.",
+    "help2": "SOMEONE WILL COME GET YOU\nABOUT 15 MINUTES BEFORE SUPPER."
+  },
+  {
+    "time": "18:30",
+    "label": "Movie / Hang Out",
+    "help1": "MOVIE OR HANG OUT TIME STARTS AT 6:30.",
+    "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT TO GO."
+  },
+  {
+    "time": "21:00",
+    "label": "Bedtime",
+    "help1": "YOUR NORMAL BED TIME IS 9:00.",
+    "help2": "YOU CAN GO TO BED WHEN YOU FEEL READY."
+  }
+]

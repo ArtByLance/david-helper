@@ -47,21 +47,24 @@ App-wide settings like:
 - default hold duration
 - top-right prompt
 
-### `data/week.json`
-The normal weekly rhythm.
+### `data/daily.json`
+The fixed every-day anchors.
 
-### `data/schedule.json`
-Date-specific changes.
+### `data/weekly.json`
+Reliable recurring weekly overrides by weekday.
+
+### `data/monthly.json`
+Date-specific overrides.
 
 ## Override strategy
 
-Most of the time, the weekly schedule remains the same.
-`schedule.json` exists mainly to interject one-off events.
+Most of the time, the daily anchors remain the same.
+Weekly events layer on top of that baseline, and monthly events layer on top of both.
 
-Supported override buckets:
+Both weekly and monthly support:
 - `add`
-- `replace`
 - `remove`
+- `replace`
 
 ## Current implementation notes
 

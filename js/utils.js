@@ -115,7 +115,7 @@ export function formatDateKey(date) {
 }
 
 /**
- * Return lowercase weekday key used by week.json.
+ * Return lowercase weekday key used by weekly.json.
  *
  * @param {Date} date
  * @returns {string}

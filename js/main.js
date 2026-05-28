@@ -16,8 +16,9 @@
 
 import {
   loadConfig,
-  loadWeekData,
-  loadScheduleOverrides,
+  loadDailySchedule,
+  loadWeeklySchedule,
+  loadMonthlyEvents,
   buildTodaySchedule,
 } from "./data.js";
 import {
@@ -32,6 +33,7 @@ import {
   layoutTodayEvents,
   getTargetY,
   positionTimeline,
+  renderTimelineDebug,
 } from "./layout.js";
 import { buildViewModel } from "./view-model.js";
 
@@ -46,24 +48,27 @@ window.addEventListener("resize", () => {
 
 async function bootstrap() {
   try {
-    const [config, weekData, scheduleData] = await Promise.all([
+    const [config, dailyData, weeklyData, monthlyData] = await Promise.all([
       loadConfig(),
-      loadWeekData(),
-      loadScheduleOverrides(),
+      loadDailySchedule(),
+      loadWeeklySchedule(),
+      loadMonthlyEvents(),
     ]);
 
     const now = getNow();
     const todaySchedule = buildTodaySchedule(
       now,
-      weekData,
-      scheduleData,
+      dailyData,
+      weeklyData,
+      monthlyData,
       config,
     );
 
     appState = {
       config,
-      weekData,
-      scheduleData,
+      dailyData,
+      weeklyData,
+      monthlyData,
       todaySchedule,
     };
 
@@ -125,11 +130,11 @@ function updateScreen() {
       },
       rowMap,
     );
+    renderTimelineDebug(rowMap, targetY);
     positionTimeline(targetY);
   });
 }
 
-/**
 /**
  * Start the refresh loop.
  *
