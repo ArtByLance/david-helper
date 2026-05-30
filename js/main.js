@@ -26,14 +26,15 @@ const SHELF_PANEL_WIDTH = 800;
 const SHOWS_SPINE_START_X = 1810;
 const SHOWS_SPINE_WIDTH = 170;
 const SHOWS_SPINE_GAP = -85;
+const SHOWS_MEDIA_SPINE_GAP = 28;
 const SHOWS_GROUP_GAP = SHOWS_SPINE_WIDTH * 3;
-const SHOWS_TEST_GROUPS = [4, 1, 9, 3];
-const SHOWS_SECTION_TITLES = ["Westerns", "War Movies", "Favorites", "Family"];
-const BOOKS_TEST_GROUPS = [3, 2, 6, 1];
-const BOOKS_SECTION_TITLES = ["Novels", "History", "Favorites", "Faith"];
+const MEDIA_SPINE_BOTTOM = 245;
+const MEDIA_SPINE_HEIGHT = 620;
 const SHELF_EXTENSION_IMAGE = "./assets/shelves/shelf0.jpg";
 const SHOWS_SPINE_IMAGE = "./assets/objects/dvd-spine.png";
 const BOOKS_SPINE_IMAGE = "./assets/objects/book-spine.png";
+const SHOWS_FRONT_IMAGE = "./assets/objects/dvd-front.png";
+const BOOKS_FRONT_IMAGE = "./assets/objects/book-front.png";
 const TODAY_CLOCK_IMAGE = "./assets/objects/clock.png";
 const TODAY_MENU_IMAGE = "./assets/objects/card-menu.png";
 const TODAY_NEXT_FLAG_IMAGE = "./assets/objects/next-flag-2.png";
@@ -49,6 +50,58 @@ const BOOKS_EXTENSION_PANELS = 6;
 const BOOKS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * BOOKS_EXTENSION_PANELS;
 const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 4;
 const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 3;
+const SHOWS_TEST_MEDIA = [
+  {
+    title: "Frasier",
+    type: "dvd",
+    category: "Favorites",
+    masterArt: "./assets/media/frasier.svg",
+  },
+  {
+    title: "Bones",
+    type: "dvd",
+    category: "Favorites",
+    masterArt: "./assets/media/bones.svg",
+  },
+  {
+    title: "Western Movie",
+    type: "dvd",
+    category: "Favorites",
+    masterArt: "./assets/media/western-movie.svg",
+  },
+  {
+    title: "Gospel Music",
+    type: "dvd",
+    category: "Favorites",
+    masterArt: "./assets/media/gospel-music.svg",
+  },
+];
+const BOOKS_TEST_MEDIA = [
+  {
+    title: "Dry Creek Sheriff",
+    type: "book",
+    category: "Favorites",
+    masterArt: "./assets/media/dry-creek-sheriff.svg",
+  },
+  {
+    title: "Long Rider",
+    type: "book",
+    category: "Favorites",
+    masterArt: "./assets/media/long-rider.svg",
+  },
+  {
+    title: "Joseph",
+    type: "book",
+    category: "Favorites",
+    masterArt: "./assets/media/joseph.svg",
+  },
+  {
+    title: "Bridge Rescue",
+    type: "book",
+    category: "Favorites",
+    masterArt: "./assets/media/bridge-rescue.svg",
+  },
+];
 
 // When shelf content is built out, keep one extra blank panel past the expected
 // far-right end so overscroll never exposes the stage edge.
@@ -295,8 +348,8 @@ function renderBooksImageStrip() {
           <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.BOOKS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
-          ${renderBooksTestSpines()}
-          ${renderBooksSectionPlates()}
+          ${renderMediaSpineItems(BOOKS_TEST_MEDIA)}
+          ${renderMediaSectionPlates(BOOKS_TEST_MEDIA, "books-section-plate")}
           ${renderScrollLabel()}
         </div>
       </div>
@@ -320,8 +373,8 @@ function renderShowsImageStrip() {
           <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.SHOWS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
-          ${renderShowsTestSpines()}
-          ${renderShowsSectionPlates()}
+          ${renderMediaSpineItems(SHOWS_TEST_MEDIA, SHOWS_MEDIA_SPINE_GAP)}
+          ${renderMediaSectionPlates(SHOWS_TEST_MEDIA, "shows-section-plate", SHOWS_MEDIA_SPINE_GAP)}
           ${renderScrollLabel()}
         </div>
       </div>
@@ -330,34 +383,64 @@ function renderShowsImageStrip() {
   `;
 }
 
-function renderShowsTestSpines() {
-  const spines = [];
-
-  getShowsTestGroups().forEach((group) => {
-    for (let index = 0; index < group.count; index += 1) {
-      const left = group.left + index * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP);
-      spines.push(`
-        <button
-          class="shows-test-spine"
-          type="button"
-          data-action="test-spine"
-          aria-label="Test media spine"
-          style="left: ${left}px"
-        >
-          <img src="${SHOWS_SPINE_IMAGE}" alt="" aria-hidden="true" draggable="false" />
-        </button>
-      `);
-    }
-  });
-
-  return spines.join("");
+function renderMediaSpineItems(items, gap = SHOWS_SPINE_GAP) {
+  return getShelfMediaGroups(items, gap)
+    .flatMap((group) =>
+      group.items.map((item, index) =>
+        renderMediaSpineItem({
+          ...item,
+          x: group.left + index * (SHOWS_SPINE_WIDTH + gap),
+          bottom: MEDIA_SPINE_BOTTOM,
+          height: MEDIA_SPINE_HEIGHT,
+        }),
+      ),
+    )
+    .join("");
 }
 
-function renderShowsSectionPlates() {
-  return getShowsTestGroups()
+function renderMediaSpineItem(item) {
+  const overlay = item.type === "book" ? BOOKS_SPINE_IMAGE : SHOWS_SPINE_IMAGE;
+  const width = Math.round((item.height * 196) / 713);
+
+  return `
+    <button
+      class="media-spine-item media-spine-${item.type}"
+      type="button"
+      data-action="media-spine"
+      data-title="${escapeAttribute(item.title)}"
+      aria-label="${escapeAttribute(item.title)}"
+      style="--media-x: ${item.x}px; --media-bottom: ${item.bottom}px; --media-width: ${width}px; --media-height: ${item.height}px;"
+    >
+      <span class="media-spine-art" style="--media-art: url('${item.masterArt}')"></span>
+      <span class="media-spine-title">${formatSpineTitle(item.title)}</span>
+      <img class="media-spine-overlay" src="${overlay}" alt="" aria-hidden="true" draggable="false" />
+    </button>
+  `;
+}
+
+function renderMediaFrontItem(item) {
+  const overlay = item.type === "book" ? BOOKS_FRONT_IMAGE : SHOWS_FRONT_IMAGE;
+  const width = Math.round((item.height * 900) / 1350);
+
+  return `
+    <div
+      class="media-front-item media-front-${item.type}"
+      aria-label="${escapeAttribute(item.title)}"
+      style="--media-x: ${item.x}px; --media-y: ${item.y}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-rotation: ${item.rotationDegrees}deg;"
+    >
+      <span class="media-front-art" style="--media-art: url('${item.masterArt}')"></span>
+      <span class="media-front-fade"></span>
+      <span class="media-front-title">${formatFrontTitle(item.title)}</span>
+      <img class="media-front-overlay" src="${overlay}" alt="" aria-hidden="true" draggable="false" />
+    </div>
+  `;
+}
+
+function renderMediaSectionPlates(items, className, gap = SHOWS_SPINE_GAP) {
+  return getShelfMediaGroups(items, gap)
     .map(
       (group) => `
-    <div class="shows-section-plate" style="left: ${group.left}px" aria-hidden="true">
+    <div class="${className}" style="left: ${group.left}px" aria-hidden="true">
       <span>${group.title}</span>
     </div>
   `,
@@ -365,69 +448,68 @@ function renderShowsSectionPlates() {
     .join("");
 }
 
-function renderBooksTestSpines() {
-  const spines = [];
+function getShelfMediaGroups(items, gap = SHOWS_SPINE_GAP) {
+  let left = SHOWS_SPINE_START_X;
+  const categories = [];
 
-  getBooksTestGroups().forEach((group) => {
-    for (let index = 0; index < group.count; index += 1) {
-      const left = group.left + index * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP);
-      spines.push(`
-        <button
-          class="books-test-spine"
-          type="button"
-          data-action="test-spine"
-          aria-label="Test book spine"
-          style="left: ${left}px"
-        >
-          <img src="${BOOKS_SPINE_IMAGE}" alt="" aria-hidden="true" draggable="false" />
-        </button>
-      `);
+  items.forEach((item) => {
+    let group = categories.find((candidate) => candidate.title === item.category);
+    if (!group) {
+      group = {
+        left,
+        title: item.category,
+        items: [],
+      };
+      categories.push(group);
     }
+    group.items.push(item);
   });
 
-  return spines.join("");
+  return categories.map((category) => {
+    const count = category.items.length;
+    const positionedGroup = {
+      ...category,
+      left,
+    };
+
+    left += count * (SHOWS_SPINE_WIDTH + gap) + SHOWS_GROUP_GAP;
+    return positionedGroup;
+  });
 }
 
-function renderBooksSectionPlates() {
-  return getBooksTestGroups()
-    .map(
-      (group) => `
-    <div class="books-section-plate" style="left: ${group.left}px" aria-hidden="true">
-      <span>${group.title}</span>
-    </div>
-  `,
-    )
+function formatSpineTitle(title) {
+  return escapeHtml(title);
+}
+
+function formatFrontTitle(title) {
+  return splitTitleLines(title, 3)
+    .map((line) => `<span>${escapeHtml(line)}</span>`)
     .join("");
 }
 
-function getShowsTestGroups() {
-  let left = SHOWS_SPINE_START_X;
+function splitTitleLines(title, maxLines) {
+  const words = String(title).trim().split(/\s+/);
+  if (words.length <= maxLines) return words;
 
-  return SHOWS_TEST_GROUPS.map((count, index) => {
-    const group = {
-      count,
-      left,
-      title: SHOWS_SECTION_TITLES[index],
-    };
-
-    left += count * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP) + SHOWS_GROUP_GAP;
-    return group;
-  });
+  const lines = [];
+  const wordsPerLine = Math.ceil(words.length / maxLines);
+  for (let index = 0; index < words.length; index += wordsPerLine) {
+    lines.push(words.slice(index, index + wordsPerLine).join(" "));
+  }
+  return lines.slice(0, maxLines);
 }
 
-function getBooksTestGroups() {
-  let left = SHOWS_SPINE_START_X;
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
 
-  return BOOKS_TEST_GROUPS.map((count, index) => {
-    const group = {
-      count,
-      left,
-      title: BOOKS_SECTION_TITLES[index],
-    };
-
-    left += count * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP) + SHOWS_GROUP_GAP;
-    return group;
-  });
+function escapeAttribute(value) {
+  return escapeHtml(value);
 }
 
 function renderScrollLabel() {
@@ -725,8 +807,8 @@ async function handleMainClick(event) {
     return;
   }
 
-  if (action === "test-spine") {
-    console.info("spine tapped");
+  if (action === "media-spine") {
+    console.info(target.dataset.title);
     return;
   }
 

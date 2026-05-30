@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>David Reader</title>
+    <style>
+      :root {
+        --bg: #e8d6b5;
+        --page: #fff8ea;
+        --ink: #1e1b16;
+        --muted: #7a6b58;
+        --button: #2f261f;
+        --buttonText: #fff8ea;
+        --shadow: rgba(0, 0, 0, 0.22);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(
+          circle at top,
+          #f8edda 0%,
+          var(--bg) 62%,
+          #d1b78d 100%
+        );
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      }
+
+      .reader {
+        width: min(100%, 620px);
+      }
+
+      .topbar {
+        margin: 0 0 12px;
+        font-family: Arial, sans-serif;
+        color: #2a2118;
+      }
+
+      .book-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .chapter-title {
+        margin: 4px 0 0;
+        font-size: 14px;
+        font-weight: 900;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+      }
+
+      .page {
+        position: relative;
+        min-height: 700px;
+        background: var(--page);
+        border-radius: 24px;
+        padding: 44px 56px 70px;
+        box-shadow: 0 18px 45px var(--shadow);
+        border: 1px solid rgba(60, 42, 26, 0.15);
+        overflow: hidden;
+      }
+
+      .page.image-text {
+        padding-top: 32px;
+      }
+      .page.text-image {
+        padding-bottom: 190px;
+      }
+
+      .hero-image {
+        width: 100%;
+        height: 310px;
+        border-radius: 18px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: rgba(255, 248, 234, 0.92);
+        font-family: Arial, sans-serif;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        background: linear-gradient(135deg, #4c3221, #1e1b16 55%, #7b3f1d);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+        padding: 24px;
+      }
+
+      .small-image {
+        position: absolute;
+        left: 50%;
+        bottom: 42px;
+        transform: translateX(-50%);
+        width: 38%;
+        height: 120px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: rgba(255, 248, 234, 0.9);
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        background: linear-gradient(135deg, #4c3221, #1e1b16 55%, #7b3f1d);
+        opacity: 0.96;
+        padding: 12px;
+      }
+
+      .text p {
+        margin: 0 0 28px;
+        font-size: 35px;
+        line-height: 1.28;
+        letter-spacing: 0.005em;
+      }
+
+      .text p:last-child {
+        margin-bottom: 0;
+      }
+
+      .page-num {
+        position: absolute;
+        right: 34px;
+        bottom: 26px;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        font-weight: 900;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .nav-btn {
+        border: 0;
+        border-radius: 16px;
+        background: var(--button);
+        color: var(--buttonText);
+        padding: 20px;
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .nav-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 10px;
+        }
+        .page {
+          min-height: 660px;
+          padding: 34px 30px 64px;
+        }
+        .text p {
+          font-size: 29px;
+        }
+        .hero-image {
+          height: 250px;
+        }
+        .small-image {
+          width: 50%;
+          height: 100px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="reader">
+      <div class="topbar">
+        <p class="book-title" id="bookTitle"></p>
+        <p class="chapter-title" id="chapterTitle"></p>
+      </div>
+
+      <article class="page" id="pageEl">
+        <div id="imageTop"></div>
+        <div class="text" id="pageText"></div>
+        <div id="imageBottom"></div>
+        <div class="page-num" id="pageNum"></div>
+      </article>
+
+      <div class="controls">
+        <button class="nav-btn" id="prevBtn">◀ BACK</button>
+        <button class="nav-btn" id="nextBtn">NEXT ▶</button>
+      </div>
+    </main>
+
+    <script>
+      const story = {
+        id: "reacher-arrested-diner",
+        title: "REACHER: ARRESTED AT THE DINER",
+        chapters: [
+          {
+            id: "chapter-1",
+            title: "THE DINER",
+            pages: [
+              {
+                id: "page-1",
+                layout: "image-text",
+                text: [
+                  "Reacher knew trouble before it said a word.",
+                  "He was sitting in a diner in a small Georgia town. He had ordered food, but the room had that tight feeling he knew too well. Something was coming.",
+                ],
+              },
+              {
+                id: "page-2",
+                layout: "text",
+                text: [
+                  "The police came in fast. They had badges, guns, and the look of men who thought the hard part was done. They looked at Reacher like he was the answer to their problem.",
+                  "Reacher looked back. He didn’t move much, and he didn’t say much. That made men nervous, especially men used to people jumping when they walked in.",
+                  "They had a dead man. They had a stranger. That was enough for them. Reacher had seen bad police work before.",
+                  "He didn’t shout. He didn’t beg. He just watched their hands, their eyes, and the door. Calm when other men got loud.",
+                ],
+              },
+              {
+                id: "page-3",
+                layout: "text-image",
+                text: [
+                  "They thought taking him in would settle the matter. It wouldn’t. Reacher had been in worse rooms with worse men and fewer exits.",
+                  "He let them make their mistake. Sometimes the fastest way into the truth is through the front door of the trouble.",
+                ],
+              },
+            ],
+          },
+          {
+            id: "chapter-2",
+            title: "THE WRONG MAN",
+            pages: [
+              {
+                id: "page-1",
+                layout: "image-text",
+                text: [
+                  "The police thought they had the right man.",
+                  "They didn’t. Reacher could tell by the questions. They had a story, but the story had holes.",
+                ],
+              },
+              {
+                id: "page-2",
+                layout: "text",
+                text: [
+                  "They wanted him nervous, but he wasn’t. They wanted him confused, but he wasn’t that either. Reacher had spent years around soldiers, cops, and trouble.",
+                  "He knew when men were fishing. He knew when men were hiding something. And he knew when a town had decided to blame the stranger because that was easier than finding the truth.",
+                  "So he waited. He answered what needed answering. He kept the rest of his thoughts to himself.",
+                ],
+              },
+              {
+                id: "page-3",
+                layout: "text-image",
+                text: [
+                  "The problem was bigger than one dead man. Reacher could feel it now.",
+                  "Somebody had pulled him into this. That was their mistake.",
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      let flatPages = [];
+      let currentPageIndex = 0;
+
+      const bookTitle = document.getElementById("bookTitle");
+      const chapterTitle = document.getElementById("chapterTitle");
+      const pageEl = document.getElementById("pageEl");
+      const imageTop = document.getElementById("imageTop");
+      const imageBottom = document.getElementById("imageBottom");
+      const pageText = document.getElementById("pageText");
+      const pageNum = document.getElementById("pageNum");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+
+      function flattenStory(storyData) {
+        const pages = [];
+        storyData.chapters.forEach((chapter, chapterIndex) => {
+          chapter.pages.forEach((page, pageIndex) => {
+            pages.push({ ...page, chapter, chapterIndex, pageIndex });
+          });
+        });
+        return pages;
+      }
+
+      function getChapterImageLabel(storyData, chapter) {
+        return `${storyData.title}<br>${chapter.title}`;
+      }
+
+      function renderPage() {
+        flatPages = flattenStory(story);
+        const page = flatPages[currentPageIndex];
+        const layout = page.layout || "text";
+
+        bookTitle.textContent = story.title;
+        chapterTitle.textContent = `CHAPTER ${page.chapterIndex + 1}: ${page.chapter.title}`;
+
+        pageEl.className = `page ${layout}`;
+        imageTop.innerHTML = "";
+        imageBottom.innerHTML = "";
+
+        if (layout === "image-text") {
+          imageTop.innerHTML = `<div class="hero-image">${getChapterImageLabel(story, page.chapter)}</div>`;
+        }
+
+        if (layout === "text-image") {
+          imageBottom.innerHTML = `<div class="small-image">${getChapterImageLabel(story, page.chapter)}</div>`;
+        }
+
+        pageText.innerHTML = page.text
+          .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+          .join("");
+        pageNum.textContent = `PAGE ${currentPageIndex + 1} OF ${flatPages.length}`;
+
+        prevBtn.disabled = currentPageIndex === 0;
+        nextBtn.disabled = currentPageIndex === flatPages.length - 1;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      prevBtn.addEventListener("click", () => {
+        if (currentPageIndex > 0) {
+          currentPageIndex -= 1;
+          renderPage();
+        }
+      });
+
+      nextBtn.addEventListener("click", () => {
+        if (currentPageIndex < flatPages.length - 1) {
+          currentPageIndex += 1;
+          renderPage();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") prevBtn.click();
+        if (event.key === "ArrowRight") nextBtn.click();
+      });
+
+      renderPage();
+    </script>
+  </body>
+</html>

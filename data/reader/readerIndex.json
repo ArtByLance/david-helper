@@ -1,0 +1,100 @@
+[
+  {
+    "id": "jack-reacher",
+    "title": "Jack Reacher",
+    "items": [
+      {
+        "id": "reacher-arrested-diner",
+        "title": "Reacher: Arrested at the Diner"
+      },
+      {
+        "id": "reacher-brother-in-arms",
+        "title": "Reacher: Brother in Arms"
+      },
+      {
+        "id": "reacher-eliminate-the-duncans",
+        "title": "Reacher: Eliminate the Duncans"
+      },
+      {
+        "id": "reacher-locate-the-team",
+        "title": "Reacher: Locate the Team"
+      }
+    ]
+  },
+  {
+    "id": "true-war-heroes",
+    "title": "True War Heroes",
+    "items": [
+      {
+        "id": "true-heroes-sergeant-york",
+        "title": "True Heroes: Sergeant York"
+      },
+      {
+        "id": "true-heroes-desmond-doss",
+        "title": "True Heroes: Desmond Doss"
+      },
+      {
+        "id": "true-heroes-audie-murphy",
+        "title": "True Heroes: Audie Murphy"
+      },
+      {
+        "id": "true-heroes-carlos-hathcock",
+        "title": "True Heroes: Carlos Hathcock"
+      }
+    ]
+  },
+  {
+    "id": "western",
+    "title": "Western",
+    "items": [
+      {
+        "id": "old-henry-unmasked",
+        "title": "Old Henry Unmasked"
+      },
+      {
+        "id": "raylan-time-for-a-showdown",
+        "title": "Raylan: Time for a Showdown"
+      },
+      {
+        "id": "boyd-fire-in-the-hole",
+        "title": "Boyd: Fire in the Hole"
+      }
+    ]
+  },
+  {
+    "id": "bible-heroes",
+    "title": "Bible Heroes",
+    "items": [
+      {
+        "id": "david-and-goliath",
+        "title": "David and Goliath"
+      },
+      {
+        "id": "jesus-sets-him-free",
+        "title": "Jesus Sets Him Free"
+      },
+      {
+        "id": "elijah-and-the-fire",
+        "title": "Elijah and the Fire"
+      }
+    ]
+  },
+  {
+    "id": "faith-courage",
+    "title": "Faith & Courage",
+    "items": [
+      {
+        "id": "psalm-23",
+        "title": "Psalm 23"
+      },
+      {
+        "id": "the-older-man-steps-in",
+        "title": "The Older Man Steps In"
+      },
+      {
+        "id": "help-comes-at-the-right-time",
+        "title": "Help Comes at the Right Time"
+      }
+    ]
+  }
+]

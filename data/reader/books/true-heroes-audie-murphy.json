@@ -1,0 +1,168 @@
+{
+  "id": "true-heroes-audie-murphy",
+  "title": "True Heroes: Audie Murphy",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "The Young Soldier",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Audie Murphy did not look like the most dangerous man on the field.",
+            "He was young, small, and quiet. Some men might have missed him in a crowd.",
+            "War did not miss him.",
+            "It put him in hard places, under fire, with men depending on him.",
+            "Murphy kept standing."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "He had come from Texas, from a hard life and a poor family. He knew hunger. He knew work. He knew what it meant to carry more than people expected.",
+            "The Army gave him a uniform and a rifle. The war gave him danger, cold, smoke, and fear.",
+            "Murphy did not become loud. He did not become careless. He became watchful.",
+            "The men around him learned quickly that size did not tell the whole story. Murphy could move when others froze. He could aim when the air was full of noise. He could think when panic was trying to take the room.",
+            "He was young.",
+            "But he was already steady."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "By the time the fighting reached France, Murphy had seen too much for a man his age.",
+            "He had lost friends. He had watched good men fall. He had learned that courage was not a feeling. It was what a man did when the feeling was gone.",
+            "Ahead of him, another fight was waiting.",
+            "This one would ask almost everything."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "The Attack",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The enemy came hard.",
+            "German infantry moved with tanks behind them. The American line was thin, tired, and under pressure. The men could hear the engines before they saw the armor.",
+            "Murphy saw what was happening.",
+            "If the line broke, many men would be lost."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The order was to pull back. Murphy sent his men toward safer ground, but he did not leave with them. Somebody had to slow the enemy down.",
+            "He stayed.",
+            "Shells hit the ground around him. Bullets cut through the trees. Smoke drifted across the road and made the world small.",
+            "Murphy called in artillery by radio. His voice stayed steady while the enemy came closer. He watched the movement ahead and gave the fire where it needed to land.",
+            "The Germans kept pressing forward.",
+            "Murphy kept talking.",
+            "The line behind him needed time. Wounded men needed time. Men running low on strength needed one more chance to live.",
+            "Murphy gave them that time."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Then he saw the burning tank destroyer.",
+            "It was damaged, smoking, and dangerous. But the machine gun still worked.",
+            "Murphy climbed onto it.",
+            "The enemy could see him there. That did not matter. From that burning vehicle, he had a better angle.",
+            "And he had work to do."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "Holding the Line",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Murphy stood on the burning tank destroyer and opened fire.",
+            "The enemy came through smoke and trees. Murphy met them with the machine gun. He fired until they dropped, scattered, or stopped moving forward.",
+            "The vehicle could have blown apart under him.",
+            "He stayed anyway."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The Germans tried to move around him. Murphy shifted the gun and stopped them. They tried to press from another side. He turned and stopped that too.",
+            "The smoke burned his eyes. The heat rose under his boots. Enemy fire snapped around him and struck the metal near his body.",
+            "He kept firing.",
+            "This was not glory. This was one man buying time for many. Every second he held the enemy back gave his men more room to regroup. Every burst from the gun said the line was not gone yet.",
+            "The attack slowed.",
+            "Then it broke apart.",
+            "Men who had come forward with confidence were now looking for cover.",
+            "Murphy was still standing."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The radio stayed close, and Murphy kept directing fire.",
+            "At one point, artillery landed so near his own position that a man might have thought he had gone too far. Murphy knew the danger. He also knew the enemy was closer.",
+            "He did what had to be done.",
+            "The line held.",
+            "His men had time now."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "He Comes Back",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "When the gun ran out and the moment passed, Murphy climbed down.",
+            "He had been alone in the open, standing on a burning vehicle, facing an enemy force much larger than himself.",
+            "Now he walked back through smoke.",
+            "The men saw him coming.",
+            "He was still alive."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "Murphy did not walk back like a man looking for praise. He came back like a soldier who still had work to do.",
+            "He had helped stop the attack. He had given his men time. He had stood where most men could not stand and done what the moment required.",
+            "Then he joined the fight again.",
+            "That was the measure of him.",
+            "He was not big. He was not old. He was not trying to look brave for a picture. He was a young soldier who saw danger coming and chose to stand between that danger and his men.",
+            "The enemy had come hard.",
+            "Murphy had held."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Audie Murphy became one of America's great war heroes.",
+            "But the story is not really about medals. It is about the moment when the line was thin and someone had to stay.",
+            "Murphy stayed.",
+            "The attack slowed, then broke.",
+            "His men lived because he did not run from the fire."
+          ]
+        }
+      ]
+    }
+  ]
+}

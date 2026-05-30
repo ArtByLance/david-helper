@@ -1,0 +1,149 @@
+{
+  "id": "reacher-brother-in-arms",
+  "title": "Reacher: Brother in Arms",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "The Old Unit",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Reacher heard the name and stopped moving.",
+            "It was not a name most people knew. It belonged to his old world, the Army world, the world of uniforms, orders, secrets, and men who did hard things in hard places.",
+            "Someone from that world was in trouble. Reacher did not walk away."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "He had been out of the Army for years, but the Army had not left him. Some habits stayed in the bones. You watched exits. You noticed hands. You heard the little break in a man's voice when he was scared.",
+            "This felt like one of those moments. A man from Reacher's old unit had disappeared. The details were thin. Too thin. People were talking carefully, like the truth might cost them something.",
+            "Reacher knew that kind of talking. He asked questions and got half answers. He watched faces and learned more than the words gave him. Somebody wanted the matter dropped.",
+            "That was the wrong way to handle Reacher."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The old unit meant something to him. Not sentiment. Not soft memories.",
+            "Duty.",
+            "Men who had stood together did not get left behind just because the trail had gone cold. Reacher had no office, no badge, and no backup.",
+            "He did not need much. He had a name, a bad feeling, and a direction to walk."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "Men With Something to Hide",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The first men came to warn him.",
+            "They did not say it that way. Men like that rarely did. They smiled too little, stood too close, and used careful words that meant, \"Stop asking.\"",
+            "Reacher listened. Then he kept asking."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "They met him in a room that smelled like old coffee and bad choices. Two men sat across from him. One talked. One watched. Reacher watched both.",
+            "The talker said the missing man was probably fine. Maybe drunk. Maybe running from something. Maybe not worth chasing. Reacher let him finish.",
+            "\"You're lying,\" he said. The man blinked once. The watcher shifted in his chair. That was enough.",
+            "Reacher did not raise his voice. He did not lean forward. He just sat there, big and still, letting silence do the work.",
+            "The talker tried again, harder this time. He said Reacher should go. Said this was not his concern. Reacher looked at him and said, \"It is now.\""
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "They had hoped to scare him off with words. That failed.",
+            "Then one man reached under the table. Reacher moved before the hand came back up. The man's wrist hit wood, his breath left him, and the weapon stayed where it was.",
+            "The watcher froze.",
+            "Smart man. The meeting was over."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "The Fight Starts",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "They came for him after dark.",
+            "That made sense. Bad men liked the dark. They liked numbers too. Reacher saw four of them before they spread out.",
+            "He kept walking until the space was right. Then he stopped."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The first man came in loud. Reacher let him get close enough to make the mistake complete. One move dropped him.",
+            "The second man rushed from the left. Reacher turned, stepped inside the swing, and put him down beside the first. The third man saw that and slowed.",
+            "That was when Reacher knew the fight was almost over. The fourth man had better sense. He reached for something under his jacket.",
+            "Reacher crossed the distance fast. The man hit the side of a car and folded down to the pavement.",
+            "Four men had come to deliver a message. Reacher sent one back. The message was simple. He was still coming."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The parking lot went quiet.",
+            "Reacher checked the men, not because he cared for them, but because he wanted no loose pieces behind him. They were breathing. They were finished.",
+            "The fight was brief. The cleanup would take longer.",
+            "Somewhere ahead, the missing man was either alive or dead. Reacher did not know yet. But the people hiding him knew Reacher was close."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "No Man Left Behind",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Reacher found the place near the edge of town.",
+            "It looked ordinary from the outside. That was the point. Men who hide ugly things often choose plain buildings and quiet streets.",
+            "Two guards stood near the door. Reacher kept walking."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The first guard told him to stop. Reacher did not stop. The second guard reached for him. Reacher handled him first.",
+            "The first guard lasted longer. Not much longer.",
+            "Inside, the hall was narrow and badly lit. Reacher moved fast now. No wasted steps. No speeches. Every door, every sound, every shadow mattered.",
+            "He found the room at the end. A man from the old unit was there, beaten down but alive. His face changed when he saw Reacher. Not relief exactly. Something stronger. Recognition.",
+            "Reacher cut him loose. \"Can you walk?\" he asked. The man nodded. \"Good,\" Reacher said. \"We're leaving.\""
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "More men came before they reached the door. That was expected.",
+            "Reacher put the first one down. The second one changed his mind too late. The third saw the floor filling up and should have learned faster.",
+            "The old soldier leaned on the wall and watched. When it was over, Reacher opened the door and led him out.",
+            "No speeches. No medals. Just one man going back for another."
+          ]
+        }
+      ]
+    }
+  ]
+}
