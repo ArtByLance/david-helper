@@ -74,7 +74,8 @@ button:disabled {
   background: #201810;
 }
 
-#tv-stage[data-home="true"]::before {
+#tv-stage[data-home="true"]::before,
+#tv-stage[data-image-shell="true"]::before {
   content: none;
 }
 
@@ -104,6 +105,93 @@ button:disabled {
   object-position: center;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.shelf-image-screen {
+  padding: 0;
+}
+
+.shelf-zoom-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.shelf-strip-screen {
+  overflow: hidden;
+}
+
+.shelf-strip-window {
+  position: absolute;
+  inset: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.shelf-strip-window::-webkit-scrollbar {
+  display: none;
+}
+
+.shelf-strip-track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+}
+
+.shelf-strip-image {
+  flex: 0 0 800px;
+  display: block;
+  width: 800px;
+  height: 1280px;
+  object-fit: contain;
+  object-position: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.shelf-scroll-label {
+  position: absolute;
+  left: 50%;
+  bottom: 146px;
+  z-index: 1;
+  transform: translateX(-50%);
+  color: #FCD3B1;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0;
+  pointer-events: none;
+}
+
+.shelf-back-zone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 170px;
+  height: 170px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.shelf-back-zone:focus,
+.shelf-back-zone:focus-visible {
+  outline: none;
 }
 
 .home-tap-zone {
@@ -669,7 +757,8 @@ button:disabled {
   box-shadow: 0 10px 24px rgba(37, 20, 10, 0.28);
 }
 
-#tv-stage[data-home="true"] #meal-timer {
+#tv-stage[data-home="true"] #meal-timer,
+#tv-stage[data-image-shell="true"] #meal-timer {
   display: none;
 }
 

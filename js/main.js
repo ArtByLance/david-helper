@@ -18,6 +18,12 @@ import { getNow } from "./time.js";
 
 const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
+const SHELF_IMAGE_BY_KIND = {
+  TODAY: "./assets/shelf%20assets/shelf1.jpg",
+  SHOWS: "./assets/shelf%20assets/shelf2.jpg",
+  BOOKS: "./assets/shelf%20assets/shelf3.jpg",
+};
+const SHOWS_EXTENSION_PANELS = 4;
 
 const state = {
   view: "HOME",
@@ -81,6 +87,7 @@ function renderMain(now) {
 
   const stage = document.getElementById("tv-stage");
   stage?.toggleAttribute("data-home", isHomeView());
+  stage?.toggleAttribute("data-image-shell", isShelfImageView());
 
   if (state.readerItem) {
     main.innerHTML = renderReader();
@@ -95,11 +102,11 @@ function renderMain(now) {
   if (state.view === "HOME") {
     main.innerHTML = renderHome();
   } else if (state.activeShelf === "TODAY") {
-    main.innerHTML = renderTodayExpanded(now);
+    main.innerHTML = renderShelfImageShell("TODAY");
   } else if (state.activeShelf === "BOOKS") {
-    main.innerHTML = renderExpandedShelf("BOOKS", READ_CONTENT, state.recentRead);
+    main.innerHTML = renderShelfImageShell("BOOKS");
   } else if (state.activeShelf === "SHOWS") {
-    main.innerHTML = renderExpandedShelf("SHOWS", WATCH_CONTENT, state.recentWatched);
+    main.innerHTML = renderShelfImageShell("SHOWS");
   }
 
   if (state.selectedItem) {
@@ -134,6 +141,43 @@ function renderHome() {
       <button class="home-tap-zone books-tap-zone" type="button" data-action="expand-shelf" data-shelf="BOOKS" aria-label="Books shelf"></button>
     </section>
   `;
+}
+
+function renderShelfImageShell(kind) {
+  if (kind === "SHOWS") {
+    return renderShowsImageStrip();
+  }
+
+  return `
+    <section class="screen shelf-image-screen" aria-label="${toTitleCase(kind)} shelf">
+      <img class="shelf-zoom-image" src="${SHELF_IMAGE_BY_KIND[kind]}" alt="" aria-hidden="true" draggable="false" />
+      ${renderScrollLabel()}
+      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home"></button>
+    </section>
+  `;
+}
+
+function renderShowsImageStrip() {
+  const extensionPanels = Array.from({ length: SHOWS_EXTENSION_PANELS }, () => `
+    <img class="shelf-strip-image" src="./assets/shelf%20assets/shelf0.jpg" alt="" aria-hidden="true" draggable="false" />
+  `).join("");
+
+  return `
+    <section class="screen shelf-image-screen shelf-strip-screen" aria-label="Shows shelf">
+      <div class="shelf-strip-window" data-shelf-kind="SHOWS">
+        <div class="shelf-strip-track">
+          <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.SHOWS}" alt="" aria-hidden="true" draggable="false" />
+          ${extensionPanels}
+        </div>
+      </div>
+      ${renderScrollLabel()}
+      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home"></button>
+    </section>
+  `;
+}
+
+function renderScrollLabel() {
+  return `<div class="shelf-scroll-label" aria-hidden="true">&lt; &nbsp; SCROLL &nbsp; &gt;</div>`;
 }
 
 function renderTodayShelfPreview(now, nextMealId, special) {
@@ -492,6 +536,10 @@ function restoreShelfScroll() {
 
 function isHomeView() {
   return !state.readerItem && !state.handoffItem && state.view === "HOME";
+}
+
+function isShelfImageView() {
+  return !state.readerItem && !state.handoffItem && state.view === "SHELF";
 }
 
 function routeToShelf(pathname) {
