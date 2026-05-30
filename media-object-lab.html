@@ -113,10 +113,10 @@
         overlay: "dvd-spine.png",
         viewBox: { width: 196, height: 713 },
         artPolygons: {
-          sideArt: "29,33 102,68 100,681 30,593",
-          mainSpineArt: "107,69 180,69 178,683 105,684",
+          sideFaceArt: "29,33 102,68 100,681 30,593",
+          spineArt: "103,67 182,67 181,687 101,688",
         },
-        titlePolygon: "107,69 180,69 178,683 105,684",
+        titlePolygon: "103,67 182,67 181,687 101,688",
         hotspotPadding: 10,
       };
 
@@ -152,7 +152,10 @@
         },
       };
 
+      const darkFaceOpacity = 0.9;
       const frontTitleRotationOffset = -4.8;
+      const frontTitleRightInset = 92;
+      const frontTitleBottomInset = 105;
 
       const mediaItems = [
         {
@@ -237,7 +240,7 @@
         return `
           <div class="media-object media-${mode}" aria-label="${escapeHtml(item.title)} ${mode}" style="${style};">
             ${renderArtLayer({ item, mode, skin, svgId })}
-            ${renderTitleLayer({ item, title, mode, skin, svgId })}
+            ${renderTitleLayer({ title, mode, skin, svgId })}
             <img class="media-overlay" src="./assets/objects/${skin.overlay}" alt="" />
             ${
               mode === "spine" && onSelect
@@ -255,7 +258,6 @@
       }
 
       function renderSpineArtLayer({ item, skin, svgId }) {
-        const shadeOpacity = skin === dvdSpineSkin || skin === bookSpineSkin ? 0.7 : 0.08;
         const artImages = Object.entries(skin.artPolygons)
           .map(
             ([name]) => `
@@ -266,13 +268,17 @@
                 preserveAspectRatio="xMidYMid slice"
                 clip-path="url(#${svgId}-${name})"
               />
-              <rect
-                width="${skin.viewBox.width}"
-                height="${skin.viewBox.height}"
-                fill="#000"
-                opacity="${shadeOpacity}"
-                clip-path="url(#${svgId}-${name})"
-              />
+              ${
+                name === "sideFaceArt"
+                  ? `<rect
+                      width="${skin.viewBox.width}"
+                      height="${skin.viewBox.height}"
+                      fill="#000"
+                      opacity="${darkFaceOpacity}"
+                      clip-path="url(#${svgId}-${name})"
+                    />`
+                  : ""
+              }
             `,
           )
           .join("");
@@ -315,15 +321,29 @@
               preserveAspectRatio="none"
               clip-path="url(#${svgId}-frontArt)"
             />
+            <image
+              href="${escapeHtml(item.masterArt)}"
+              width="${skin.viewBox.width}"
+              height="${skin.viewBox.height}"
+              preserveAspectRatio="xMidYMid slice"
+              clip-path="url(#${svgId}-spineArt)"
+            />
+            <rect
+              width="${skin.viewBox.width}"
+              height="${skin.viewBox.height}"
+              fill="#000"
+              opacity="${darkFaceOpacity}"
+              clip-path="url(#${svgId}-spineArt)"
+            />
           </svg>
         `;
       }
 
-      function renderTitleLayer({ item, title, mode, skin, svgId }) {
+      function renderTitleLayer({ title, mode, skin, svgId }) {
         const titleBox = polygonBounds(skin.titlePolygon);
         const text =
           mode === "spine"
-            ? renderSpineTitle(title, titleBox)
+            ? renderSpineTitle(title, titleBox, svgId)
             : renderFrontTitle(title, titleBox, svgId);
 
         return `
@@ -335,89 +355,64 @@
           >
             <defs>
               ${renderClipPath("title", skin.titlePolygon, svgId)}
-              <filter id="${svgId}-titleShadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".82" />
+              <filter id="${svgId}-titleShadow" x="-80%" y="-80%" width="260%" height="260%">
+                <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".9" />
+                <feDropShadow dx="0" dy="0" stdDeviation="39" flood-color="#000" flood-opacity=".92" />
               </filter>
-              ${
-                mode === "front"
-                  ? `
-                    ${renderClipPath("titleSpineArt", skin.artPolygons.spineArt, svgId)}
-                    <linearGradient id="${svgId}-titleFade" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0" stop-color="#000" stop-opacity="0" />
-                      <stop offset=".58" stop-color="#000" stop-opacity=".72" />
-                      <stop offset="1" stop-color="#000" stop-opacity=".9" />
-                    </linearGradient>`
-                  : ""
-              }
+              <filter id="${svgId}-spineTitleGlow" x="-80%" y="-80%" width="260%" height="260%">
+                <feDropShadow dx="0" dy="0" stdDeviation="34" flood-color="#000" flood-opacity=".92" />
+              </filter>
             </defs>
-            ${
-              mode === "front"
-                ? `<rect width="${skin.viewBox.width}" height="${skin.viewBox.height}" fill="url(#${svgId}-titleFade)" clip-path="url(#${svgId}-title)" />`
-                : ""
-            }
             <g clip-path="url(#${svgId}-title)">
               ${text}
             </g>
-            ${mode === "front" ? renderFrontSpineArt({ item, skin, svgId }) : ""}
           </svg>
         `;
       }
 
-      function renderFrontSpineArt({ item, skin, svgId }) {
-        return `
-          <image
-            href="${escapeHtml(item.masterArt)}"
-            width="${skin.viewBox.width}"
-            height="${skin.viewBox.height}"
-            preserveAspectRatio="xMidYMid slice"
-            clip-path="url(#${svgId}-titleSpineArt)"
-          />
-          <rect
-            width="${skin.viewBox.width}"
-            height="${skin.viewBox.height}"
-            fill="#000"
-            opacity=".46"
-            clip-path="url(#${svgId}-titleSpineArt)"
-          />
+      function renderSpineTitle(title, titleBox, svgId) {
+        const attrs = `
+          class="media-titleText"
+          x="${titleBox.centerX}"
+          y="${titleBox.centerY}"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          font-size="36"
+          transform="rotate(-90 ${titleBox.centerX} ${titleBox.centerY})"
         `;
-      }
 
-      function renderSpineTitle(title, titleBox) {
         return `
-          <text
-            class="media-titleText"
-            x="${titleBox.centerX}"
-            y="${titleBox.centerY}"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            font-size="36"
-            transform="rotate(-90 ${titleBox.centerX} ${titleBox.centerY})"
-          >${escapeHtml(title)}</text>
+          <text ${attrs} filter="url(#${svgId}-spineTitleGlow)">${escapeHtml(title)}</text>
+          <text ${attrs}>${escapeHtml(title)}</text>
         `;
       }
 
       function renderFrontTitle(title, titleBox, svgId) {
         const words = title.split(/\s+/);
         const lineHeight = 72;
-        const startY = titleBox.maxY - 105 - (words.length - 1) * lineHeight;
-        const lines = words
-          .map(
-            (word, index) => `
-                <text
-                  class="media-titleText"
-                  x="${titleBox.maxX - 92}"
-                  y="${startY + index * lineHeight}"
-                  text-anchor="end"
-                  font-size="76"
-                  filter="url(#${svgId}-titleShadow)"
-                >${escapeHtml(word)}</text>
-              `,
+        const startY =
+          titleBox.maxY - frontTitleBottomInset - (words.length - 1) * lineHeight;
+        const renderLine = (word, index, filter = "") => `
+          <text
+            class="media-titleText"
+            x="${titleBox.maxX - frontTitleRightInset}"
+            y="${startY + index * lineHeight}"
+            text-anchor="end"
+            font-size="76"
+            ${filter}
+          >${escapeHtml(word)}</text>
+        `;
+        const glowLines = words
+          .map((word, index) =>
+            renderLine(word, index, `filter="url(#${svgId}-titleShadow)"`),
           )
           .join("");
+        const cleanLines = words.map((word, index) => renderLine(word, index)).join("");
 
         return `
           <g transform="rotate(${titleBox.angle + frontTitleRotationOffset} ${titleBox.centerX} ${titleBox.centerY})">
-            ${lines}
+            ${glowLines}
+            ${cleanLines}
           </g>
         `;
       }
