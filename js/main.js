@@ -42,6 +42,7 @@ window.addEventListener("resize", () => {
 });
 
 function bootstrap() {
+  applyInitialShelfRoute();
   fitStageToViewport();
   bindGlobalControls();
   render();
@@ -64,9 +65,22 @@ function renderMealTimerOnly() {
   renderMealTimer(getNow());
 }
 
+function applyInitialShelfRoute() {
+  const params = new URLSearchParams(window.location.search);
+  const shelf = params.get("openShelf") ?? routeToShelf(window.location.pathname);
+  if (!shelf) return;
+
+  state.view = "SHELF";
+  state.activeShelf = shelf;
+  window.history.replaceState({}, "", "./");
+}
+
 function renderMain(now) {
   const main = document.getElementById("app-main");
   if (!main) return;
+
+  const stage = document.getElementById("tv-stage");
+  stage?.toggleAttribute("data-home", isHomeView());
 
   if (state.readerItem) {
     main.innerHTML = renderReader();
@@ -79,7 +93,7 @@ function renderMain(now) {
   }
 
   if (state.view === "HOME") {
-    main.innerHTML = renderHome(now);
+    main.innerHTML = renderHome();
   } else if (state.activeShelf === "TODAY") {
     main.innerHTML = renderTodayExpanded(now);
   } else if (state.activeShelf === "BOOKS") {
@@ -111,25 +125,13 @@ function renderMealTimer(now) {
   if (mealMessage) mealMessage.textContent = mealState.message;
 }
 
-function renderHome(now) {
-  const nextMealId = getMealState(now).nextMealId;
-  const weekdayKey = formatWeekdayKey(now);
-  const special = TODAY_SPECIALS[weekdayKey];
-
+function renderHome() {
   return `
     <section class="screen home-screen" aria-label="David's Stuff">
-      <header class="home-header">
-        <div>
-          <div class="screen-kicker">DAVID'S STUFF</div>
-          <h1>David's Stuff</h1>
-        </div>
-      </header>
-
-      <div class="home-shelf-stack">
-        ${renderTodayShelfPreview(now, nextMealId, special)}
-        ${renderMediaShelfPreview("SHOWS", "Shows Shelf", WATCH_CONTENT.slice(0, 4), state.recentWatched)}
-        ${renderMediaShelfPreview("BOOKS", "Books Shelf", READ_CONTENT.slice(0, 5), state.recentRead)}
-      </div>
+      <img class="home-main-image" src="./assets/shelf%20assets/01-main.jpg" alt="" aria-hidden="true" draggable="false" />
+      <button class="home-tap-zone today-tap-zone" type="button" data-action="expand-shelf" data-shelf="TODAY" aria-label="Today shelf"></button>
+      <button class="home-tap-zone shows-tap-zone" type="button" data-action="expand-shelf" data-shelf="SHOWS" aria-label="Shows shelf"></button>
+      <button class="home-tap-zone books-tap-zone" type="button" data-action="expand-shelf" data-shelf="BOOKS" aria-label="Books shelf"></button>
     </section>
   `;
 }
@@ -486,6 +488,18 @@ function restoreShelfScroll() {
   const showsShelf = document.querySelector('[data-shelf-kind="SHOWS"]');
   if (booksShelf) booksShelf.scrollLeft = state.booksScrollLeft;
   if (showsShelf) showsShelf.scrollLeft = state.showsScrollLeft;
+}
+
+function isHomeView() {
+  return !state.readerItem && !state.handoffItem && state.view === "HOME";
+}
+
+function routeToShelf(pathname) {
+  const route = pathname.replace(/\/+$/, "").split("/").pop()?.toLowerCase();
+  if (route === "today") return "TODAY";
+  if (route === "shows") return "SHOWS";
+  if (route === "books") return "BOOKS";
+  return null;
 }
 
 function startHandoffTimer() {

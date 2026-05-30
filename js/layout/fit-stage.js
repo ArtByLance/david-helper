@@ -1,6 +1,6 @@
 /**
- * Scale the 1920x1080 stage to fit the browser window.
- * This preserves TV proportions during local development.
+ * Scale the 800x1280 stage to fit the browser window.
+ * This preserves tablet proportions during local development.
  */
 export function fitStageToViewport() {
   const shell = document.getElementById('app-shell');
