@@ -119,16 +119,13 @@ function renderMealTimer(now) {
   const mealTimer = document.getElementById("meal-timer");
   const mealName = document.getElementById("meal-name");
   const mealFill = document.getElementById("meal-bar-fill");
-  const mealLeft = document.getElementById("meal-time-left");
+  const mealTarget = document.getElementById("meal-target-label");
   const mealMessage = document.getElementById("meal-message");
 
   mealTimer?.setAttribute("data-rest", String(mealState.resting));
   if (mealName) mealName.textContent = mealState.label;
   if (mealFill) mealFill.style.width = `${mealState.fillPercent}%`;
-  if (mealLeft) {
-    mealLeft.textContent = mealState.timeLeft;
-    mealLeft.style.left = `calc(${mealState.fillPercent}% - 47px)`;
-  }
+  if (mealTarget) mealTarget.textContent = mealState.targetLabel;
   if (mealMessage) mealMessage.textContent = mealState.message;
 }
 
@@ -152,7 +149,7 @@ function renderShelfImageShell(kind) {
     <section class="screen shelf-image-screen" aria-label="${toTitleCase(kind)} shelf">
       <img class="shelf-zoom-image" src="${SHELF_IMAGE_BY_KIND[kind]}" alt="" aria-hidden="true" draggable="false" />
       ${renderScrollLabel()}
-      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home"></button>
+      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home">BACK</button>
     </section>
   `;
 }
@@ -171,7 +168,7 @@ function renderShowsImageStrip() {
         </div>
       </div>
       ${renderScrollLabel()}
-      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home"></button>
+      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home">BACK</button>
     </section>
   `;
 }
@@ -589,6 +586,7 @@ function getMealState(now) {
       label: "REST WHEN READY",
       fillPercent: 100,
       timeLeft: "",
+      targetLabel: "REST",
       message: "Rest whenever you feel ready.",
     };
   }
@@ -599,15 +597,17 @@ function getMealState(now) {
   const start = previousMeal?.minutes ?? 0;
   const span = Math.max(1, nextMeal.minutes - start);
   const remaining = Math.max(0, nextMeal.minutes - nowMinutes);
-  const fillPercent = clamp((remaining / span) * 100, 0, 100);
+  const fillPercent = clamp(((span - remaining) / span) * 100, 0, 100);
+  const timeLeft = formatMealTimeLeft(remaining);
 
   return {
     resting: false,
     nextMealId: nextMeal.id,
     label: nextMeal.label,
     fillPercent,
-    timeLeft: formatMealTimeLeft(remaining),
-    message: `${toTitleCase(nextMeal.label)} in ${formatMealTimeLeft(remaining)}`,
+    timeLeft,
+    targetLabel: `${nextMeal.label}\n${nextMeal.displayTime}`,
+    message: `We eat in ${timeLeft}.`,
   };
 }
 
@@ -619,7 +619,7 @@ function formatMealTimeLeft(minutesRemaining) {
   const hours = Math.floor(rounded / 60);
   const minutes = rounded % 60;
   if (!minutes) return `${hours} ${pluralize("hour", hours)}`;
-  return `${hours}h ${minutes}m`;
+  return `${hours} ${pluralize("hour", hours)}, ${minutes} ${pluralize("minute", minutes)}`;
 }
 
 function groupByCategory(items) {

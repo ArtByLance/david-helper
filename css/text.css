@@ -308,21 +308,28 @@ p {
 }
 
 #meal-name {
-  font-size: 23px;
+  font-size: 29px;
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0.4px;
+  color: #4b2219;
 }
 
-#meal-time-left {
-  font-size: 17px;
+#meal-bar-labels {
+  font-size: 14px;
   line-height: 1;
   font-weight: 900;
+  color: #60412a;
+}
+
+#meal-target-label {
+  text-align: right;
+  white-space: pre-line;
 }
 
 #meal-message {
-  font-size: 17px;
-  line-height: 1;
-  font-weight: 700;
-  color: rgba(248, 238, 217, 0.82);
+  font-size: 21px;
+  line-height: 1.12;
+  font-weight: 800;
+  color: #4a3422;
 }
