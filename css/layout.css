@@ -202,7 +202,7 @@ button:disabled {
 
 .today-led-clock {
   left: 70px;
-  top: 530px;
+  top: 630px;
   width: 660px;
   height: 426px;
 }
@@ -251,6 +251,10 @@ button:disabled {
   width: 806px;
   height: 530px;
   transform: rotate(-2deg);
+}
+
+.today-object-layer[data-has-special="false"] .today-menu-card {
+  left: 797px;
 }
 
 .today-special-card {
@@ -1047,7 +1051,7 @@ button:disabled {
 }
 
 #meal-progress-group {
-  transform: translateY(5px);
+  transform: translateY(14px);
 }
 
 #meal-bar-track {
@@ -1062,7 +1066,7 @@ button:disabled {
 
 #meal-bar-fill {
   position: absolute;
-  left: 0;
+  right: 0;
   top: 0;
   bottom: 0;
   width: 100%;
@@ -1081,7 +1085,7 @@ button:disabled {
 }
 
 #meal-message {
-  margin-top: 13px;
+  margin: 0 0 12px;
 }
 
 #meal-timer[data-rest="true"] #meal-bar-track {
@@ -1089,7 +1093,7 @@ button:disabled {
 }
 
 #meal-timer[data-rest="true"] #meal-message {
-  margin-top: 6px;
+  margin-bottom: 6px;
 }
 
 @keyframes shelfExpand {

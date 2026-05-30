@@ -47,8 +47,8 @@ const SHOWS_EXTENSION_PANELS = 7;
 const SHOWS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * SHOWS_EXTENSION_PANELS;
 const BOOKS_EXTENSION_PANELS = 6;
 const BOOKS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * BOOKS_EXTENSION_PANELS;
-const TODAY_EXTENSION_PANELS = 5;
-const TODAY_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * TODAY_EXTENSION_PANELS;
+const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 4;
+const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 3;
 
 // When shelf content is built out, keep one extra blank panel past the expected
 // far-right end so overscroll never exposes the stage edge.
@@ -202,8 +202,9 @@ function renderShelfImageShell(kind, now = getNow()) {
 }
 
 function renderTodayImageShell(now) {
+  const extensionPanelCount = getTodayExtensionPanelCount(now);
   const extensionPanels = Array.from(
-    { length: TODAY_EXTENSION_PANELS },
+    { length: extensionPanelCount },
     () => `
     <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
   `,
@@ -231,7 +232,7 @@ function renderTodayObjects(now) {
   const mealState = getMealState(now);
 
   return `
-    <div class="today-object-layer">
+    <div class="today-object-layer" data-has-special="${Boolean(special)}">
       <div class="today-led-clock" aria-label="Current time">
         <img src="${TODAY_CLOCK_IMAGE}" alt="" aria-hidden="true" draggable="false" />
         <div class="today-led-clock-display">
@@ -239,21 +240,7 @@ function renderTodayObjects(now) {
         </div>
       </div>
 
-      <section class="today-special-card" aria-label="Today only">
-        <img src="${TODAY_SPECIAL_IMAGE}" alt="" aria-hidden="true" draggable="false" />
-        <div class="today-card-content">
-          <h2>Today Only</h2>
-          ${
-            special
-              ? `<strong>${special.title}</strong>
-                <span>${special.time}</span>
-                <p>${special.place}</p>`
-              : `<strong>Quiet Day</strong>
-                <span>No special event</span>
-                <p>Just enjoy the day.</p>`
-          }
-        </div>
-      </section>
+      ${special ? renderTodaySpecialCard(special) : ""}
 
       <section class="today-menu-card" aria-label="Meals today">
         <img src="${TODAY_MENU_IMAGE}" alt="" aria-hidden="true" draggable="false" />
@@ -265,6 +252,20 @@ function renderTodayObjects(now) {
         </div>
       </section>
     </div>
+  `;
+}
+
+function renderTodaySpecialCard(special) {
+  return `
+    <section class="today-special-card" aria-label="Today only">
+      <img src="${TODAY_SPECIAL_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+      <div class="today-card-content">
+        <h2>Today Only</h2>
+        <strong>${special.title}</strong>
+        <span>${special.time}</span>
+        <p>${special.place}</p>
+      </div>
+    </section>
   `;
 }
 
@@ -827,10 +828,11 @@ function handleShelfScroll(event) {
     }
     state.showsScrollLeft = shelf.scrollLeft;
   } else if (shelf.dataset.shelfKind === "TODAY") {
+    const todayMaxScrollLeft = getTodayMaxScrollLeft();
     if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
       shelf.scrollLeft = SHELF_PANEL_WIDTH;
-    } else if (shelf.scrollLeft > TODAY_MAX_SCROLL_LEFT) {
-      shelf.scrollLeft = TODAY_MAX_SCROLL_LEFT;
+    } else if (shelf.scrollLeft > todayMaxScrollLeft) {
+      shelf.scrollLeft = todayMaxScrollLeft;
     }
     state.todayScrollLeft = shelf.scrollLeft;
   }
@@ -857,7 +859,7 @@ function clampBooksScroll(scrollLeft) {
 }
 
 function clampTodayScroll(scrollLeft) {
-  return clamp(scrollLeft, SHELF_PANEL_WIDTH, TODAY_MAX_SCROLL_LEFT);
+  return clamp(scrollLeft, SHELF_PANEL_WIDTH, getTodayMaxScrollLeft());
 }
 
 async function transitionView(direction, updateView) {
@@ -998,7 +1000,7 @@ function getMealState(now) {
   const start = previousMeal?.minutes ?? 0;
   const span = Math.max(1, nextMeal.minutes - start);
   const remaining = Math.max(0, nextMeal.minutes - nowMinutes);
-  const fillPercent = clamp(((span - remaining) / span) * 100, 0, 100);
+  const fillPercent = clamp((remaining / span) * 100, 0, 100);
   const timeLeft = formatMealTimeLeft(remaining);
 
   return {
@@ -1007,7 +1009,7 @@ function getMealState(now) {
     label: nextMeal.label,
     fillPercent,
     timeLeft,
-    targetLabel: `${nextMeal.label}\n${nextMeal.displayTime}`,
+    targetLabel: formatShelfMealTime(nextMeal.time),
     message: `We eat in ${timeLeft}.`,
   };
 }
@@ -1062,6 +1064,20 @@ function formatShelfMealTime(time) {
   const hour = hour24 % 12 || 12;
   const suffix = hour24 >= 12 ? "pm" : "am";
   return `${hour} ${suffix}`;
+}
+
+function getTodayExtensionPanelCount(now = getNow()) {
+  return getTodaySpecial(now)
+    ? TODAY_EXTENSION_PANELS_WITH_SPECIAL
+    : TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL;
+}
+
+function getTodayMaxScrollLeft(now = getNow()) {
+  return SHELF_PANEL_WIDTH * getTodayExtensionPanelCount(now);
+}
+
+function getTodaySpecial(now) {
+  return TODAY_SPECIALS[formatWeekdayKey(now)];
 }
 
 function clamp(value, min, max) {

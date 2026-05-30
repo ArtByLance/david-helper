@@ -327,15 +327,16 @@ p {
 }
 
 #meal-name {
-  font-size: 29px;
+  font-size: 23px;
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0.4px;
   color: #4b2219;
+  text-align: right;
 }
 
 #meal-bar-labels {
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1;
   font-weight: 900;
   color: #60412a;
@@ -343,11 +344,11 @@ p {
 
 #meal-target-label {
   text-align: right;
-  white-space: pre-line;
+  white-space: nowrap;
 }
 
 #meal-message {
-  font-size: 21px;
+  font-size: 26px;
   line-height: 1.12;
   font-weight: 800;
   color: #4a3422;
