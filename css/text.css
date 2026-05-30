@@ -191,6 +191,25 @@ p {
   color: #403322;
 }
 
+.today-meal-line span {
+  font-family: var(--font-serif);
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 700;
+  text-align: right;
+  text-transform: lowercase;
+}
+
+.today-meal-line strong {
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .shelf-section h2 {
   margin: 0 0 16px 24px;
   font-size: 30px;

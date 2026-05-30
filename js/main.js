@@ -18,18 +18,46 @@ import { getNow } from "./time.js";
 
 const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
+const ALERT_TRANSITION_MS = 260;
+const ALERT_HOME_ENTRY_DELAY_MS = 750;
+const VIEW_TRANSITION_OUT_MS = 150;
+const VIEW_TRANSITION_IN_MS = 240;
+const SHELF_PANEL_WIDTH = 800;
+const SHOWS_SPINE_START_X = 1810;
+const SHOWS_SPINE_WIDTH = 170;
+const SHOWS_SPINE_GAP = -85;
+const SHOWS_GROUP_GAP = SHOWS_SPINE_WIDTH * 3;
+const SHOWS_TEST_GROUPS = [4, 1, 9, 3];
+const SHOWS_SECTION_TITLES = ["Westerns", "War Movies", "Favorites", "Family"];
+const BOOKS_TEST_GROUPS = [3, 2, 6, 1];
+const BOOKS_SECTION_TITLES = ["Novels", "History", "Favorites", "Faith"];
+const SHELF_EXTENSION_IMAGE = "./assets/shelves/shelf0.jpg";
+const SHOWS_SPINE_IMAGE = "./assets/objects/dvd-spine.png";
+const BOOKS_SPINE_IMAGE = "./assets/objects/book-spine.png";
+const TODAY_CLOCK_IMAGE = "./assets/objects/clock.png";
+const TODAY_MENU_IMAGE = "./assets/objects/card-menu.png";
+const TODAY_NEXT_FLAG_IMAGE = "./assets/objects/next-flag-2.png";
+const TODAY_SPECIAL_IMAGE = "./assets/objects/card-special.png";
 const SHELF_IMAGE_BY_KIND = {
-  TODAY: "./assets/shelf%20assets/shelf1.jpg",
-  SHOWS: "./assets/shelf%20assets/shelf2.jpg",
-  BOOKS: "./assets/shelf%20assets/shelf3.jpg",
+  TODAY: "./assets/shelves/shelf1.jpg",
+  SHOWS: "./assets/shelves/shelf2.jpg",
+  BOOKS: "./assets/shelves/shelf3.jpg",
 };
-const SHOWS_EXTENSION_PANELS = 4;
+const SHOWS_EXTENSION_PANELS = 7;
+const SHOWS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * SHOWS_EXTENSION_PANELS;
+const BOOKS_EXTENSION_PANELS = 6;
+const BOOKS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * BOOKS_EXTENSION_PANELS;
+const TODAY_EXTENSION_PANELS = 5;
+const TODAY_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * TODAY_EXTENSION_PANELS;
 
+// When shelf content is built out, keep one extra blank panel past the expected
+// far-right end so overscroll never exposes the stage edge.
 const state = {
   view: "HOME",
   activeShelf: null,
   booksScrollLeft: 0,
   showsScrollLeft: 0,
+  todayScrollLeft: 0,
   selectedItem: null,
   selectedKind: null,
   readerItem: null,
@@ -37,6 +65,9 @@ const state = {
   handoffItem: null,
   handoffTimer: null,
   highlightedShowId: null,
+  alertHidden: false,
+  alertTransitioning: false,
+  viewTransitioning: false,
   recentRead: loadRecent("davidsStuff.recentRead"),
   recentWatched: loadRecent("davidsStuff.recentWatched"),
 };
@@ -56,8 +87,12 @@ function bootstrap() {
 }
 
 function bindGlobalControls() {
-  document.getElementById("app-main")?.addEventListener("click", handleMainClick);
-  document.getElementById("app-main")?.addEventListener("scroll", handleShelfScroll, true);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("click", handleMainClick);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("scroll", handleShelfScroll, true);
 }
 
 function render() {
@@ -73,11 +108,16 @@ function renderMealTimerOnly() {
 
 function applyInitialShelfRoute() {
   const params = new URLSearchParams(window.location.search);
-  const shelf = params.get("openShelf") ?? routeToShelf(window.location.pathname);
+  const shelf =
+    params.get("openShelf") ?? routeToShelf(window.location.pathname);
   if (!shelf) return;
 
   state.view = "SHELF";
   state.activeShelf = shelf;
+  state.alertHidden = true;
+  if (shelf === "TODAY") state.todayScrollLeft = SHELF_PANEL_WIDTH;
+  if (shelf === "SHOWS") state.showsScrollLeft = SHELF_PANEL_WIDTH;
+  if (shelf === "BOOKS") state.booksScrollLeft = SHELF_PANEL_WIDTH;
   window.history.replaceState({}, "", "./");
 }
 
@@ -102,7 +142,7 @@ function renderMain(now) {
   if (state.view === "HOME") {
     main.innerHTML = renderHome();
   } else if (state.activeShelf === "TODAY") {
-    main.innerHTML = renderShelfImageShell("TODAY");
+    main.innerHTML = renderShelfImageShell("TODAY", now);
   } else if (state.activeShelf === "BOOKS") {
     main.innerHTML = renderShelfImageShell("BOOKS");
   } else if (state.activeShelf === "SHOWS") {
@@ -123,6 +163,7 @@ function renderMealTimer(now) {
   const mealMessage = document.getElementById("meal-message");
 
   mealTimer?.setAttribute("data-rest", String(mealState.resting));
+  mealTimer?.classList.toggle("alert-card-hidden", state.alertHidden);
   if (mealName) mealName.textContent = mealState.label;
   if (mealFill) mealFill.style.width = `${mealState.fillPercent}%`;
   if (mealTarget) mealTarget.textContent = mealState.targetLabel;
@@ -132,7 +173,7 @@ function renderMealTimer(now) {
 function renderHome() {
   return `
     <section class="screen home-screen" aria-label="David's Stuff">
-      <img class="home-main-image" src="./assets/shelf%20assets/01-main.jpg" alt="" aria-hidden="true" draggable="false" />
+      <img class="home-main-image" src="./assets/home.jpg" alt="" aria-hidden="true" draggable="false" />
       <button class="home-tap-zone today-tap-zone" type="button" data-action="expand-shelf" data-shelf="TODAY" aria-label="Today shelf"></button>
       <button class="home-tap-zone shows-tap-zone" type="button" data-action="expand-shelf" data-shelf="SHOWS" aria-label="Shows shelf"></button>
       <button class="home-tap-zone books-tap-zone" type="button" data-action="expand-shelf" data-shelf="BOOKS" aria-label="Books shelf"></button>
@@ -140,9 +181,15 @@ function renderHome() {
   `;
 }
 
-function renderShelfImageShell(kind) {
+function renderShelfImageShell(kind, now = getNow()) {
+  if (kind === "TODAY") {
+    return renderTodayImageShell(now);
+  }
   if (kind === "SHOWS") {
     return renderShowsImageStrip();
+  }
+  if (kind === "BOOKS") {
+    return renderBooksImageStrip();
   }
 
   return `
@@ -154,23 +201,232 @@ function renderShelfImageShell(kind) {
   `;
 }
 
+function renderTodayImageShell(now) {
+  const extensionPanels = Array.from(
+    { length: TODAY_EXTENSION_PANELS },
+    () => `
+    <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+  `,
+  ).join("");
+
+  return `
+    <section class="screen shelf-image-screen shelf-strip-screen" aria-label="Today shelf">
+      <div class="shelf-strip-window" data-shelf-kind="TODAY">
+        <div class="shelf-strip-track">
+          <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+          <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.TODAY}" alt="" aria-hidden="true" draggable="false" />
+          ${extensionPanels}
+          ${renderTodayObjects(now)}
+          ${renderScrollLabel()}
+        </div>
+      </div>
+      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home">BACK</button>
+    </section>
+  `;
+}
+
+function renderTodayObjects(now) {
+  const weekdayKey = formatWeekdayKey(now);
+  const special = TODAY_SPECIALS[weekdayKey];
+  const mealState = getMealState(now);
+
+  return `
+    <div class="today-object-layer">
+      <div class="today-led-clock" aria-label="Current time">
+        <img src="${TODAY_CLOCK_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+        <div class="today-led-clock-display">
+          <div class="today-led-clock-text">${formatClock(now)}</div>
+        </div>
+      </div>
+
+      <section class="today-special-card" aria-label="Today only">
+        <img src="${TODAY_SPECIAL_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+        <div class="today-card-content">
+          <h2>Today Only</h2>
+          ${
+            special
+              ? `<strong>${special.title}</strong>
+                <span>${special.time}</span>
+                <p>${special.place}</p>`
+              : `<strong>Quiet Day</strong>
+                <span>No special event</span>
+                <p>Just enjoy the day.</p>`
+          }
+        </div>
+      </section>
+
+      <section class="today-menu-card" aria-label="Meals today">
+        <img src="${TODAY_MENU_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+        <div class="today-card-content">
+          <h2>Meals Today</h2>
+          <div class="today-meal-list">
+            ${MEALS.map((meal) => renderTodayMealLine(meal, mealState.nextMealId)).join("")}
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderTodayMealLine(meal, nextMealId) {
+  const isNext = meal.id === nextMealId;
+  return `
+    <div class="today-meal-line" data-next="${isNext}">
+      ${isNext ? `<img class="today-next-meal-flag" src="${TODAY_NEXT_FLAG_IMAGE}" alt="" aria-hidden="true" draggable="false" />` : ""}
+      <strong>${toTitleCase(meal.label)}</strong>
+      <span>${formatShelfMealTime(meal.time)}</span>
+    </div>
+  `;
+}
+
+function renderBooksImageStrip() {
+  const extensionPanels = Array.from(
+    { length: BOOKS_EXTENSION_PANELS },
+    () => `
+    <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+  `,
+  ).join("");
+
+  return `
+    <section class="screen shelf-image-screen shelf-strip-screen" aria-label="Books shelf">
+      <div class="shelf-strip-window" data-shelf-kind="BOOKS">
+        <div class="shelf-strip-track">
+          <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+          <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.BOOKS}" alt="" aria-hidden="true" draggable="false" />
+          ${extensionPanels}
+          ${renderBooksTestSpines()}
+          ${renderBooksSectionPlates()}
+          ${renderScrollLabel()}
+        </div>
+      </div>
+      <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home">BACK</button>
+    </section>
+  `;
+}
+
 function renderShowsImageStrip() {
-  const extensionPanels = Array.from({ length: SHOWS_EXTENSION_PANELS }, () => `
-    <img class="shelf-strip-image" src="./assets/shelf%20assets/shelf0.jpg" alt="" aria-hidden="true" draggable="false" />
-  `).join("");
+  const extensionPanels = Array.from(
+    { length: SHOWS_EXTENSION_PANELS },
+    () => `
+    <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+  `,
+  ).join("");
 
   return `
     <section class="screen shelf-image-screen shelf-strip-screen" aria-label="Shows shelf">
       <div class="shelf-strip-window" data-shelf-kind="SHOWS">
         <div class="shelf-strip-track">
+          <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.SHOWS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
+          ${renderShowsTestSpines()}
+          ${renderShowsSectionPlates()}
+          ${renderScrollLabel()}
         </div>
       </div>
-      ${renderScrollLabel()}
       <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home">BACK</button>
     </section>
   `;
+}
+
+function renderShowsTestSpines() {
+  const spines = [];
+
+  getShowsTestGroups().forEach((group) => {
+    for (let index = 0; index < group.count; index += 1) {
+      const left = group.left + index * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP);
+      spines.push(`
+        <button
+          class="shows-test-spine"
+          type="button"
+          data-action="test-spine"
+          aria-label="Test media spine"
+          style="left: ${left}px"
+        >
+          <img src="${SHOWS_SPINE_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+        </button>
+      `);
+    }
+  });
+
+  return spines.join("");
+}
+
+function renderShowsSectionPlates() {
+  return getShowsTestGroups()
+    .map(
+      (group) => `
+    <div class="shows-section-plate" style="left: ${group.left}px" aria-hidden="true">
+      <span>${group.title}</span>
+    </div>
+  `,
+    )
+    .join("");
+}
+
+function renderBooksTestSpines() {
+  const spines = [];
+
+  getBooksTestGroups().forEach((group) => {
+    for (let index = 0; index < group.count; index += 1) {
+      const left = group.left + index * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP);
+      spines.push(`
+        <button
+          class="books-test-spine"
+          type="button"
+          data-action="test-spine"
+          aria-label="Test book spine"
+          style="left: ${left}px"
+        >
+          <img src="${BOOKS_SPINE_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+        </button>
+      `);
+    }
+  });
+
+  return spines.join("");
+}
+
+function renderBooksSectionPlates() {
+  return getBooksTestGroups()
+    .map(
+      (group) => `
+    <div class="books-section-plate" style="left: ${group.left}px" aria-hidden="true">
+      <span>${group.title}</span>
+    </div>
+  `,
+    )
+    .join("");
+}
+
+function getShowsTestGroups() {
+  let left = SHOWS_SPINE_START_X;
+
+  return SHOWS_TEST_GROUPS.map((count, index) => {
+    const group = {
+      count,
+      left,
+      title: SHOWS_SECTION_TITLES[index],
+    };
+
+    left += count * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP) + SHOWS_GROUP_GAP;
+    return group;
+  });
+}
+
+function getBooksTestGroups() {
+  let left = SHOWS_SPINE_START_X;
+
+  return BOOKS_TEST_GROUPS.map((count, index) => {
+    const group = {
+      count,
+      left,
+      title: BOOKS_SECTION_TITLES[index],
+    };
+
+    left += count * (SHOWS_SPINE_WIDTH + SHOWS_SPINE_GAP) + SHOWS_GROUP_GAP;
+    return group;
+  });
 }
 
 function renderScrollLabel() {
@@ -188,12 +444,14 @@ function renderTodayShelfPreview(now, nextMealId, special) {
         </div>
         <div class="preview-clock">${formatClock(now)}</div>
         <div class="preview-meals">
-          ${MEALS.map((meal) => `
+          ${MEALS.map(
+            (meal) => `
             <div data-next="${meal.id === nextMealId}">
               <span>${meal.displayTime}</span>
               <strong>${meal.label[0]}${meal.label.slice(1).toLowerCase()}</strong>
             </div>
-          `).join("")}
+          `,
+          ).join("")}
         </div>
         <div class="preview-note" data-has-note="${Boolean(special)}">
           ${special ? `<span>Today Only</span><strong>${special.title}</strong>` : `<span>Today Only</span><strong>Quiet Day</strong>`}
@@ -300,7 +558,9 @@ function renderExpandedShelf(kind, items, recentMap) {
       <div class="shelf-window" data-shelf-kind="${kind}">
         <div class="shelf-track">
           ${grouped
-            .map(([category, categoryItems]) => renderShelfSection(kind, category, categoryItems, recentMap))
+            .map(([category, categoryItems]) =>
+              renderShelfSection(kind, category, categoryItems, recentMap),
+            )
             .join("")}
         </div>
       </div>
@@ -425,20 +685,47 @@ async function handleMainClick(event) {
   if (!target) return;
 
   const action = target.dataset.action;
+  if (
+    (state.alertTransitioning || state.viewTransitioning) &&
+    (action === "expand-shelf" || action === "back-home")
+  )
+    return;
 
   if (action === "expand-shelf") {
-    state.view = "SHELF";
-    state.activeShelf = target.dataset.shelf;
+    const shelf = target.dataset.shelf;
     clearSelection();
-    render();
+    if (shelf === "SHOWS") state.showsScrollLeft = SHELF_PANEL_WIDTH;
+    if (shelf === "BOOKS") state.booksScrollLeft = SHELF_PANEL_WIDTH;
+    if (shelf === "TODAY") state.todayScrollLeft = SHELF_PANEL_WIDTH;
+    animateAlertExitToShelf();
+    await transitionView("to-shelf", () => {
+      state.view = "SHELF";
+      state.activeShelf = shelf;
+      render();
+    });
     return;
   }
 
   if (action === "back-home") {
-    state.view = "HOME";
-    state.activeShelf = null;
-    clearSelection();
-    render();
+    if (isShelfImageView()) {
+      clearSelection();
+      await transitionView("to-home", () => {
+        state.view = "HOME";
+        state.activeShelf = null;
+        render();
+      });
+      animateAlertEnterHome();
+    } else {
+      state.view = "HOME";
+      state.activeShelf = null;
+      clearSelection();
+      render();
+    }
+    return;
+  }
+
+  if (action === "test-spine") {
+    console.info("spine tapped");
     return;
   }
 
@@ -473,7 +760,11 @@ async function handleMainClick(event) {
   if (action === "reader-next") {
     state.readerPage += 1;
     if (state.readerItem && state.readerPage >= state.readerItem.pages.length) {
-      markRecent("davidsStuff.recentRead", state.recentRead, state.readerItem.id);
+      markRecent(
+        "davidsStuff.recentRead",
+        state.recentRead,
+        state.readerItem.id,
+      );
     }
     render();
     return;
@@ -487,7 +778,11 @@ async function handleMainClick(event) {
 
   if (action === "finish-reading") {
     if (state.readerItem && state.readerPage >= state.readerItem.pages.length) {
-      markRecent("davidsStuff.recentRead", state.recentRead, state.readerItem.id);
+      markRecent(
+        "davidsStuff.recentRead",
+        state.recentRead,
+        state.readerItem.id,
+      );
     }
     state.readerItem = null;
     state.readerPage = 0;
@@ -518,17 +813,118 @@ function handleShelfScroll(event) {
   const shelf = event.target.closest?.("[data-shelf-kind]");
   if (!shelf) return;
   if (shelf.dataset.shelfKind === "BOOKS") {
+    if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
+      shelf.scrollLeft = SHELF_PANEL_WIDTH;
+    } else if (shelf.scrollLeft > BOOKS_MAX_SCROLL_LEFT) {
+      shelf.scrollLeft = BOOKS_MAX_SCROLL_LEFT;
+    }
     state.booksScrollLeft = shelf.scrollLeft;
   } else if (shelf.dataset.shelfKind === "SHOWS") {
+    if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
+      shelf.scrollLeft = SHELF_PANEL_WIDTH;
+    } else if (shelf.scrollLeft > SHOWS_MAX_SCROLL_LEFT) {
+      shelf.scrollLeft = SHOWS_MAX_SCROLL_LEFT;
+    }
     state.showsScrollLeft = shelf.scrollLeft;
+  } else if (shelf.dataset.shelfKind === "TODAY") {
+    if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
+      shelf.scrollLeft = SHELF_PANEL_WIDTH;
+    } else if (shelf.scrollLeft > TODAY_MAX_SCROLL_LEFT) {
+      shelf.scrollLeft = TODAY_MAX_SCROLL_LEFT;
+    }
+    state.todayScrollLeft = shelf.scrollLeft;
   }
 }
 
 function restoreShelfScroll() {
   const booksShelf = document.querySelector('[data-shelf-kind="BOOKS"]');
   const showsShelf = document.querySelector('[data-shelf-kind="SHOWS"]');
-  if (booksShelf) booksShelf.scrollLeft = state.booksScrollLeft;
-  if (showsShelf) showsShelf.scrollLeft = state.showsScrollLeft;
+  const todayShelf = document.querySelector('[data-shelf-kind="TODAY"]');
+  if (booksShelf)
+    booksShelf.scrollLeft = clampBooksScroll(state.booksScrollLeft);
+  if (showsShelf)
+    showsShelf.scrollLeft = clampShowsScroll(state.showsScrollLeft);
+  if (todayShelf)
+    todayShelf.scrollLeft = clampTodayScroll(state.todayScrollLeft);
+}
+
+function clampShowsScroll(scrollLeft) {
+  return clamp(scrollLeft, SHELF_PANEL_WIDTH, SHOWS_MAX_SCROLL_LEFT);
+}
+
+function clampBooksScroll(scrollLeft) {
+  return clamp(scrollLeft, SHELF_PANEL_WIDTH, BOOKS_MAX_SCROLL_LEFT);
+}
+
+function clampTodayScroll(scrollLeft) {
+  return clamp(scrollLeft, SHELF_PANEL_WIDTH, TODAY_MAX_SCROLL_LEFT);
+}
+
+async function transitionView(direction, updateView) {
+  if (state.viewTransitioning) return;
+  state.viewTransitioning = true;
+  const main = document.getElementById("app-main");
+
+  try {
+    main?.classList.remove(
+      "view-transition-in",
+      "view-transition-to-home",
+      "view-transition-to-shelf",
+    );
+    main?.classList.add("view-transition-out");
+    await wait(VIEW_TRANSITION_OUT_MS);
+
+    updateView();
+
+    main?.classList.remove("view-transition-out");
+    main?.classList.add("view-transition-in", `view-transition-${direction}`);
+    await wait(VIEW_TRANSITION_IN_MS);
+    main?.classList.remove(
+      "view-transition-in",
+      "view-transition-to-home",
+      "view-transition-to-shelf",
+    );
+  } finally {
+    state.viewTransitioning = false;
+  }
+}
+
+async function animateAlertExitToShelf() {
+  if (state.alertTransitioning) return;
+  state.alertTransitioning = true;
+  const mealTimer = document.getElementById("meal-timer");
+
+  try {
+    state.alertHidden = false;
+    mealTimer?.classList.remove("alert-card-hidden");
+    mealTimer?.classList.remove("alert-card-entering");
+    mealTimer?.classList.add("alert-card-exiting");
+    await wait(ALERT_TRANSITION_MS);
+    state.alertHidden = true;
+    mealTimer?.classList.add("alert-card-hidden");
+    mealTimer?.classList.remove("alert-card-exiting");
+  } finally {
+    state.alertTransitioning = false;
+  }
+}
+
+async function animateAlertEnterHome() {
+  if (state.alertTransitioning) return;
+  state.alertTransitioning = true;
+  const mealTimer = document.getElementById("meal-timer");
+
+  try {
+    mealTimer?.classList.remove("alert-card-exiting");
+    mealTimer?.classList.add("alert-card-hidden");
+    await wait(ALERT_HOME_ENTRY_DELAY_MS);
+    mealTimer?.classList.remove("alert-card-hidden");
+    mealTimer?.classList.add("alert-card-entering");
+    state.alertHidden = false;
+    await wait(ALERT_TRANSITION_MS);
+    mealTimer?.classList.remove("alert-card-entering");
+  } finally {
+    state.alertTransitioning = false;
+  }
 }
 
 function isHomeView() {
@@ -537,6 +933,10 @@ function isHomeView() {
 
 function isShelfImageView() {
   return !state.readerItem && !state.handoffItem && state.view === "SHELF";
+}
+
+function wait(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function routeToShelf(pathname) {
@@ -572,7 +972,8 @@ function findItem(kind, id) {
 }
 
 function getMealState(now) {
-  const nowMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const nowMinutes =
+    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
   const mealsWithMinutes = MEALS.map((meal) => ({
     ...meal,
     minutes: parseTimeToMinutes(meal.time),
@@ -653,6 +1054,14 @@ function toTitleCase(value) {
   return String(value)
     .toLowerCase()
     .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+}
+
+function formatShelfMealTime(time) {
+  const minutes = parseTimeToMinutes(time);
+  const hour24 = Math.floor(minutes / 60);
+  const hour = hour24 % 12 || 12;
+  const suffix = hour24 >= 12 ? "pm" : "am";
+  return `${hour} ${suffix}`;
 }
 
 function clamp(value, min, max) {
