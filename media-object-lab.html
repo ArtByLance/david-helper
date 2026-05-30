@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Media Object Lab</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        background: #171412;
+        color: #f5ead8;
+        font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 48px));
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 42px;
+        align-items: end;
+      }
+
+      .lab-slot {
+        display: grid;
+        justify-items: center;
+        gap: 18px;
+      }
+
+      .lab-stage {
+        min-width: 220px;
+        min-height: 460px;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        background: #6f6f6f;
+      }
+
+      .lab-label {
+        font-size: 16px;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        opacity: 0.76;
+      }
+
+      .media-object {
+        position: relative;
+        width: var(--object-width);
+        height: var(--object-height);
+        filter: drop-shadow(18px 22px 20px rgba(0, 0, 0, 0.45));
+      }
+
+      .media-svg,
+      .media-overlay {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .media-artLayer {
+        z-index: 1;
+      }
+
+      .media-titleLayer {
+        z-index: 2;
+      }
+
+      .media-titleText {
+        color: #fff7df;
+        fill: #fff7df;
+        font-family: "Anton", "Bebas Neue", "Impact", sans-serif;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.86);
+      }
+
+      .media-overlay {
+        z-index: 3;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .media-hotspot {
+        position: absolute;
+        z-index: 4;
+        inset: calc(var(--hotspot-padding) * -1);
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="media-lab" aria-label="Media object lab"></main>
+
+    <script>
+      const placeholderArt = "./assets/objects/placeholder.jpg";
+
+      const dvdSpineSkin = {
+        overlay: "dvd-spine.png",
+        viewBox: { width: 196, height: 713 },
+        artPolygons: {
+          sideArt: "29,33 102,68 100,681 30,593",
+          mainSpineArt: "107,69 180,69 178,683 105,684",
+        },
+        titlePolygon: "107,69 180,69 178,683 105,684",
+        hotspotPadding: 10,
+      };
+
+      const bookSpineSkin = {
+        ...dvdSpineSkin,
+        overlay: "book-spine.png",
+      };
+
+      const dvdFrontSkin = {
+        overlay: "dvd-front.png",
+        viewBox: { width: 900, height: 1350 },
+        artPolygons: {
+          frontArt: "147,254 750,232 820,1122 229,1209",
+          spineArt: "102,273 141,253 224,1208 179,1188",
+        },
+        titlePolygon: "147,254 750,232 820,1122 229,1209",
+        hotspotPadding: 10,
+      };
+
+      const bookFrontSkin = {
+        ...dvdFrontSkin,
+        overlay: "book-front.png",
+      };
+
+      const mediaSkins = {
+        dvd: {
+          spine: dvdSpineSkin,
+          front: dvdFrontSkin,
+        },
+        book: {
+          spine: bookSpineSkin,
+          front: bookFrontSkin,
+        },
+      };
+
+      const frontTitleRotationOffset = -4.8;
+
+      const mediaItems = [
+        {
+          id: "frasier",
+          title: "Frasier",
+          type: "dvd",
+          category: "Favorites",
+          masterArt: placeholderArt,
+        },
+        {
+          id: "western-movie",
+          title: "Western Movie",
+          displayTitle: "Western Movie",
+          type: "dvd",
+          category: "Favorites",
+          masterArt: placeholderArt,
+        },
+        {
+          id: "dry-creek-sheriff",
+          title: "Dry Creek Sheriff",
+          displayTitle: "Dry Creek Sheriff",
+          type: "book",
+          category: "Favorites",
+          masterArt: placeholderArt,
+        },
+        {
+          id: "old-henry-unmasked",
+          title: "Old Henry Unmasked",
+          displayTitle: "Old Henry Unmasked",
+          type: "book",
+          category: "Western",
+          masterArt: placeholderArt,
+        },
+      ];
+
+      const labViews = [
+        { label: "DVD Spine", mode: "spine", height: 400, item: mediaItems[0] },
+        { label: "DVD Front", mode: "front", height: 390, item: mediaItems[1] },
+        { label: "Book Spine", mode: "spine", height: 400, item: mediaItems[2] },
+        { label: "Book Front", mode: "front", height: 390, item: mediaItems[3] },
+      ];
+
+      document.getElementById("media-lab").innerHTML = labViews
+        .map(renderLabSlot)
+        .join("");
+
+      document.querySelectorAll("[data-media-select]").forEach((hotspot) => {
+        hotspot.addEventListener("click", () => {
+          console.log(`${hotspot.dataset.mediaSelect} selected`);
+        });
+      });
+
+      function renderLabSlot({ label, mode, height, item }) {
+        return `
+          <section class="lab-slot">
+            <div class="lab-stage">
+              ${MediaObject({
+                item,
+                mode,
+                height,
+                onSelect: mode === "spine" ? true : undefined,
+              })}
+            </div>
+            <div class="lab-label">${label}</div>
+          </section>
+        `;
+      }
+
+      function MediaObject({ item, mode, height, onSelect }) {
+        const skin = mediaSkins[item.type][mode];
+        const objectWidth = Math.round(
+          (height * skin.viewBox.width) / skin.viewBox.height,
+        );
+        const title = item.displayTitle ?? item.title;
+        const svgId = `${item.id}-${mode}`;
+        const style = [
+          `--object-width: ${objectWidth}px`,
+          `--object-height: ${height}px`,
+          `--hotspot-padding: ${skin.hotspotPadding}px`,
+        ].join("; ");
+
+        return `
+          <div class="media-object media-${mode}" aria-label="${escapeHtml(item.title)} ${mode}" style="${style};">
+            ${renderArtLayer({ item, mode, skin, svgId })}
+            ${renderTitleLayer({ item, title, mode, skin, svgId })}
+            <img class="media-overlay" src="./assets/objects/${skin.overlay}" alt="" />
+            ${
+              mode === "spine" && onSelect
+                ? `<button class="media-hotspot" type="button" data-media-select="${escapeHtml(item.title)}" aria-label="Select ${escapeHtml(item.title)}"></button>`
+                : ""
+            }
+          </div>
+        `;
+      }
+
+      function renderArtLayer({ item, mode, skin, svgId }) {
+        return mode === "front"
+          ? renderFrontArtLayer({ item, skin, svgId })
+          : renderSpineArtLayer({ item, skin, svgId });
+      }
+
+      function renderSpineArtLayer({ item, skin, svgId }) {
+        const shadeOpacity = skin === dvdSpineSkin || skin === bookSpineSkin ? 0.7 : 0.08;
+        const artImages = Object.entries(skin.artPolygons)
+          .map(
+            ([name]) => `
+              <image
+                href="${escapeHtml(item.masterArt)}"
+                width="${skin.viewBox.width}"
+                height="${skin.viewBox.height}"
+                preserveAspectRatio="xMidYMid slice"
+                clip-path="url(#${svgId}-${name})"
+              />
+              <rect
+                width="${skin.viewBox.width}"
+                height="${skin.viewBox.height}"
+                fill="#000"
+                opacity="${shadeOpacity}"
+                clip-path="url(#${svgId}-${name})"
+              />
+            `,
+          )
+          .join("");
+
+        return `
+          <svg
+            class="media-svg media-artLayer"
+            viewBox="0 0 ${skin.viewBox.width} ${skin.viewBox.height}"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              ${renderClipPaths(skin.artPolygons, svgId)}
+            </defs>
+            ${artImages}
+          </svg>
+        `;
+      }
+
+      function renderFrontArtLayer({ item, skin, svgId }) {
+        const frontPlacement = polygonPlacement(skin.artPolygons.frontArt);
+
+        return `
+          <svg
+            class="media-svg media-artLayer"
+            viewBox="0 0 ${skin.viewBox.width} ${skin.viewBox.height}"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              ${renderClipPaths(skin.artPolygons, svgId)}
+            </defs>
+            <image
+              href="${escapeHtml(item.masterArt)}"
+              x="${frontPlacement.x}"
+              y="${frontPlacement.y}"
+              width="${frontPlacement.width}"
+              height="${frontPlacement.height}"
+              transform="rotate(${frontPlacement.angle} ${frontPlacement.centerX} ${frontPlacement.centerY})"
+              preserveAspectRatio="none"
+              clip-path="url(#${svgId}-frontArt)"
+            />
+          </svg>
+        `;
+      }
+
+      function renderTitleLayer({ item, title, mode, skin, svgId }) {
+        const titleBox = polygonBounds(skin.titlePolygon);
+        const text =
+          mode === "spine"
+            ? renderSpineTitle(title, titleBox)
+            : renderFrontTitle(title, titleBox, svgId);
+
+        return `
+          <svg
+            class="media-svg media-titleLayer"
+            viewBox="0 0 ${skin.viewBox.width} ${skin.viewBox.height}"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              ${renderClipPath("title", skin.titlePolygon, svgId)}
+              <filter id="${svgId}-titleShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".82" />
+              </filter>
+              ${
+                mode === "front"
+                  ? `
+                    ${renderClipPath("titleSpineArt", skin.artPolygons.spineArt, svgId)}
+                    <linearGradient id="${svgId}-titleFade" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0" stop-color="#000" stop-opacity="0" />
+                      <stop offset=".58" stop-color="#000" stop-opacity=".72" />
+                      <stop offset="1" stop-color="#000" stop-opacity=".9" />
+                    </linearGradient>`
+                  : ""
+              }
+            </defs>
+            ${
+              mode === "front"
+                ? `<rect width="${skin.viewBox.width}" height="${skin.viewBox.height}" fill="url(#${svgId}-titleFade)" clip-path="url(#${svgId}-title)" />`
+                : ""
+            }
+            <g clip-path="url(#${svgId}-title)">
+              ${text}
+            </g>
+            ${mode === "front" ? renderFrontSpineArt({ item, skin, svgId }) : ""}
+          </svg>
+        `;
+      }
+
+      function renderFrontSpineArt({ item, skin, svgId }) {
+        return `
+          <image
+            href="${escapeHtml(item.masterArt)}"
+            width="${skin.viewBox.width}"
+            height="${skin.viewBox.height}"
+            preserveAspectRatio="xMidYMid slice"
+            clip-path="url(#${svgId}-titleSpineArt)"
+          />
+          <rect
+            width="${skin.viewBox.width}"
+            height="${skin.viewBox.height}"
+            fill="#000"
+            opacity=".46"
+            clip-path="url(#${svgId}-titleSpineArt)"
+          />
+        `;
+      }
+
+      function renderSpineTitle(title, titleBox) {
+        return `
+          <text
+            class="media-titleText"
+            x="${titleBox.centerX}"
+            y="${titleBox.centerY}"
+            text-anchor="middle"
+            dominant-baseline="middle"
+            font-size="36"
+            transform="rotate(-90 ${titleBox.centerX} ${titleBox.centerY})"
+          >${escapeHtml(title)}</text>
+        `;
+      }
+
+      function renderFrontTitle(title, titleBox, svgId) {
+        const words = title.split(/\s+/);
+        const lineHeight = 72;
+        const startY = titleBox.maxY - 105 - (words.length - 1) * lineHeight;
+        const lines = words
+          .map(
+            (word, index) => `
+                <text
+                  class="media-titleText"
+                  x="${titleBox.maxX - 92}"
+                  y="${startY + index * lineHeight}"
+                  text-anchor="end"
+                  font-size="76"
+                  filter="url(#${svgId}-titleShadow)"
+                >${escapeHtml(word)}</text>
+              `,
+          )
+          .join("");
+
+        return `
+          <g transform="rotate(${titleBox.angle + frontTitleRotationOffset} ${titleBox.centerX} ${titleBox.centerY})">
+            ${lines}
+          </g>
+        `;
+      }
+
+      function renderClipPaths(polygons, svgId) {
+        return Object.entries(polygons)
+          .map(([name, polygon]) => renderClipPath(name, polygon, svgId))
+          .join("");
+      }
+
+      function renderClipPath(name, polygon, svgId) {
+        return `
+          <clipPath id="${svgId}-${name}">
+            <polygon points="${escapeHtml(polygon)}" />
+          </clipPath>
+        `;
+      }
+
+      function polygonBounds(polygon) {
+        const points = parsePolygon(polygon);
+        const xs = points.map(([x]) => x);
+        const ys = points.map(([, y]) => y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+
+        return {
+          minX,
+          maxX,
+          minY,
+          maxY,
+          width: maxX - minX,
+          height: maxY - minY,
+          centerX: (minX + maxX) / 2,
+          centerY: (minY + maxY) / 2,
+          angle: polygonTopEdgeAngle(points),
+        };
+      }
+
+      function polygonPlacement(polygon) {
+        const bounds = polygonBounds(polygon);
+        const bleed = Math.max(bounds.width, bounds.height) * 0.04;
+
+        return {
+          x: bounds.minX - bleed,
+          y: bounds.minY - bleed,
+          width: bounds.width + bleed * 2,
+          height: bounds.height + bleed * 2,
+          centerX: bounds.centerX,
+          centerY: bounds.centerY,
+          angle: bounds.angle,
+        };
+      }
+
+      function polygonTopEdgeAngle(points) {
+        const [start, end] = points;
+        const radians = Math.atan2(end[1] - start[1], end[0] - start[0]);
+        return Number(((radians * 180) / Math.PI).toFixed(3));
+      }
+
+      function parsePolygon(polygon) {
+        return polygon.split(/\s+/).map((point) => point.split(",").map(Number));
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+    </script>
+  </body>
+</html>
