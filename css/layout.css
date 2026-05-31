@@ -183,80 +183,79 @@ button:disabled {
   -webkit-user-drag: none;
 }
 
+.media-object {
+  position: relative;
+  width: var(--media-width);
+  height: var(--media-height);
+}
+
 .media-spine-item {
   position: absolute;
   left: var(--media-x);
   bottom: var(--media-bottom);
-  z-index: 1;
+  z-index: var(--media-z-index, 1);
   width: var(--media-width);
   height: var(--media-height);
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
-  overflow: hidden;
+  overflow: visible;
   appearance: none;
   -webkit-appearance: none;
   filter: drop-shadow(10px 13px 12px rgba(27, 14, 7, 0.34));
 }
 
-.media-spine-item:focus,
-.media-spine-item:focus-visible {
-  outline: none;
-}
-
-.media-spine-art,
-.media-spine-title,
-.media-spine-overlay,
-.media-front-art,
-.media-front-fade,
-.media-front-title,
-.media-front-overlay {
-  pointer-events: none;
-}
-
-.media-spine-art {
-  position: absolute;
-  inset: 11px 15px 12px;
-  z-index: 1;
-  overflow: hidden;
-  border-radius: 3px;
-  background-image:
-    linear-gradient(rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.82)),
-    var(--media-art);
-  background-position: center;
-  background-size: cover;
-}
-
-.media-spine-title {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 2;
-  width: calc(var(--media-height) - 96px);
-  overflow: hidden;
-  color: #fff6df;
-  font-family: "Anton", "Bebas Neue", "Impact", sans-serif;
-  font-size: 42px;
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-align: center;
-  text-transform: uppercase;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-shadow: 0 3px 5px rgba(0, 0, 0, 0.92);
-  transform: translate(-50%, -50%) rotate(-90deg);
-  transform-origin: center;
-}
-
-.media-spine-overlay {
+.media-spine-hotspot {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   display: block;
   width: 100%;
   height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  clip-path: var(--media-hotspot-clip);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.media-spine-hotspot:focus,
+.media-spine-hotspot:focus-visible {
+  outline: none;
+}
+
+.media-svg,
+.media-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.media-artLayer {
+  z-index: 1;
+}
+
+.media-titleLayer {
+  z-index: 2;
+}
+
+.media-titleText {
+  color: #fff6df;
+  fill: #fff6df;
+  font-family: "Anton", "Bebas Neue", "Impact", sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.86);
+}
+
+.media-overlay {
+  z-index: 3;
+  display: block;
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
@@ -272,64 +271,6 @@ button:disabled {
   transform: rotate(var(--media-rotation));
   filter: drop-shadow(22px 28px 24px rgba(28, 15, 8, 0.42));
   pointer-events: none;
-}
-
-.media-front-art {
-  position: absolute;
-  inset: 32px 38px 42px;
-  z-index: 1;
-  overflow: hidden;
-  border-radius: 8px;
-  background-image: var(--media-art);
-  background-position: center;
-  background-size: cover;
-}
-
-.media-front-fade {
-  position: absolute;
-  left: 38px;
-  right: 38px;
-  bottom: 42px;
-  z-index: 2;
-  height: 42%;
-  border-radius: 0 0 8px 8px;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.82));
-}
-
-.media-front-title {
-  position: absolute;
-  right: 68px;
-  bottom: 78px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-  color: #fff6df;
-  font-family: "Anton", "Bebas Neue", "Impact", sans-serif;
-  font-size: 54px;
-  line-height: 0.95;
-  font-weight: 900;
-  letter-spacing: 0;
-  text-align: right;
-  text-transform: uppercase;
-  text-shadow: 0 4px 7px rgba(0, 0, 0, 0.9);
-}
-
-.media-front-title span {
-  display: block;
-}
-
-.media-front-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
 .today-object-layer {
@@ -517,11 +458,11 @@ button:disabled {
   position: absolute;
   top: 1085px;
   z-index: 2;
-  width: 410px;
-  height: 124px;
+  width: 705px;
+  height: 150px;
   display: grid;
   place-items: center;
-  padding: 34px 54px 21px;
+  padding: 41px 93px 25px;
   background: url("../assets/objects/plate-section.png") center / 100% 100%
     no-repeat;
   pointer-events: none;
@@ -1031,15 +972,33 @@ button:disabled {
 .take-off-layer {
   position: absolute;
   inset: 0;
-  z-index: 20;
-  display: grid;
-  place-items: center;
+  z-index: 80;
 }
 
 .shelf-dim {
   position: absolute;
   inset: 0;
-  background: rgba(28, 20, 12, 0.52);
+  background: rgba(11, 8, 5, 0.7);
+}
+
+.take-off-media-shell {
+  position: absolute;
+  inset: 0;
+}
+
+.take-off-actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 150px;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+}
+
+.take-off-media-shell .media-front-item {
+  z-index: 24;
 }
 
 .taken-card {
@@ -1082,6 +1041,24 @@ button:disabled {
   min-height: 78px;
   padding: 18px 24px;
   border-radius: 8px;
+}
+
+.icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.action-icon {
+  width: 37px;
+  height: 37px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
 }
 
 .primary-action {
@@ -1168,13 +1145,28 @@ button:disabled {
 }
 
 #meal-progress-group {
-  transform: translateY(14px);
+  transform: translateY(3px);
+}
+
+#meal-name {
+  text-align: right;
+}
+
+#meal-target-label {
+  display: block;
+  margin-top: 1px;
+  color: #513721;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+  text-align: right;
+  text-transform: lowercase;
 }
 
 #meal-bar-track {
   position: relative;
   height: 24px;
-  margin-top: 13px;
+  margin-top: 10px;
   border-radius: 6px;
   overflow: visible;
   background: rgba(92, 66, 43, 0.16);
@@ -1193,12 +1185,29 @@ button:disabled {
   transition: width 700ms ease;
 }
 
-#meal-bar-labels {
+#meal-now-marker {
+  position: absolute;
+  left: clamp(54px, var(--meal-now-percent, 0%), calc(100% - 10px));
+  top: 100%;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 9px;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #3b2718;
+  font-size: 25px;
+  line-height: 1;
+  font-weight: 900;
+  transform: translateX(calc(-100% + 10px));
+  transition: left 700ms ease;
+}
+
+#meal-now-marker i {
+  display: block;
+  width: 0;
+  height: 0;
+  border-right: 10px solid transparent;
+  border-left: 10px solid transparent;
+  border-bottom: 15px solid #3b2718;
 }
 
 #meal-message {
@@ -1206,6 +1215,10 @@ button:disabled {
 }
 
 #meal-timer[data-rest="true"] #meal-bar-track {
+  display: none;
+}
+
+#meal-timer[data-rest="true"] #meal-target-label {
   display: none;
 }
 

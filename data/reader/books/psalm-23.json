@@ -1,6 +1,8 @@
 {
   "id": "psalm-23",
   "title": "Psalm 23",
+  "baseColor": "#123D2A",
+  "titleTint": "#C7FFD8",
   "chapters": [
     {
       "id": "chapter-1",

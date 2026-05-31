@@ -1,6 +1,8 @@
 {
   "id": "help-comes-at-the-right-time",
   "title": "Help Comes at the Right Time",
+  "baseColor": "#18243D",
+  "titleTint": "#BFD7FF",
   "chapters": [
     {
       "id": "chapter-1",

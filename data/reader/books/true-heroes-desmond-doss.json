@@ -1,6 +1,8 @@
 {
   "id": "true-heroes-desmond-doss",
   "title": "True Heroes: Desmond Doss",
+  "baseColor": "#172C45",
+  "titleTint": "#AEE8FF",
   "chapters": [
     {
       "id": "chapter-1",

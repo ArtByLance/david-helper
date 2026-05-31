@@ -1,6 +1,8 @@
 {
   "id": "old-henry-unmasked",
   "title": "Old Henry Unmasked",
+  "baseColor": "#4A2B18",
+  "titleTint": "#FFD166",
   "chapters": [
     {
       "id": "chapter-1",

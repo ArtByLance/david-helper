@@ -1,6 +1,8 @@
 {
   "id": "reacher-arrested-diner",
   "title": "REACHER: ARRESTED AT THE DINER",
+  "baseColor": "#12372F",
+  "titleTint": "#FFE36E",
   "chapters": [
     {
       "id": "chapter-1",

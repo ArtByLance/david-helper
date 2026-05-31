@@ -1,6 +1,8 @@
 {
   "id": "the-older-man-steps-in",
   "title": "The Older Man Steps In",
+  "baseColor": "#4B321F",
+  "titleTint": "#FFD7A8",
   "chapters": [
     {
       "id": "chapter-1",

@@ -1,6 +1,8 @@
 {
   "id": "true-heroes-sergeant-york",
   "title": "True Heroes: Sergeant York",
+  "baseColor": "#344024",
+  "titleTint": "#FFE66D",
   "chapters": [
     {
       "id": "chapter-1",

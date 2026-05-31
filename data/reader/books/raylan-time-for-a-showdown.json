@@ -1,6 +1,8 @@
 {
   "id": "raylan-time-for-a-showdown",
   "title": "Raylan: Time for a Showdown",
+  "baseColor": "#5A2A1B",
+  "titleTint": "#FFB86F",
   "chapters": [
     {
       "id": "chapter-1",

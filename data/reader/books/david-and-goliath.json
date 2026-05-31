@@ -1,6 +1,8 @@
 {
   "id": "david-and-goliath",
   "title": "David and Goliath",
+  "baseColor": "#162B64",
+  "titleTint": "#FFE45E",
   "chapters": [
     {
       "id": "chapter-1",

@@ -1,6 +1,8 @@
 {
   "id": "reacher-brother-in-arms",
   "title": "Reacher: Brother in Arms",
+  "baseColor": "#0F1F1C",
+  "titleTint": "#FFB86B",
   "chapters": [
     {
       "id": "chapter-1",

@@ -1,6 +1,8 @@
 {
   "id": "true-heroes-audie-murphy",
   "title": "True Heroes: Audie Murphy",
+  "baseColor": "#4A3B22",
+  "titleTint": "#FFD0A6",
   "chapters": [
     {
       "id": "chapter-1",

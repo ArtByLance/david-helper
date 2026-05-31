@@ -1,6 +1,8 @@
 {
   "id": "true-heroes-carlos-hathcock",
   "title": "True Heroes: Carlos Hathcock",
+  "baseColor": "#263846",
+  "titleTint": "#FFB3B3",
   "chapters": [
     {
       "id": "chapter-1",

@@ -1,6 +1,8 @@
 {
   "id": "boyd-fire-in-the-hole",
   "title": "Boyd: Fire in the Hole",
+  "baseColor": "#3A2F29",
+  "titleTint": "#FFE0A3",
   "chapters": [
     {
       "id": "chapter-1",

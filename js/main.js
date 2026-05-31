@@ -24,17 +24,11 @@ const VIEW_TRANSITION_OUT_MS = 150;
 const VIEW_TRANSITION_IN_MS = 240;
 const SHELF_PANEL_WIDTH = 800;
 const SHOWS_SPINE_START_X = 1810;
-const SHOWS_SPINE_WIDTH = 170;
-const SHOWS_SPINE_GAP = -85;
-const SHOWS_MEDIA_SPINE_GAP = 28;
-const SHOWS_GROUP_GAP = SHOWS_SPINE_WIDTH * 3;
+const MEDIA_SPINE_TO_SPINE_GAP = 50;
+const SHOWS_GROUP_GAP = 170 * 3;
 const MEDIA_SPINE_BOTTOM = 245;
 const MEDIA_SPINE_HEIGHT = 620;
 const SHELF_EXTENSION_IMAGE = "./assets/shelves/shelf0.jpg";
-const SHOWS_SPINE_IMAGE = "./assets/objects/dvd-spine.png";
-const BOOKS_SPINE_IMAGE = "./assets/objects/book-spine.png";
-const SHOWS_FRONT_IMAGE = "./assets/objects/dvd-front.png";
-const BOOKS_FRONT_IMAGE = "./assets/objects/book-front.png";
 const TODAY_CLOCK_IMAGE = "./assets/objects/clock.png";
 const TODAY_MENU_IMAGE = "./assets/objects/card-menu.png";
 const TODAY_NEXT_FLAG_IMAGE = "./assets/objects/next-flag-2.png";
@@ -50,58 +44,85 @@ const BOOKS_EXTENSION_PANELS = 6;
 const BOOKS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * BOOKS_EXTENSION_PANELS;
 const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 4;
 const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 3;
+const dvdSpineSkin = {
+  overlay: "./assets/objects/dvd-spine.png",
+  viewBox: { width: 196, height: 713 },
+  artPolygons: {
+    sideFaceArt: "29,33 102,68 100,681 30,593",
+    spineArt: "103,67 182,67 181,687 101,688",
+  },
+  titlePolygon: "103,67 182,67 181,687 101,688",
+  hotspotPadding: 10,
+};
+const bookSpineSkin = {
+  ...dvdSpineSkin,
+  overlay: "./assets/objects/book-spine.png",
+};
+const dvdFrontSkin = {
+  overlay: "./assets/objects/dvd-front.png",
+  viewBox: { width: 900, height: 1350 },
+  artPolygons: {
+    frontArt: "147,254 750,232 820,1122 229,1209",
+    spineArt: "102,273 141,253 224,1208 179,1188",
+  },
+  titlePolygon: "147,254 750,232 820,1122 229,1209",
+  hotspotPadding: 10,
+};
+const bookFrontSkin = {
+  ...dvdFrontSkin,
+  overlay: "./assets/objects/book-front.png",
+};
+const mediaSkins = {
+  dvd: {
+    spine: dvdSpineSkin,
+    front: dvdFrontSkin,
+  },
+  book: {
+    spine: bookSpineSkin,
+    front: bookFrontSkin,
+  },
+};
+const MEDIA_SPINE_VIEW_FACE_OPACITY = 0.95;
+const MEDIA_SPINE_VIEW_SIDE_TINT = "#2f66f2";
+const MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY = 0.64;
+const MEDIA_FRONT_VIEW_SPINE_OPACITY = 0.4;
+const MEDIA_FRONT_TITLE_ROTATION_OFFSET = -4.8;
+const MEDIA_FRONT_TITLE_RIGHT_INSET = 92;
+const MEDIA_FRONT_TITLE_BOTTOM_INSET = 105;
+const MEDIA_DEFAULT_TITLE_TINT = "#fff6df";
+const MEDIA_SPINE_TITLE_X_OFFSET = 7;
+const MEDIA_SPINE_TITLE_Y_OFFSET = 34;
 const SHOWS_TEST_MEDIA = [
   {
+    id: "frasier",
     title: "Frasier",
     type: "dvd",
     category: "Favorites",
     masterArt: "./assets/media/frasier.svg",
   },
   {
+    id: "bones",
     title: "Bones",
     type: "dvd",
     category: "Favorites",
     masterArt: "./assets/media/bones.svg",
   },
   {
+    id: "western",
     title: "Western Movie",
     type: "dvd",
     category: "Favorites",
     masterArt: "./assets/media/western-movie.svg",
   },
   {
+    id: "gospel",
     title: "Gospel Music",
     type: "dvd",
     category: "Favorites",
     masterArt: "./assets/media/gospel-music.svg",
   },
 ];
-const BOOKS_TEST_MEDIA = [
-  {
-    title: "Dry Creek Sheriff",
-    type: "book",
-    category: "Favorites",
-    masterArt: "./assets/media/dry-creek-sheriff.svg",
-  },
-  {
-    title: "Long Rider",
-    type: "book",
-    category: "Favorites",
-    masterArt: "./assets/media/long-rider.svg",
-  },
-  {
-    title: "Joseph",
-    type: "book",
-    category: "Favorites",
-    masterArt: "./assets/media/joseph.svg",
-  },
-  {
-    title: "Bridge Rescue",
-    type: "book",
-    category: "Favorites",
-    masterArt: "./assets/media/bridge-rescue.svg",
-  },
-];
+let booksShelfMedia = [];
 
 // When shelf content is built out, keep one extra blank panel past the expected
 // far-right end so overscroll never exposes the stage edge.
@@ -131,10 +152,65 @@ window.addEventListener("resize", () => {
   render();
 });
 
-function bootstrap() {
+async function loadBooksShelfMedia() {
+  try {
+    const response = await fetch("./data/reader/readerIndex.json", {
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`Reader index ${response.status}`);
+
+    const sections = await response.json();
+    const bookItems = sections.flatMap((section) =>
+      (section.items ?? []).map(async (item) => {
+        const book = await loadReaderBookDetails(item.id);
+
+        return {
+          id: item.id,
+          title: book.title ?? item.title,
+          displayTitle: book.displayTitle,
+          type: "book",
+          category: section.title,
+          masterArt: `./assets/media/covers/${item.id}.jpg`,
+          baseColor: book.baseColor,
+          titleTint: book.titleTint,
+          pages: flattenReaderBookPages(book),
+        };
+      }),
+    );
+    booksShelfMedia = await Promise.all(bookItems);
+  } catch (error) {
+    console.warn("Could not load reader index for book shelf.", error);
+    booksShelfMedia = [];
+  }
+}
+
+async function loadReaderBookDetails(id) {
+  try {
+    const response = await fetch(`./data/reader/books/${id}.json`, {
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`Book ${id} ${response.status}`);
+    return response.json();
+  } catch (error) {
+    console.warn(`Could not load reader book ${id}.`, error);
+    return {};
+  }
+}
+
+function flattenReaderBookPages(book) {
+  return (book.chapters ?? []).flatMap((chapter) =>
+    (chapter.pages ?? []).map((page) => {
+      const text = Array.isArray(page.text) ? page.text : [page.text ?? ""];
+      return text.filter(Boolean).join("\n\n");
+    }),
+  );
+}
+
+async function bootstrap() {
   applyInitialShelfRoute();
   fitStageToViewport();
   bindGlobalControls();
+  await loadBooksShelfMedia();
   render();
   window.setInterval(renderMealTimerOnly, 20 * 1000);
 }
@@ -213,13 +289,18 @@ function renderMealTimer(now) {
   const mealName = document.getElementById("meal-name");
   const mealFill = document.getElementById("meal-bar-fill");
   const mealTarget = document.getElementById("meal-target-label");
+  const mealMarker = document.getElementById("meal-now-marker");
   const mealMessage = document.getElementById("meal-message");
+  const shouldHideCard = state.alertHidden || mealState.hiddenForDay;
 
   mealTimer?.setAttribute("data-rest", String(mealState.resting));
-  mealTimer?.classList.toggle("alert-card-hidden", state.alertHidden);
+  mealTimer?.setAttribute("aria-hidden", String(shouldHideCard));
+  mealTimer?.classList.toggle("alert-card-hidden", shouldHideCard);
+  mealTimer?.style.setProperty("--meal-now-percent", `${mealState.nowPercent}%`);
   if (mealName) mealName.textContent = mealState.label;
   if (mealFill) mealFill.style.width = `${mealState.fillPercent}%`;
   if (mealTarget) mealTarget.textContent = mealState.targetLabel;
+  if (mealMarker) mealMarker.toggleAttribute("hidden", mealState.resting);
   if (mealMessage) mealMessage.textContent = mealState.message;
 }
 
@@ -348,8 +429,8 @@ function renderBooksImageStrip() {
           <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.BOOKS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
-          ${renderMediaSpineItems(BOOKS_TEST_MEDIA)}
-          ${renderMediaSectionPlates(BOOKS_TEST_MEDIA, "books-section-plate")}
+          ${renderMediaSpineItems(booksShelfMedia, "BOOKS")}
+          ${renderMediaSectionPlates(booksShelfMedia, "books-section-plate")}
           ${renderScrollLabel()}
         </div>
       </div>
@@ -373,8 +454,8 @@ function renderShowsImageStrip() {
           <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.SHOWS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
-          ${renderMediaSpineItems(SHOWS_TEST_MEDIA, SHOWS_MEDIA_SPINE_GAP)}
-          ${renderMediaSectionPlates(SHOWS_TEST_MEDIA, "shows-section-plate", SHOWS_MEDIA_SPINE_GAP)}
+          ${renderMediaSpineItems(SHOWS_TEST_MEDIA, "SHOWS")}
+          ${renderMediaSectionPlates(SHOWS_TEST_MEDIA, "shows-section-plate")}
           ${renderScrollLabel()}
         </div>
       </div>
@@ -383,60 +464,309 @@ function renderShowsImageStrip() {
   `;
 }
 
-function renderMediaSpineItems(items, gap = SHOWS_SPINE_GAP) {
-  return getShelfMediaGroups(items, gap)
-    .flatMap((group) =>
-      group.items.map((item, index) =>
-        renderMediaSpineItem({
-          ...item,
-          x: group.left + index * (SHOWS_SPINE_WIDTH + gap),
-          bottom: MEDIA_SPINE_BOTTOM,
-          height: MEDIA_SPINE_HEIGHT,
-        }),
-      ),
+function renderMediaSpineItems(items, kind, gap = MEDIA_SPINE_TO_SPINE_GAP) {
+  const positionedItems = getShelfMediaGroups(items, gap).flatMap((group) =>
+    positionMediaGroupItems(group.items, group.left, gap),
+  );
+
+  return positionedItems
+    .map((item, index) =>
+      renderMediaSpineItem({
+        ...item,
+        kind,
+        zIndex: positionedItems.length - index + 10,
+      }),
     )
     .join("");
 }
 
 function renderMediaSpineItem(item) {
-  const overlay = item.type === "book" ? BOOKS_SPINE_IMAGE : SHOWS_SPINE_IMAGE;
-  const width = Math.round((item.height * 196) / 713);
-
-  return `
-    <button
-      class="media-spine-item media-spine-${item.type}"
-      type="button"
-      data-action="media-spine"
-      data-title="${escapeAttribute(item.title)}"
-      aria-label="${escapeAttribute(item.title)}"
-      style="--media-x: ${item.x}px; --media-bottom: ${item.bottom}px; --media-width: ${width}px; --media-height: ${item.height}px;"
-    >
-      <span class="media-spine-art" style="--media-art: url('${item.masterArt}')"></span>
-      <span class="media-spine-title">${formatSpineTitle(item.title)}</span>
-      <img class="media-spine-overlay" src="${overlay}" alt="" aria-hidden="true" draggable="false" />
-    </button>
-  `;
-}
-
-function renderMediaFrontItem(item) {
-  const overlay = item.type === "book" ? BOOKS_FRONT_IMAGE : SHOWS_FRONT_IMAGE;
-  const width = Math.round((item.height * 900) / 1350);
+  const skin = getMediaSkin(item, "spine");
+  const width = getMediaObjectWidth(skin, item.height);
+  const hotspotClipPath = polygonCssClipPath(
+    skin.artPolygons.spineArt,
+    skin.viewBox,
+  );
 
   return `
     <div
-      class="media-front-item media-front-${item.type}"
+      class="media-object media-spine media-spine-item media-spine-${item.type}"
       aria-label="${escapeAttribute(item.title)}"
-      style="--media-x: ${item.x}px; --media-y: ${item.y}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-rotation: ${item.rotationDegrees}deg;"
+      style="--media-x: ${item.x}px; --media-bottom: ${item.bottom}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-z-index: ${item.zIndex}; --media-hotspot-clip: ${hotspotClipPath};"
     >
-      <span class="media-front-art" style="--media-art: url('${item.masterArt}')"></span>
-      <span class="media-front-fade"></span>
-      <span class="media-front-title">${formatFrontTitle(item.title)}</span>
-      <img class="media-front-overlay" src="${overlay}" alt="" aria-hidden="true" draggable="false" />
+      ${renderMediaObjectContent({ item, mode: "spine", skin })}
+      <button
+        class="media-spine-hotspot"
+        type="button"
+        data-action="media-spine"
+        data-kind="${escapeAttribute(item.kind)}"
+        data-item-id="${escapeAttribute(item.id)}"
+        data-title="${escapeAttribute(item.title)}"
+        aria-label="${escapeAttribute(item.title)}"
+      ></button>
     </div>
   `;
 }
 
-function renderMediaSectionPlates(items, className, gap = SHOWS_SPINE_GAP) {
+function renderMediaFrontItem(item) {
+  const skin = getMediaSkin(item, "front");
+  const width = getMediaObjectWidth(skin, item.height);
+
+  return `
+    <div
+      class="media-object media-front media-front-item media-front-${item.type}"
+      aria-label="${escapeAttribute(item.title)}"
+      style="--media-x: ${item.x}px; --media-y: ${item.y}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-rotation: ${item.rotationDegrees}deg;"
+    >
+      ${renderMediaObjectContent({ item, mode: "front", skin })}
+    </div>
+  `;
+}
+
+function renderMediaObjectContent({ item, mode, skin }) {
+  const title = item.displayTitle ?? item.title;
+  const svgId = `${slugify(item.title)}-${mode}`;
+
+  return `
+    ${renderMediaArtLayer({ item, mode, skin, svgId })}
+    ${renderMediaTitleLayer({ item, title, mode, skin, svgId })}
+    <img class="media-overlay" src="${skin.overlay}" alt="" aria-hidden="true" draggable="false" />
+  `;
+}
+
+function getMediaSkin(item, mode) {
+  return mediaSkins[item.type]?.[mode] ?? mediaSkins.dvd[mode];
+}
+
+function getMediaObjectWidth(skin, height) {
+  return Math.round((height * skin.viewBox.width) / skin.viewBox.height);
+}
+
+function renderMediaArtLayer({ item, mode, skin, svgId }) {
+  return mode === "front"
+    ? renderMediaFrontArtLayer({ item, skin, svgId })
+    : renderMediaSpineArtLayer({ item, skin, svgId });
+}
+
+function renderMediaSpineArtLayer({ item, skin, svgId }) {
+  const baseColor = item.baseColor;
+  const displayColor = baseColor ? enrichMediaColor(baseColor) : "";
+  const artImages = Object.entries(skin.artPolygons)
+    .map(
+      ([name]) => {
+        const isSideFace = name === "sideFaceArt";
+
+        return `
+        ${
+          baseColor && isSideFace
+            ? `<rect
+                width="${skin.viewBox.width}"
+                height="${skin.viewBox.height}"
+                fill="${escapeAttribute(displayColor)}"
+                clip-path="url(#${svgId}-${name})"
+              />`
+            : ""
+        }
+        <image
+          href="${escapeAttribute(item.masterArt)}"
+          width="${skin.viewBox.width}"
+          height="${skin.viewBox.height}"
+          preserveAspectRatio="xMidYMid slice"
+          opacity="${baseColor && isSideFace ? "0.06" : "1"}"
+          clip-path="url(#${svgId}-${name})"
+        />
+        ${
+          baseColor && isSideFace
+            ? `<rect
+                width="${skin.viewBox.width}"
+                height="${skin.viewBox.height}"
+                fill="#000"
+                opacity="0.18"
+                clip-path="url(#${svgId}-${name})"
+              />`
+            : !baseColor && isSideFace
+            ? `<rect
+                width="${skin.viewBox.width}"
+                height="${skin.viewBox.height}"
+                fill="#000"
+                opacity="${MEDIA_SPINE_VIEW_FACE_OPACITY}"
+                clip-path="url(#${svgId}-${name})"
+              />
+              <rect
+                width="${skin.viewBox.width}"
+                height="${skin.viewBox.height}"
+                fill="${MEDIA_SPINE_VIEW_SIDE_TINT}"
+                opacity="${MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY}"
+                clip-path="url(#${svgId}-${name})"
+              />`
+            : ""
+        }
+      `;
+      },
+    )
+    .join("");
+
+  return `
+    <svg
+      class="media-svg media-artLayer"
+      viewBox="0 0 ${skin.viewBox.width} ${skin.viewBox.height}"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <defs>
+        ${renderMediaClipPaths(skin.artPolygons, svgId)}
+      </defs>
+      ${artImages}
+    </svg>
+  `;
+}
+
+function renderMediaFrontArtLayer({ item, skin, svgId }) {
+  const frontPlacement = polygonPlacement(skin.artPolygons.frontArt);
+  const baseColor = item.baseColor;
+  const displayColor = baseColor ? enrichMediaColor(baseColor) : "";
+
+  return `
+    <svg
+      class="media-svg media-artLayer"
+      viewBox="0 0 ${skin.viewBox.width} ${skin.viewBox.height}"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <defs>
+        ${renderMediaClipPaths(skin.artPolygons, svgId)}
+      </defs>
+      <image
+        href="${escapeAttribute(item.masterArt)}"
+        x="${frontPlacement.x}"
+        y="${frontPlacement.y}"
+        width="${frontPlacement.width}"
+        height="${frontPlacement.height}"
+        transform="rotate(${frontPlacement.angle} ${frontPlacement.centerX} ${frontPlacement.centerY})"
+        preserveAspectRatio="none"
+        clip-path="url(#${svgId}-frontArt)"
+      />
+      ${
+        baseColor
+          ? `<rect
+              width="${skin.viewBox.width}"
+              height="${skin.viewBox.height}"
+              fill="${escapeAttribute(displayColor)}"
+              clip-path="url(#${svgId}-spineArt)"
+            />`
+          : ""
+      }
+      <image
+        href="${escapeAttribute(item.masterArt)}"
+        width="${skin.viewBox.width}"
+        height="${skin.viewBox.height}"
+        preserveAspectRatio="xMidYMid slice"
+        opacity="${baseColor ? "0.12" : "1"}"
+        clip-path="url(#${svgId}-spineArt)"
+      />
+      <rect
+        width="${skin.viewBox.width}"
+        height="${skin.viewBox.height}"
+        fill="#000"
+        opacity="${baseColor ? "0.32" : MEDIA_FRONT_VIEW_SPINE_OPACITY}"
+        clip-path="url(#${svgId}-spineArt)"
+      />
+    </svg>
+  `;
+}
+
+function renderMediaTitleLayer({ item, title, mode, skin, svgId }) {
+  const titleBox = polygonBounds(skin.titlePolygon);
+  const titleTint = item.titleTint ?? MEDIA_DEFAULT_TITLE_TINT;
+  const text =
+    mode === "spine"
+      ? renderMediaSpineTitle(title, titleBox, svgId, titleTint)
+      : renderMediaFrontTitle(title, titleBox, svgId, titleTint);
+
+  return `
+    <svg
+      class="media-svg media-titleLayer"
+      viewBox="0 0 ${skin.viewBox.width} ${skin.viewBox.height}"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <defs>
+        ${renderMediaClipPath("title", skin.titlePolygon, svgId)}
+        <filter id="${svgId}-titleShadow" x="-80%" y="-80%" width="260%" height="260%">
+          <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".9" />
+          <feDropShadow dx="0" dy="0" stdDeviation="39" flood-color="#000" flood-opacity=".92" />
+        </filter>
+        <filter id="${svgId}-spineTitleGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feDropShadow dx="0" dy="0" stdDeviation="34" flood-color="#000" flood-opacity=".92" />
+        </filter>
+      </defs>
+      <g clip-path="url(#${svgId}-title)">
+        ${text}
+      </g>
+    </svg>
+  `;
+}
+
+function renderMediaSpineTitle(title, titleBox, svgId, titleTint) {
+  const anchorX = titleBox.centerX + MEDIA_SPINE_TITLE_X_OFFSET;
+  const anchorY = titleBox.maxY - 70 + MEDIA_SPINE_TITLE_Y_OFFSET;
+  const attrs = `
+    class="media-titleText"
+    x="${anchorX}"
+    y="${anchorY}"
+    text-anchor="start"
+    dominant-baseline="middle"
+    font-size="36"
+    style="fill: ${escapeAttribute(titleTint)};"
+    transform="rotate(-90 ${anchorX} ${anchorY})"
+  `;
+
+  return `
+    <text ${attrs} filter="url(#${svgId}-spineTitleGlow)">${escapeHtml(title)}</text>
+    <text ${attrs}>${escapeHtml(title)}</text>
+  `;
+}
+
+function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
+  const words = String(title).trim().split(/\s+/);
+  const lineHeight = 72;
+  const startY =
+    titleBox.maxY -
+    MEDIA_FRONT_TITLE_BOTTOM_INSET -
+    (words.length - 1) * lineHeight;
+  const renderLine = (word, index, filter = "") => `
+    <text
+      class="media-titleText"
+      x="${titleBox.maxX - MEDIA_FRONT_TITLE_RIGHT_INSET}"
+      y="${startY + index * lineHeight}"
+      text-anchor="end"
+      font-size="76"
+      style="fill: ${escapeAttribute(titleTint)};"
+      ${filter}
+    >${escapeHtml(word)}</text>
+  `;
+  const glowLines = words
+    .map((word, index) =>
+      renderLine(word, index, `filter="url(#${svgId}-titleShadow)"`),
+    )
+    .join("");
+  const cleanLines = words
+    .map((word, index) => renderLine(word, index))
+    .join("");
+
+  return `
+    <g transform="rotate(${titleBox.angle + MEDIA_FRONT_TITLE_ROTATION_OFFSET} ${titleBox.centerX} ${titleBox.centerY})">
+      ${glowLines}
+      ${cleanLines}
+    </g>
+  `;
+}
+
+function renderMediaSectionPlates(
+  items,
+  className,
+  gap = MEDIA_SPINE_TO_SPINE_GAP,
+) {
   return getShelfMediaGroups(items, gap)
     .map(
       (group) => `
@@ -448,12 +778,14 @@ function renderMediaSectionPlates(items, className, gap = SHOWS_SPINE_GAP) {
     .join("");
 }
 
-function getShelfMediaGroups(items, gap = SHOWS_SPINE_GAP) {
+function getShelfMediaGroups(items, gap = MEDIA_SPINE_TO_SPINE_GAP) {
   let left = SHOWS_SPINE_START_X;
   const categories = [];
 
   items.forEach((item) => {
-    let group = categories.find((candidate) => candidate.title === item.category);
+    let group = categories.find(
+      (candidate) => candidate.title === item.category,
+    );
     if (!group) {
       group = {
         left,
@@ -466,37 +798,113 @@ function getShelfMediaGroups(items, gap = SHOWS_SPINE_GAP) {
   });
 
   return categories.map((category) => {
-    const count = category.items.length;
     const positionedGroup = {
       ...category,
       left,
     };
 
-    left += count * (SHOWS_SPINE_WIDTH + gap) + SHOWS_GROUP_GAP;
+    left += getMediaGroupWidth(category.items, gap) + SHOWS_GROUP_GAP;
     return positionedGroup;
   });
 }
 
-function formatSpineTitle(title) {
-  return escapeHtml(title);
+function positionMediaGroupItems(items, groupLeft, gap) {
+  let x = groupLeft;
+
+  return items.map((item) => {
+    const positionedItem = {
+      ...item,
+      x,
+      bottom: MEDIA_SPINE_BOTTOM,
+      height: MEDIA_SPINE_HEIGHT,
+    };
+    x += getMediaSpineStep(item, gap);
+    return positionedItem;
+  });
 }
 
-function formatFrontTitle(title) {
-  return splitTitleLines(title, 3)
-    .map((line) => `<span>${escapeHtml(line)}</span>`)
-    .join("");
+function getMediaGroupWidth(items, gap) {
+  return items.reduce((width, item) => width + getMediaSpineStep(item, gap), 0);
 }
 
-function splitTitleLines(title, maxLines) {
-  const words = String(title).trim().split(/\s+/);
-  if (words.length <= maxLines) return words;
+function getMediaSpineStep(item, gap) {
+  const skin = getMediaSkin(item, "spine");
+  const bounds = polygonBounds(skin.artPolygons.spineArt);
+  const objectWidth = getMediaObjectWidth(skin, MEDIA_SPINE_HEIGHT);
+  const spineWidth = (bounds.width / skin.viewBox.width) * objectWidth;
+  return spineWidth + gap;
+}
 
-  const lines = [];
-  const wordsPerLine = Math.ceil(words.length / maxLines);
-  for (let index = 0; index < words.length; index += wordsPerLine) {
-    lines.push(words.slice(index, index + wordsPerLine).join(" "));
+function enrichMediaColor(hexColor) {
+  const rgb = parseHexColor(hexColor);
+  if (!rgb) return hexColor;
+
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  const saturation = Math.min(0.74, Math.max(0.42, hsl.s * 1.55));
+  const lightness = Math.min(0.42, Math.max(0.24, hsl.l + 0.14));
+  return hslToHex(hsl.h, saturation, lightness);
+}
+
+function parseHexColor(hexColor) {
+  const match = String(hexColor).trim().match(/^#([0-9a-f]{6})$/i);
+  if (!match) return null;
+
+  const value = Number.parseInt(match[1], 16);
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255,
+  };
+}
+
+function rgbToHsl(r, g, b) {
+  const red = r / 255;
+  const green = g / 255;
+  const blue = b / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const lightness = (max + min) / 2;
+
+  if (max === min) {
+    return { h: 0, s: 0, l: lightness };
   }
-  return lines.slice(0, maxLines);
+
+  const delta = max - min;
+  const saturation =
+    lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+  let hue;
+
+  if (max === red) {
+    hue = (green - blue) / delta + (green < blue ? 6 : 0);
+  } else if (max === green) {
+    hue = (blue - red) / delta + 2;
+  } else {
+    hue = (red - green) / delta + 4;
+  }
+
+  return { h: hue / 6, s: saturation, l: lightness };
+}
+
+function hslToHex(h, s, l) {
+  const hueToRgb = (p, q, t) => {
+    let hue = t;
+    if (hue < 0) hue += 1;
+    if (hue > 1) hue -= 1;
+    if (hue < 1 / 6) return p + (q - p) * 6 * hue;
+    if (hue < 1 / 2) return q;
+    if (hue < 2 / 3) return p + (q - p) * (2 / 3 - hue) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const toHex = (value) =>
+    Math.round(value * 255)
+      .toString(16)
+      .padStart(2, "0");
+
+  return `#${toHex(hueToRgb(p, q, h + 1 / 3))}${toHex(
+    hueToRgb(p, q, h),
+  )}${toHex(hueToRgb(p, q, h - 1 / 3))}`;
 }
 
 function escapeHtml(value) {
@@ -510,6 +918,88 @@ function escapeHtml(value) {
 
 function escapeAttribute(value) {
   return escapeHtml(value);
+}
+
+function renderMediaClipPaths(polygons, svgId) {
+  return Object.entries(polygons)
+    .map(([name, polygon]) => renderMediaClipPath(name, polygon, svgId))
+    .join("");
+}
+
+function renderMediaClipPath(name, polygon, svgId) {
+  return `
+    <clipPath id="${svgId}-${name}">
+      <polygon points="${escapeAttribute(polygon)}" />
+    </clipPath>
+  `;
+}
+
+function polygonCssClipPath(polygon, viewBox) {
+  return `polygon(${parsePolygon(polygon)
+    .map(
+      ([x, y]) =>
+        `${roundPercent((x / viewBox.width) * 100)}% ${roundPercent((y / viewBox.height) * 100)}%`,
+    )
+    .join(", ")})`;
+}
+
+function polygonBounds(polygon) {
+  const points = parsePolygon(polygon);
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  return {
+    minX,
+    maxX,
+    minY,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+    centerX: (minX + maxX) / 2,
+    centerY: (minY + maxY) / 2,
+    angle: polygonTopEdgeAngle(points),
+  };
+}
+
+function polygonPlacement(polygon) {
+  const bounds = polygonBounds(polygon);
+  const bleed = Math.max(bounds.width, bounds.height) * 0.1;
+
+  return {
+    x: bounds.minX - bleed,
+    y: bounds.minY - bleed,
+    width: bounds.width + bleed * 2,
+    height: bounds.height + bleed * 2,
+    centerX: bounds.centerX,
+    centerY: bounds.centerY,
+    angle: bounds.angle,
+  };
+}
+
+function polygonTopEdgeAngle(points) {
+  const [start, end] = points;
+  const radians = Math.atan2(end[1] - start[1], end[0] - start[0]);
+  return Number(((radians * 180) / Math.PI).toFixed(3));
+}
+
+function roundPercent(value) {
+  return Number(value.toFixed(3));
+}
+
+function parsePolygon(polygon) {
+  return polygon.split(/\s+/).map((point) => point.split(",").map(Number));
+}
+
+function slugify(value) {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 function renderScrollLabel() {
@@ -692,20 +1182,62 @@ function renderTakeOffOverlay() {
   const item = state.selectedItem;
   const isBook = state.selectedKind === "BOOKS";
   const actionWord = isBook ? "READ" : "WATCH";
+  const action = isBook ? "read-book" : "watch-item";
+  const coverItem = {
+    ...item,
+    x: -32,
+    y: 71,
+    height: 1277,
+    rotationDegrees: isBook ? -2 : 2,
+  };
 
   return `
     <div class="take-off-layer" role="dialog" aria-label="${item.title}">
       <div class="shelf-dim"></div>
-      <section class="taken-card ${isBook ? "book-cover" : "movie-cover"}">
-        <div class="cover-category">${item.category}</div>
-        <h2>${item.title}</h2>
-        <p>${item.description}</p>
-        <div class="cover-actions">
-          <button class="primary-action" type="button" data-action="${isBook ? "read-book" : "watch-item"}">${actionWord}</button>
-          <button class="secondary-action" type="button" data-action="put-back">PUT BACK</button>
+      <div class="take-off-media-shell">
+        ${renderMediaFrontItem(coverItem)}
+        <div class="take-off-actions">
+          <button class="primary-action icon-action" type="button" data-action="${action}">
+            ${isBook ? renderBookIcon() : renderRemoteIcon()}
+            <span>${actionWord}</span>
+          </button>
+          <button class="secondary-action icon-action" type="button" data-action="put-back">
+            ${renderReturnIcon()}
+            <span>PUT BACK</span>
+          </button>
         </div>
-      </section>
+      </div>
     </div>
+  `;
+}
+
+function renderBookIcon() {
+  return `
+    <svg class="action-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path d="M8 11h13c3 0 5 2 5 5v21c0-3-2-5-5-5H8z" />
+      <path d="M40 11H27c-3 0-5 2-5 5v21c0-3 2-5 5-5h13z" />
+      <path d="M24 16v21" />
+    </svg>
+  `;
+}
+
+function renderRemoteIcon() {
+  return `
+    <svg class="action-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <rect x="15" y="5" width="18" height="38" rx="6" />
+      <circle cx="24" cy="15" r="4" />
+      <path d="M20 25h8" />
+      <path d="M20 32h8" />
+    </svg>
+  `;
+}
+
+function renderReturnIcon() {
+  return `
+    <svg class="action-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path d="M19 13 8 24l11 11" />
+      <path d="M9 24h21c6 0 10 4 10 10v2" />
+    </svg>
   `;
 }
 
@@ -751,12 +1283,12 @@ function renderReader() {
 
 function renderHandoff() {
   return `
-    <section class="screen handoff-screen" aria-label="TV handoff">
+      <section class="screen handoff-screen" aria-label="TV handoff">
       <div class="handoff-card">
         <div class="screen-kicker">SHOWS SHELF</div>
-        <h1>${state.handoffItem.title}</h1>
-        <p>Your show is ready on the TV.</p>
-        <p>Use your TV remote to watch.</p>
+        <h1>Starting the show</h1>
+        <p>${state.handoffItem.title}</p>
+        <p>This will return to the shelf in a minute.</p>
         <button class="secondary-action" type="button" data-action="return-shows">PUT BACK</button>
       </div>
     </section>
@@ -808,7 +1340,14 @@ async function handleMainClick(event) {
   }
 
   if (action === "media-spine") {
-    console.info(target.dataset.title);
+    const kind = target.dataset.kind;
+    state.selectedKind = kind;
+    state.selectedItem = findShelfMediaItem(
+      kind,
+      target.dataset.itemId,
+      target.dataset.title,
+    );
+    if (state.selectedItem) render();
     return;
   }
 
@@ -979,6 +1518,12 @@ async function animateAlertExitToShelf() {
   const mealTimer = document.getElementById("meal-timer");
 
   try {
+    if (getMealState(getNow()).hiddenForDay) {
+      state.alertHidden = true;
+      mealTimer?.classList.add("alert-card-hidden");
+      return;
+    }
+
     state.alertHidden = false;
     mealTimer?.classList.remove("alert-card-hidden");
     mealTimer?.classList.remove("alert-card-entering");
@@ -1001,6 +1546,13 @@ async function animateAlertEnterHome() {
     mealTimer?.classList.remove("alert-card-exiting");
     mealTimer?.classList.add("alert-card-hidden");
     await wait(ALERT_HOME_ENTRY_DELAY_MS);
+
+    if (getMealState(getNow()).hiddenForDay) {
+      state.alertHidden = false;
+      mealTimer?.classList.add("alert-card-hidden");
+      return;
+    }
+
     mealTimer?.classList.remove("alert-card-hidden");
     mealTimer?.classList.add("alert-card-entering");
     state.alertHidden = false;
@@ -1055,6 +1607,22 @@ function findItem(kind, id) {
   return source.find((item) => item.id === id) ?? null;
 }
 
+function findShelfMediaItem(kind, id, title) {
+  const source = kind === "BOOKS" ? booksShelfMedia : SHOWS_TEST_MEDIA;
+  const shelfItem =
+    source.find((item) => item.id === id) ??
+    source.find((item) => item.title === title) ??
+    null;
+  const catalogItem = findItem(kind, id);
+
+  if (!shelfItem) return catalogItem;
+  return {
+    ...catalogItem,
+    ...shelfItem,
+    category: shelfItem.category ?? catalogItem?.category,
+  };
+}
+
 function getMealState(now) {
   const nowMinutes =
     now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
@@ -1067,9 +1635,11 @@ function getMealState(now) {
   if (!nextMeal) {
     return {
       resting: true,
+      hiddenForDay: true,
       nextMealId: null,
       label: "REST WHEN READY",
       fillPercent: 100,
+      nowPercent: 100,
       timeLeft: "",
       targetLabel: "REST",
       message: "Rest whenever you feel ready.",
@@ -1081,15 +1651,19 @@ function getMealState(now) {
     .find((meal) => meal.minutes <= nowMinutes);
   const start = previousMeal?.minutes ?? 0;
   const span = Math.max(1, nextMeal.minutes - start);
+  const elapsed = Math.max(0, nowMinutes - start);
   const remaining = Math.max(0, nextMeal.minutes - nowMinutes);
   const fillPercent = clamp((remaining / span) * 100, 0, 100);
+  const nowPercent = clamp((elapsed / span) * 100, 0, 100);
   const timeLeft = formatMealTimeLeft(remaining);
 
   return {
     resting: false,
+    hiddenForDay: false,
     nextMealId: nextMeal.id,
     label: nextMeal.label,
     fillPercent,
+    nowPercent,
     timeLeft,
     targetLabel: formatShelfMealTime(nextMeal.time),
     message: `We eat in ${timeLeft}.`,

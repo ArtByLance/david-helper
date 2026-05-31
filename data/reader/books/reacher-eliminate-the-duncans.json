@@ -1,6 +1,8 @@
 {
   "id": "reacher-eliminate-the-duncans",
   "title": "Reacher: Eliminate the Duncans",
+  "baseColor": "#263135",
+  "titleTint": "#B7F7FF",
   "chapters": [
     {
       "id": "chapter-1",

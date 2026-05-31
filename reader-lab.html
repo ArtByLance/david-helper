@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reader Lab</title>
+    <style>
+      :root {
+        --stage-width: 800px;
+        --stage-height: 1280px;
+        --paper: #f7efd8;
+        --paper-edge: #d8bd88;
+        --ink: #201914;
+        --muted: #6d5b48;
+        --green: #2e6745;
+        --cream: #f1dfb7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        background: #15100c;
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button:disabled {
+        cursor: default;
+        opacity: 0.42;
+      }
+
+      #stage {
+        position: relative;
+        width: var(--stage-width);
+        height: var(--stage-height);
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 8%, rgba(255, 227, 164, 0.36), transparent 34%),
+          linear-gradient(180deg, #5b3822, #20130d 72%);
+      }
+
+      .reader-screen {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 34px 22px;
+      }
+
+      .reader-paper {
+        position: relative;
+        width: 742px;
+        min-height: 1054px;
+        display: flex;
+        flex-direction: column;
+        padding: 58px 56px 42px;
+        border: 1px solid rgba(92, 61, 31, 0.32);
+        border-radius: 5px;
+        background:
+          linear-gradient(90deg, rgba(115, 82, 47, 0.12), transparent 9%, transparent 91%, rgba(115, 82, 47, 0.12)),
+          repeating-linear-gradient(0deg, rgba(88, 57, 26, 0.035) 0 2px, transparent 2px 34px),
+          var(--paper);
+        box-shadow:
+          0 24px 42px rgba(12, 8, 5, 0.35),
+          inset 0 0 0 7px rgba(255, 249, 231, 0.38),
+          inset 0 -12px 0 rgba(122, 77, 34, 0.08);
+      }
+
+      .reader-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 26px;
+        padding-bottom: 26px;
+        border-bottom: 2px solid rgba(82, 53, 30, 0.18);
+      }
+
+      .reader-book-title {
+        max-width: 470px;
+        color: #452b17;
+        font-size: 38px;
+        line-height: 1.05;
+        font-weight: 900;
+      }
+
+      .reader-page-count {
+        color: var(--muted);
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        line-height: 1.1;
+        font-weight: 800;
+        text-align: right;
+      }
+
+      .reader-text {
+        margin: 58px 0 auto;
+        color: var(--ink);
+        font-size: 38px;
+        line-height: 1.32;
+        font-weight: 700;
+      }
+
+      .reader-text p {
+        margin: 0 0 32px;
+      }
+
+      .reader-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 42px;
+      }
+
+      .reader-actions button {
+        min-width: 182px;
+        min-height: 76px;
+        padding: 16px 22px;
+        border-radius: 8px;
+        font-family: Arial, sans-serif;
+        font-size: 21px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .primary-action {
+        background: var(--green);
+        color: #fff;
+        box-shadow: 0 7px 0 #174425;
+      }
+
+      .secondary-action {
+        background: var(--cream);
+        color: #2c2118;
+        box-shadow:
+          inset 0 0 0 3px rgba(67, 45, 25, 0.14),
+          0 7px 0 #ad9160;
+      }
+
+      .reader-end .reader-paper {
+        justify-content: center;
+        text-align: center;
+      }
+
+      .reader-end-title {
+        color: #4e2c15;
+        font-size: 92px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .reader-end p {
+        margin: 36px 0 10px;
+        color: var(--muted);
+        font-size: 30px;
+        font-weight: 800;
+      }
+
+      .reader-end h1 {
+        margin: 0;
+        color: #2b2118;
+        font-size: 48px;
+        line-height: 1.08;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="stage" aria-label="Reader lab"></main>
+
+    <script>
+      const book = {
+        title: "Reacher: Arrested at the Diner",
+        pages: [
+          [
+            "Reacher was eating breakfast when the police came for him.",
+            "He had walked into town with no car, no bag, and no plan to stay. He found a diner, ordered food, and sat where he could see the room.",
+            "Then the police cars rolled up outside."
+          ],
+          [
+            "The door opened hard, and the room changed. Forks stopped moving. Coffee cups paused halfway to mouths.",
+            "Two officers came toward Reacher like they already had their answer.",
+            "Reacher looked at their hands first. Then their eyes. Then the door behind them."
+          ],
+          [
+            "They told him to stand. Reacher stood slowly, because fast movement made nervous men more nervous.",
+            "The whole diner watched. Reacher did not look embarrassed. He did not look scared.",
+            "He looked like a man counting exits."
+          ]
+        ]
+      };
+
+      let page = 0;
+
+      function render() {
+        const stage = document.getElementById("stage");
+        const isEnd = page >= book.pages.length;
+        stage.innerHTML = isEnd ? renderEnd() : renderPage();
+      }
+
+      function renderPage() {
+        const pageText = book.pages[page]
+          .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+          .join("");
+
+        return `
+          <section class="reader-screen" aria-label="${escapeHtml(book.title)}">
+            <article class="reader-paper">
+              <div class="reader-top">
+                <div class="reader-book-title">${escapeHtml(book.title)}</div>
+                <div class="reader-page-count">Page ${page + 1}<br />of ${book.pages.length}</div>
+              </div>
+              <div class="reader-text">${pageText}</div>
+              <div class="reader-actions">
+                <button class="secondary-action" type="button" data-action="prev" ${page === 0 ? "disabled" : ""}>BACK</button>
+                <button class="primary-action" type="button" data-action="next">${page === book.pages.length - 1 ? "FINISH" : "NEXT"}</button>
+                <button class="secondary-action" type="button" data-action="close">PUT BACK</button>
+              </div>
+            </article>
+          </section>
+        `;
+      }
+
+      function renderEnd() {
+        return `
+          <section class="reader-screen reader-end" aria-label="The end">
+            <article class="reader-paper">
+              <div class="reader-end-title">THE END</div>
+              <p>You finished:</p>
+              <h1>${escapeHtml(book.title)}</h1>
+              <div class="reader-actions">
+                <button class="primary-action" type="button" data-action="again">READ AGAIN</button>
+                <button class="secondary-action" type="button" data-action="close">PUT BACK</button>
+              </div>
+            </article>
+          </section>
+        `;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+
+        const action = button.dataset.action;
+        if (action === "prev") page = Math.max(0, page - 1);
+        if (action === "next") page += 1;
+        if (action === "again") page = 0;
+        if (action === "close") page = 0;
+        render();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") page = Math.max(0, page - 1);
+        if (event.key === "ArrowRight" && page < book.pages.length) page += 1;
+        render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

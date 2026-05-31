@@ -1,6 +1,8 @@
 {
   "id": "jesus-sets-him-free",
   "title": "Jesus Sets Him Free",
+  "baseColor": "#5A4216",
+  "titleTint": "#FFCF70",
   "chapters": [
     {
       "id": "chapter-1",

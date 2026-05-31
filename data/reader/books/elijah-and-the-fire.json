@@ -1,6 +1,8 @@
 {
   "id": "elijah-and-the-fire",
   "title": "Elijah and the Fire",
+  "baseColor": "#5A1722",
+  "titleTint": "#FFB4A8",
   "chapters": [
     {
       "id": "chapter-1",

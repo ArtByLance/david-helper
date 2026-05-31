@@ -1,6 +1,8 @@
 {
   "id": "reacher-locate-the-team",
   "title": "Reacher: Locate the Team",
+  "baseColor": "#123C46",
+  "titleTint": "#FFF08A",
   "chapters": [
     {
       "id": "chapter-1",
