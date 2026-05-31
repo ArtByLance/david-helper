@@ -131,8 +131,63 @@ button:disabled {
   -webkit-user-drag: none;
 }
 
+.home-date-readout {
+  position: absolute;
+  left: 50px;
+  top: 70px;
+  z-index: 1;
+  width: 360px;
+  min-height: 49px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  transform: none;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0);
+  color: #eeb04b;
+  text-align: center;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+}
+
+.home-date-readout-right {
+  right: 60px;
+  left: auto;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.home-date-readout strong {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.home-date-readout strong span {
+  text-transform: uppercase;
+}
+
+.home-date-readout small {
+  display: block;
+  margin-top: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
 .shelf-image-screen {
   padding: 0;
+}
+
+#tv-stage:not([data-home="true"]) .home-date-readout {
+  display: none;
 }
 
 .shelf-zoom-image {
@@ -246,7 +301,7 @@ button:disabled {
 .media-titleText {
   color: #fff6df;
   fill: #fff6df;
-  font-family: "Anton", "Bebas Neue", "Impact", sans-serif;
+  font-family: "Bebas Neue", "Anton", "Impact", sans-serif;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -639,8 +694,7 @@ button:disabled {
 .preview-meals,
 .preview-note,
 .paper-card,
-.today-note,
-.reader-paper {
+.today-note {
   position: relative;
   background: var(--paper);
   box-shadow: var(--paper-shadow);
@@ -990,7 +1044,7 @@ button:disabled {
   position: absolute;
   left: 0;
   right: 0;
-  top: 150px;
+  bottom: 58px;
   z-index: 30;
   display: flex;
   justify-content: center;
@@ -1027,8 +1081,7 @@ button:disabled {
     linear-gradient(145deg, #283b52, #101821);
 }
 
-.cover-actions,
-.reader-actions {
+.cover-actions {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
@@ -1072,36 +1125,9 @@ button:disabled {
   box-shadow: inset 0 0 0 3px rgba(63, 44, 25, 0.16);
 }
 
-.reader-screen,
 .handoff-screen {
   display: grid;
   place-items: center;
-}
-
-.reader-paper {
-  width: 760px;
-  min-height: 850px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 54px 58px;
-  border-radius: 4px;
-}
-
-.reader-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.reader-text {
-  margin: 70px 0 auto;
-}
-
-.reader-end .reader-paper {
-  justify-content: center;
-  text-align: center;
 }
 
 .handoff-card {
@@ -1119,7 +1145,7 @@ button:disabled {
 #meal-timer {
   position: absolute;
   right: -42px;
-  top: 26px;
+  top: 139px;
   z-index: 30;
   width: 560px;
   aspect-ratio: 1360 / 615;

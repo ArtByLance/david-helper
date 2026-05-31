@@ -6,6 +6,7 @@ import {
 } from "./app-data.js";
 import { fitStageToViewport } from "./layout.js";
 import { PlaybackService } from "./playback.js";
+import { getReaderPageCount, renderReaderView } from "./reader.js";
 import {
   formatClock,
   formatDateLabel,
@@ -27,7 +28,7 @@ const SHOWS_SPINE_START_X = 1810;
 const MEDIA_SPINE_TO_SPINE_GAP = 50;
 const SHOWS_GROUP_GAP = 170 * 3;
 const MEDIA_SPINE_BOTTOM = 245;
-const MEDIA_SPINE_HEIGHT = 620;
+const MEDIA_SPINE_HEIGHT = 806;
 const SHELF_EXTENSION_IMAGE = "./assets/shelves/shelf0.jpg";
 const TODAY_CLOCK_IMAGE = "./assets/objects/clock.png";
 const TODAY_MENU_IMAGE = "./assets/objects/card-menu.png";
@@ -82,9 +83,9 @@ const mediaSkins = {
     front: bookFrontSkin,
   },
 };
-const MEDIA_SPINE_VIEW_FACE_OPACITY = 0.95;
+const MEDIA_SPINE_VIEW_FACE_OPACITY = 0;
 const MEDIA_SPINE_VIEW_SIDE_TINT = "#2f66f2";
-const MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY = 0.64;
+const MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY = 0.5;
 const MEDIA_FRONT_VIEW_SPINE_OPACITY = 0.4;
 const MEDIA_FRONT_TITLE_ROTATION_OFFSET = -4.8;
 const MEDIA_FRONT_TITLE_RIGHT_INSET = 92;
@@ -136,6 +137,10 @@ const state = {
   selectedKind: null,
   readerItem: null,
   readerPage: 0,
+  readerTurnDirection: "",
+  readerSwipeStartX: 0,
+  readerSwipeStartY: 0,
+  readerSwipeStarted: false,
   handoffItem: null,
   handoffTimer: null,
   highlightedShowId: null,
@@ -171,9 +176,10 @@ async function loadBooksShelfMedia() {
           type: "book",
           category: section.title,
           masterArt: `./assets/media/covers/${item.id}.jpg`,
+          cover: `./assets/media/covers/${item.id}.jpg`,
           baseColor: book.baseColor,
           titleTint: book.titleTint,
-          pages: flattenReaderBookPages(book),
+          chapters: buildReaderBookChapters(item.id, book),
         };
       }),
     );
@@ -197,13 +203,11 @@ async function loadReaderBookDetails(id) {
   }
 }
 
-function flattenReaderBookPages(book) {
-  return (book.chapters ?? []).flatMap((chapter) =>
-    (chapter.pages ?? []).map((page) => {
-      const text = Array.isArray(page.text) ? page.text : [page.text ?? ""];
-      return text.filter(Boolean).join("\n\n");
-    }),
-  );
+function buildReaderBookChapters(bookId, book) {
+  return (book.chapters ?? []).map((chapter, index) => ({
+    ...chapter,
+    image: chapter.image ?? `./assets/media/scenes/${bookId}-${index + 1}.jpg`,
+  }));
 }
 
 async function bootstrap() {
@@ -222,6 +226,13 @@ function bindGlobalControls() {
   document
     .getElementById("app-main")
     ?.addEventListener("scroll", handleShelfScroll, true);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("pointerdown", handleReaderPointerDown);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("pointerup", handleReaderPointerUp);
+  document.addEventListener("keydown", handleReaderKeyDown);
 }
 
 function render() {
@@ -257,9 +268,15 @@ function renderMain(now) {
   const stage = document.getElementById("tv-stage");
   stage?.toggleAttribute("data-home", isHomeView());
   stage?.toggleAttribute("data-image-shell", isShelfImageView());
+  stage?.toggleAttribute("data-reader", Boolean(state.readerItem));
 
   if (state.readerItem) {
-    main.innerHTML = renderReader();
+    main.innerHTML = renderReaderView({
+      item: state.readerItem,
+      pageIndex: state.readerPage,
+      turnDirection: state.readerTurnDirection,
+    });
+    state.readerTurnDirection = "";
     return;
   }
 
@@ -269,7 +286,7 @@ function renderMain(now) {
   }
 
   if (state.view === "HOME") {
-    main.innerHTML = renderHome();
+    main.innerHTML = renderHome(now);
   } else if (state.activeShelf === "TODAY") {
     main.innerHTML = renderShelfImageShell("TODAY", now);
   } else if (state.activeShelf === "BOOKS") {
@@ -291,12 +308,19 @@ function renderMealTimer(now) {
   const mealTarget = document.getElementById("meal-target-label");
   const mealMarker = document.getElementById("meal-now-marker");
   const mealMessage = document.getElementById("meal-message");
-  const shouldHideCard = state.alertHidden || mealState.hiddenForDay;
+  const shouldHideCard =
+    Boolean(state.readerItem) ||
+    Boolean(state.handoffItem) ||
+    state.alertHidden ||
+    mealState.hiddenForDay;
 
   mealTimer?.setAttribute("data-rest", String(mealState.resting));
   mealTimer?.setAttribute("aria-hidden", String(shouldHideCard));
   mealTimer?.classList.toggle("alert-card-hidden", shouldHideCard);
-  mealTimer?.style.setProperty("--meal-now-percent", `${mealState.nowPercent}%`);
+  mealTimer?.style.setProperty(
+    "--meal-now-percent",
+    `${mealState.nowPercent}%`,
+  );
   if (mealName) mealName.textContent = mealState.label;
   if (mealFill) mealFill.style.width = `${mealState.fillPercent}%`;
   if (mealTarget) mealTarget.textContent = mealState.targetLabel;
@@ -304,15 +328,52 @@ function renderMealTimer(now) {
   if (mealMessage) mealMessage.textContent = mealState.message;
 }
 
-function renderHome() {
+function renderHome(now) {
+  const dateReadout = getHomeDateReadout(now);
+
   return `
     <section class="screen home-screen" aria-label="David's Stuff">
       <img class="home-main-image" src="./assets/home.jpg" alt="" aria-hidden="true" draggable="false" />
+      <div class="home-date-readout" aria-label="${escapeAttribute(dateReadout.ariaLabel)}">
+        <strong><span>${escapeHtml(dateReadout.weekday)}</span> ${escapeHtml(dateReadout.dayPart)}</strong>
+      </div>
+      <div class="home-date-readout home-date-readout-right" aria-hidden="true">
+        <small>${escapeHtml(dateReadout.dateLabel)}</small>
+      </div>
       <button class="home-tap-zone today-tap-zone" type="button" data-action="expand-shelf" data-shelf="TODAY" aria-label="Today shelf"></button>
       <button class="home-tap-zone shows-tap-zone" type="button" data-action="expand-shelf" data-shelf="SHOWS" aria-label="Shows shelf"></button>
       <button class="home-tap-zone books-tap-zone" type="button" data-action="expand-shelf" data-shelf="BOOKS" aria-label="Books shelf"></button>
     </section>
   `;
+}
+
+function getHomeDateReadout(now) {
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+  })
+    .format(now)
+    .toUpperCase();
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(now);
+  const dayPart = getDayPart(now);
+
+  return {
+    weekday,
+    dayPart,
+    dateLabel,
+    ariaLabel: `${weekday} ${dayPart}, ${dateLabel}`,
+  };
+}
+
+function getDayPart(now) {
+  const hour = now.getHours();
+  if (hour < 12) return "Morning";
+  if (hour < 17) return "Afternoon";
+  if (hour < 21) return "Evening";
+  return "Night";
 }
 
 function renderShelfImageShell(kind, now = getNow()) {
@@ -552,27 +613,16 @@ function renderMediaSpineArtLayer({ item, skin, svgId }) {
   const baseColor = item.baseColor;
   const displayColor = baseColor ? enrichMediaColor(baseColor) : "";
   const artImages = Object.entries(skin.artPolygons)
-    .map(
-      ([name]) => {
-        const isSideFace = name === "sideFaceArt";
+    .map(([name]) => {
+      const isSideFace = name === "sideFaceArt";
 
-        return `
-        ${
-          baseColor && isSideFace
-            ? `<rect
-                width="${skin.viewBox.width}"
-                height="${skin.viewBox.height}"
-                fill="${escapeAttribute(displayColor)}"
-                clip-path="url(#${svgId}-${name})"
-              />`
-            : ""
-        }
+      return `
         <image
           href="${escapeAttribute(item.masterArt)}"
           width="${skin.viewBox.width}"
           height="${skin.viewBox.height}"
           preserveAspectRatio="xMidYMid slice"
-          opacity="${baseColor && isSideFace ? "0.06" : "1"}"
+          opacity="1"
           clip-path="url(#${svgId}-${name})"
         />
         ${
@@ -580,12 +630,12 @@ function renderMediaSpineArtLayer({ item, skin, svgId }) {
             ? `<rect
                 width="${skin.viewBox.width}"
                 height="${skin.viewBox.height}"
-                fill="#000"
-                opacity="0.18"
+                fill="${escapeAttribute(displayColor)}"
+                opacity="${MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY}"
                 clip-path="url(#${svgId}-${name})"
               />`
             : !baseColor && isSideFace
-            ? `<rect
+              ? `<rect
                 width="${skin.viewBox.width}"
                 height="${skin.viewBox.height}"
                 fill="#000"
@@ -599,11 +649,10 @@ function renderMediaSpineArtLayer({ item, skin, svgId }) {
                 opacity="${MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY}"
                 clip-path="url(#${svgId}-${name})"
               />`
-            : ""
+              : ""
         }
       `;
-      },
-    )
+    })
     .join("");
 
   return `
@@ -846,7 +895,9 @@ function enrichMediaColor(hexColor) {
 }
 
 function parseHexColor(hexColor) {
-  const match = String(hexColor).trim().match(/^#([0-9a-f]{6})$/i);
+  const match = String(hexColor)
+    .trim()
+    .match(/^#([0-9a-f]{6})$/i);
   if (!match) return null;
 
   const value = Number.parseInt(match[1], 16);
@@ -1186,7 +1237,7 @@ function renderTakeOffOverlay() {
   const coverItem = {
     ...item,
     x: -32,
-    y: 71,
+    y: -75,
     height: 1277,
     rotationDegrees: isBook ? -2 : 2,
   };
@@ -1238,46 +1289,6 @@ function renderReturnIcon() {
       <path d="M19 13 8 24l11 11" />
       <path d="M9 24h21c6 0 10 4 10 10v2" />
     </svg>
-  `;
-}
-
-function renderReader() {
-  const item = state.readerItem;
-  const pages = item.pages;
-  const isEnd = state.readerPage >= pages.length;
-  const pageNumber = Math.min(state.readerPage + 1, pages.length);
-
-  if (isEnd) {
-    return `
-      <section class="screen reader-screen reader-end" aria-label="The end">
-        <div class="reader-paper">
-          <div class="the-end">THE END</div>
-          <p>You finished:</p>
-          <h1>${item.title}</h1>
-          <div class="reader-actions">
-            <button class="primary-action" type="button" data-action="read-again">READ AGAIN</button>
-            <button class="secondary-action" type="button" data-action="finish-reading">PUT BACK</button>
-          </div>
-        </div>
-      </section>
-    `;
-  }
-
-  return `
-    <section class="screen reader-screen" aria-label="${item.title}">
-      <article class="reader-paper">
-        <div class="reader-top">
-          <div class="reader-book-title">${item.title}</div>
-          <div class="reader-page-count">Page ${pageNumber} of ${pages.length}</div>
-        </div>
-        <p class="reader-text">${pages[state.readerPage]}</p>
-        <div class="reader-actions">
-          <button class="secondary-action" type="button" data-action="reader-prev" ${state.readerPage === 0 ? "disabled" : ""}>BACK A PAGE</button>
-          <button class="primary-action" type="button" data-action="reader-next">${state.readerPage === pages.length - 1 ? "FINISH" : "NEXT PAGE"}</button>
-          <button class="secondary-action" type="button" data-action="finish-reading">PUT BACK</button>
-        </div>
-      </article>
-    </section>
   `;
 }
 
@@ -1368,49 +1379,31 @@ async function handleMainClick(event) {
   if (action === "read-book" && state.selectedItem) {
     state.readerItem = state.selectedItem;
     state.readerPage = 0;
+    state.readerTurnDirection = "";
     clearSelection();
     render();
     return;
   }
 
   if (action === "reader-prev") {
-    state.readerPage = Math.max(0, state.readerPage - 1);
-    render();
+    goToPreviousReaderPage();
     return;
   }
 
   if (action === "reader-next") {
-    state.readerPage += 1;
-    if (state.readerItem && state.readerPage >= state.readerItem.pages.length) {
-      markRecent(
-        "davidsStuff.recentRead",
-        state.recentRead,
-        state.readerItem.id,
-      );
-    }
-    render();
+    goToNextReaderPage();
     return;
   }
 
   if (action === "read-again") {
     state.readerPage = 0;
+    state.readerTurnDirection = "turn-prev";
     render();
     return;
   }
 
   if (action === "finish-reading") {
-    if (state.readerItem && state.readerPage >= state.readerItem.pages.length) {
-      markRecent(
-        "davidsStuff.recentRead",
-        state.recentRead,
-        state.readerItem.id,
-      );
-    }
-    state.readerItem = null;
-    state.readerPage = 0;
-    state.view = "SHELF";
-    state.activeShelf = "BOOKS";
-    render();
+    finishReading();
     return;
   }
 
@@ -1429,6 +1422,75 @@ async function handleMainClick(event) {
   if (action === "return-shows") {
     finishHandoff();
   }
+}
+
+function handleReaderPointerDown(event) {
+  if (!state.readerItem || event.target.closest("button")) return;
+  state.readerSwipeStarted = true;
+  state.readerSwipeStartX = event.clientX;
+  state.readerSwipeStartY = event.clientY;
+}
+
+function handleReaderPointerUp(event) {
+  if (!state.readerItem || !state.readerSwipeStarted) return;
+  state.readerSwipeStarted = false;
+
+  const deltaX = event.clientX - state.readerSwipeStartX;
+  const deltaY = event.clientY - state.readerSwipeStartY;
+  if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) {
+    return;
+  }
+
+  if (deltaX < 0) {
+    goToNextReaderPage();
+  } else {
+    goToPreviousReaderPage();
+  }
+}
+
+function handleReaderKeyDown(event) {
+  if (!state.readerItem) return;
+  if (event.key === "ArrowLeft") goToPreviousReaderPage();
+  if (event.key === "ArrowRight") goToNextReaderPage();
+  if (event.key === "Escape") finishReading();
+}
+
+function goToNextReaderPage() {
+  if (!state.readerItem) return;
+
+  const pageCount = getReaderPageCount(state.readerItem);
+  if (state.readerPage >= pageCount) return;
+
+  state.readerPage += 1;
+  state.readerTurnDirection = "turn-next";
+  if (state.readerPage >= pageCount) {
+    markRecent("davidsStuff.recentRead", state.recentRead, state.readerItem.id);
+  }
+  render();
+}
+
+function goToPreviousReaderPage() {
+  if (!state.readerItem || state.readerPage <= 0) return;
+
+  state.readerPage = Math.max(0, state.readerPage - 1);
+  state.readerTurnDirection = "turn-prev";
+  render();
+}
+
+function finishReading() {
+  if (
+    state.readerItem &&
+    state.readerPage >= getReaderPageCount(state.readerItem)
+  ) {
+    markRecent("davidsStuff.recentRead", state.recentRead, state.readerItem.id);
+  }
+
+  state.readerItem = null;
+  state.readerPage = 0;
+  state.readerTurnDirection = "";
+  state.view = "SHELF";
+  state.activeShelf = "BOOKS";
+  render();
 }
 
 function handleShelfScroll(event) {
