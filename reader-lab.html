@@ -8,12 +8,10 @@
       :root {
         --stage-width: 800px;
         --stage-height: 1280px;
-        --paper: #f7efd8;
-        --paper-edge: #d8bd88;
-        --ink: #201914;
-        --muted: #6d5b48;
-        --green: #2e6745;
-        --cream: #f1dfb7;
+        --paper: #edf0df;
+        --paper-warm: #f4edcf;
+        --ink: #3b2718;
+        --muted: rgba(59, 39, 24, 0.48);
       }
 
       * {
@@ -33,7 +31,8 @@
         place-items: center;
         background: #15100c;
         color: var(--ink);
-        font-family: Georgia, "Times New Roman", serif;
+        font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+          "Times New Roman", serif;
       }
 
       button {
@@ -44,7 +43,7 @@
 
       button:disabled {
         cursor: default;
-        opacity: 0.42;
+        opacity: 0.22;
       }
 
       #stage {
@@ -52,132 +51,310 @@
         width: var(--stage-width);
         height: var(--stage-height);
         overflow: hidden;
+        touch-action: none;
         background:
-          radial-gradient(circle at 50% 8%, rgba(255, 227, 164, 0.36), transparent 34%),
-          linear-gradient(180deg, #5b3822, #20130d 72%);
+          radial-gradient(circle at 48% 4%, rgba(255, 255, 245, 0.62), transparent 38%),
+          linear-gradient(90deg, rgba(81, 61, 36, 0.08), transparent 10%, transparent 90%, rgba(81, 61, 36, 0.09)),
+          linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 100%);
+        box-shadow:
+          inset 0 0 0 1px rgba(42, 31, 21, 0.18),
+          inset 0 0 42px rgba(78, 55, 30, 0.12);
       }
 
       .reader-screen {
         position: absolute;
         inset: 0;
-        display: grid;
-        place-items: center;
-        padding: 34px 22px;
-      }
-
-      .reader-paper {
-        position: relative;
-        width: 742px;
-        min-height: 1054px;
         display: flex;
         flex-direction: column;
-        padding: 58px 56px 42px;
-        border: 1px solid rgba(92, 61, 31, 0.32);
-        border-radius: 5px;
-        background:
-          linear-gradient(90deg, rgba(115, 82, 47, 0.12), transparent 9%, transparent 91%, rgba(115, 82, 47, 0.12)),
-          repeating-linear-gradient(0deg, rgba(88, 57, 26, 0.035) 0 2px, transparent 2px 34px),
-          var(--paper);
-        box-shadow:
-          0 24px 42px rgba(12, 8, 5, 0.35),
-          inset 0 0 0 7px rgba(255, 249, 231, 0.38),
-          inset 0 -12px 0 rgba(122, 77, 34, 0.08);
+        padding: 32px 44px 30px;
+        will-change: transform, opacity;
       }
 
-      .reader-top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 26px;
-        padding-bottom: 26px;
-        border-bottom: 2px solid rgba(82, 53, 30, 0.18);
+      .reader-screen.turn-next {
+        animation: pageSlideNext 310ms cubic-bezier(0.2, 0.72, 0.23, 1) both;
       }
 
-      .reader-book-title {
-        max-width: 470px;
-        color: #452b17;
-        font-size: 38px;
-        line-height: 1.05;
-        font-weight: 900;
+      .reader-screen.turn-prev {
+        animation: pageSlidePrev 310ms cubic-bezier(0.2, 0.72, 0.23, 1) both;
       }
 
-      .reader-page-count {
-        color: var(--muted);
+      .reader-title {
+        min-height: 34px;
+        color: rgba(59, 39, 24, 0.5);
         font-family: Arial, sans-serif;
-        font-size: 24px;
-        line-height: 1.1;
+        font-size: 17px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .reader-exit {
+        position: absolute;
+        top: 20px;
+        right: 22px;
+        z-index: 5;
+        min-width: 102px;
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: #e7e2d8;
+        color: rgba(59, 39, 24, 0.68);
+        font-family: Arial, sans-serif;
+        font-size: 15px;
         font-weight: 800;
-        text-align: right;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .reader-exit::before {
+        content: "↩";
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      .reader-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 14px 0 22px;
       }
 
       .reader-text {
-        margin: 58px 0 auto;
+        width: 100%;
+        margin: 0;
         color: var(--ink);
-        font-size: 38px;
-        line-height: 1.32;
-        font-weight: 700;
+        font-size: 34px;
+        line-height: 1.22;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        text-align: justify;
+        text-wrap: pretty;
+        hyphens: none;
       }
 
       .reader-text p {
-        margin: 0 0 32px;
+        margin: 0 0 26px;
       }
 
-      .reader-actions {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
-        margin-top: 42px;
+      .reader-text p:last-child {
+        margin-bottom: 0;
       }
 
-      .reader-actions button {
-        min-width: 182px;
-        min-height: 76px;
-        padding: 16px 22px;
-        border-radius: 8px;
+      .reader-footer {
+        min-height: 28px;
+        color: var(--muted);
         font-family: Arial, sans-serif;
-        font-size: 21px;
+        font-size: 13px;
         line-height: 1;
-        font-weight: 900;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-align: center;
+        text-transform: uppercase;
       }
 
-      .primary-action {
-        background: var(--green);
-        color: #fff;
-        box-shadow: 0 7px 0 #174425;
+      .title-page .reader-footer {
+        position: absolute;
+        left: 44px;
+        right: 44px;
+        bottom: 30px;
+        font-size: 18px;
+        font-weight: 700;
       }
 
-      .secondary-action {
-        background: var(--cream);
-        color: #2c2118;
+      .title-page {
+        justify-content: center;
+        padding: 42px 54px 46px;
+        text-align: center;
+      }
+
+      .title-cover {
+        width: 440px;
+        height: 660px;
+        margin: 8px auto 54px;
+        border-radius: 5px;
+        object-fit: cover;
         box-shadow:
-          inset 0 0 0 3px rgba(67, 45, 25, 0.14),
-          0 7px 0 #ad9160;
+          0 24px 38px rgba(38, 24, 14, 0.28),
+          0 0 0 1px rgba(56, 35, 20, 0.18);
       }
 
-      .reader-end .reader-paper {
+      .title-kicker {
+        display: none;
+        color: rgba(59, 39, 24, 0.52);
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .title-heading {
+        max-width: 630px;
+        margin: 18px auto 0;
+        color: #3f2616;
+        font-size: 72px;
+        line-height: 0.98;
+        font-weight: 800;
+      }
+
+      .chapter-screen {
+        padding: 40px 40px 30px;
+      }
+
+      .chapter-image {
+        width: 100%;
+        height: 610px;
+        display: block;
+        border-radius: 0 0 8px 8px;
+        object-fit: cover;
+        object-position: center;
+        box-shadow:
+          0 14px 24px rgba(48, 31, 18, 0.18),
+          0 0 0 1px rgba(54, 36, 21, 0.16);
+      }
+
+      .chapter-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 14px 34px 6px;
+      }
+
+      .chapter-number {
+        color: rgba(59, 39, 24, 0.52);
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .chapter-name {
+        margin: 10px 0 22px;
+        color: #412717;
+        font-size: 46px;
+        line-height: 1.02;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .chapter-text {
+        color: var(--ink);
+        font-size: 30px;
+        line-height: 1.2;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        text-align: justify;
+        hyphens: none;
+      }
+
+      .chapter-text p {
+        margin: 0 0 19px;
+      }
+
+      .chapter-text p:last-child {
+        margin-bottom: 0;
+      }
+
+      .chapter-end-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 32px 0 22px;
+      }
+
+      .chapter-end-image {
+        width: 270px;
+        height: 270px;
+        align-self: center;
+        margin-top: -31px;
+        border-radius: 50%;
+        object-fit: cover;
+        object-position: center;
+        box-shadow:
+          0 18px 28px rgba(55, 34, 18, 0.2),
+          0 0 0 8px rgba(255, 250, 231, 0.4),
+          0 0 0 10px rgba(67, 44, 25, 0.12);
+      }
+
+      .page-turn {
+        position: absolute;
+        top: 95px;
+        bottom: 70px;
+        z-index: 2;
+        width: 112px;
+        background: transparent;
+        color: transparent;
+      }
+
+      .page-turn.prev {
+        left: 0;
+      }
+
+      .page-turn.next {
+        right: 0;
+      }
+
+      .reader-end {
         justify-content: center;
         text-align: center;
       }
 
       .reader-end-title {
-        color: #4e2c15;
+        color: #4a2c19;
         font-size: 92px;
         line-height: 1;
-        font-weight: 900;
-      }
-
-      .reader-end p {
-        margin: 36px 0 10px;
-        color: var(--muted);
-        font-size: 30px;
         font-weight: 800;
       }
 
+      .reader-end p {
+        margin: 34px 0 10px;
+        color: rgba(59, 39, 24, 0.58);
+        font-family: Arial, sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
       .reader-end h1 {
-        margin: 0;
-        color: #2b2118;
+        max-width: 620px;
+        margin: 0 auto;
+        color: var(--ink);
         font-size: 48px;
         line-height: 1.08;
+      }
+
+      @keyframes pageSlideNext {
+        from {
+          transform: translateX(96px);
+          opacity: 0.08;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes pageSlidePrev {
+        from {
+          transform: translateX(-96px);
+          opacity: 0.08;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
       }
     </style>
   </head>
@@ -186,69 +363,259 @@
 
     <script>
       const book = {
-        title: "Reacher: Arrested at the Diner",
-        pages: [
-          [
-            "Reacher was eating breakfast when the police came for him.",
-            "He had walked into town with no car, no bag, and no plan to stay. He found a diner, ordered food, and sat where he could see the room.",
-            "Then the police cars rolled up outside."
-          ],
-          [
-            "The door opened hard, and the room changed. Forks stopped moving. Coffee cups paused halfway to mouths.",
-            "Two officers came toward Reacher like they already had their answer.",
-            "Reacher looked at their hands first. Then their eyes. Then the door behind them."
-          ],
-          [
-            "They told him to stand. Reacher stood slowly, because fast movement made nervous men more nervous.",
-            "The whole diner watched. Reacher did not look embarrassed. He did not look scared.",
-            "He looked like a man counting exits."
-          ]
+        title: "True Heroes: Desmond Doss",
+        cover: "assets/media/covers/true-heroes-desmond-doss.jpg",
+        chapters: [
+          {
+            title: "The Soldier Who Would Not Carry a Gun",
+            image: "assets/media/scenes/true-heroes-desmond-doss-1.jpg",
+            pages: [
+              {
+                layout: "image-text",
+                text: [
+                  "Desmond Doss went to war without a rifle.",
+                  "That made men stare.",
+                  "He wore the uniform. He took the orders. He trained with the others. But he would not carry a weapon, because his conscience belonged to God.",
+                  "Some men laughed at him.",
+                  "Doss kept going."
+                ]
+              },
+              {
+                layout: "text",
+                text: [
+                  "The Army did not know what to do with him at first. A soldier who would not shoot seemed strange in a place built for fighting. Other men wondered if he would freeze when danger came.",
+                  "Doss did not freeze.",
+                  "He trained as a medic. His job was not to take life, but to save it. That sounded soft to some men until the shooting started. Then every wounded soldier wanted a medic who would come for him.",
+                  "Doss was small, wiry, and stubborn in the best way. He could carry more than people expected. He could work through pain. He could take insults and keep his head.",
+                  "The men did not understand him yet.",
+                  "They would."
+                ]
+              },
+              {
+                layout: "text-image",
+                text: [
+                  "Doss stood apart in some ways, but he did not stand away from the men.",
+                  "He prayed. He worked. He learned how to reach the wounded and get them home.",
+                  "He did not need every man to like him.",
+                  "He needed to be ready.",
+                  "The day would come when those same men would call for help."
+                ]
+              }
+            ]
+          },
+          {
+            title: "The Climb",
+            image: "assets/media/scenes/true-heroes-desmond-doss-2.jpg",
+            pages: [
+              {
+                layout: "image-text",
+                text: [
+                  "The ridge rose like a wall.",
+                  "The men called it Hacksaw Ridge. It was high, steep, and waiting for them. Enemy soldiers were dug in above, hidden and ready.",
+                  "The Americans had to climb into danger.",
+                  "Doss climbed with them."
+                ]
+              },
+              {
+                layout: "text",
+                text: [
+                  "The men went up ropes and ladders with the sound of war above their heads. The air was filled with smoke, shouting, and gunfire. Every man knew the top would be worse.",
+                  "Doss carried medical supplies instead of a rifle. That meant he could not shoot back. It also meant he could move toward men who had already been hit.",
+                  "At the top, the battle broke open hard.",
+                  "Men fell across the ground. Some could crawl. Some could not move at all. Calls for medics came from every direction.",
+                  "Doss heard them.",
+                  "He moved low and fast, pulling one man behind cover, then another. He tied bandages. He dragged bodies through dirt. He kept going back.",
+                  "The ridge was tearing men apart.",
+                  "Doss was putting them back into reach."
+                ]
+              },
+              {
+                layout: "text-image",
+                text: [
+                  "The order came to pull back.",
+                  "The fight had gone bad. Men were coming down from the ridge, and many wounded were still above.",
+                  "Doss could have gone down with the others.",
+                  "He did not.",
+                  "He stayed on top of the ridge, alone in the danger, listening for voices that still needed help."
+                ]
+              }
+            ]
+          },
+          {
+            title: "One More",
+            image: "assets/media/scenes/true-heroes-desmond-doss-3.jpg",
+            pages: [
+              {
+                layout: "image-text",
+                text: [
+                  "Doss found one wounded man and dragged him to the edge.",
+                  "Then he tied the rope and lowered him down.",
+                  "The man reached safety below.",
+                  "Doss looked back across the ridge.",
+                  "There were more.",
+                  "So he went back."
+                ]
+              },
+              {
+                layout: "text",
+                text: [
+                  "Night settled over the ridge, but the danger did not leave. Enemy fire still cracked in the dark. Men still groaned from the ground. Some called for their mothers. Some called for God. Some just called, \"Medic.\"",
+                  "Doss answered.",
+                  "He crawled when he had to crawl. He ran when he had to run. He pulled men by their collars, their belts, their sleeves, whatever he could grip.",
+                  "Each time, he brought one to the edge.",
+                  "Each time, he lowered him down.",
+                  "His hands hurt. His body was spent. Fear stayed close. But Doss prayed the same simple prayer again and again.",
+                  "\"Lord, help me get one more.\"",
+                  "Then he went back into the dark."
+                ]
+              },
+              {
+                layout: "text-image",
+                text: [
+                  "One more became many.",
+                  "The men below could hardly believe it. Another wounded soldier came down. Then another. Then another.",
+                  "Doss did not make speeches from the top of the ridge.",
+                  "He just kept rescuing men.",
+                  "The soldiers who had doubted him were learning the truth.",
+                  "A man without a gun could still be one of the bravest men on the battlefield."
+                ]
+              }
+            ]
+          },
+          {
+            title: "Carried by Courage",
+            image: "assets/media/scenes/true-heroes-desmond-doss-4.jpg",
+            pages: [
+              {
+                layout: "image-text",
+                text: [
+                  "Doss kept serving even after the rescue night.",
+                  "He had already done more than most men could imagine. But the war was not over, and wounded men still needed him.",
+                  "He went where the cries were.",
+                  "That was his kind of courage."
+                ]
+              },
+              {
+                layout: "text",
+                text: [
+                  "Later, Doss was wounded himself. Even then, he thought of others. He waited while another man was carried out first. That was how he lived.",
+                  "He had been mocked for not carrying a weapon. Now men knew better. They had seen him cross ground other men could not cross. They had seen him stay when he had every reason to leave.",
+                  "Doss did not win honor by hurting the enemy.",
+                  "He won it by refusing to abandon the wounded.",
+                  "The men who came home because of him never forgot that. They knew his faith was not talk. It had hands. It had feet. It climbed back into danger again and again."
+                ]
+              },
+              {
+                layout: "text-image",
+                text: [
+                  "Desmond Doss became a hero with empty hands.",
+                  "No rifle. No revenge. No swagger.",
+                  "Just courage, faith, and a stubborn love for men in trouble.",
+                  "He asked God for one more.",
+                  "Then he went and got him.",
+                  "On that ridge, mercy looked strong."
+                ]
+              }
+            ]
+          }
         ]
       };
 
+      const pages = buildPages(book);
+
       let page = 0;
+      let turnDirection = "";
+      let swipeStartX = 0;
+      let swipeStartY = 0;
+      let swipeStarted = false;
 
       function render() {
         const stage = document.getElementById("stage");
-        const isEnd = page >= book.pages.length;
-        stage.innerHTML = isEnd ? renderEnd() : renderPage();
+        stage.innerHTML = renderScreen(page, turnDirection);
+        turnDirection = "";
       }
 
-      function renderPage() {
-        const pageText = book.pages[page]
-          .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
-          .join("");
+      function renderScreen(pageIndex, extraClass = "") {
+        const isEnd = pageIndex >= pages.length;
+        if (isEnd) return renderEnd(extraClass);
+        return renderPage(pageIndex, extraClass);
+      }
+
+      function renderPage(pageIndex, extraClass = "") {
+        const currentPage = pages[pageIndex];
+        if (currentPage.type === "title") return renderTitlePage(currentPage, extraClass);
+        if (currentPage.layout === "image-text") return renderChapterPage(currentPage, extraClass, pageIndex);
+        if (currentPage.layout === "text-image") return renderChapterEndPage(currentPage, extraClass, pageIndex);
+
+        const pageText = renderParagraphs(currentPage.text);
 
         return `
-          <section class="reader-screen" aria-label="${escapeHtml(book.title)}">
-            <article class="reader-paper">
-              <div class="reader-top">
-                <div class="reader-book-title">${escapeHtml(book.title)}</div>
-                <div class="reader-page-count">Page ${page + 1}<br />of ${book.pages.length}</div>
-              </div>
+          <section class="reader-screen ${extraClass}" aria-label="${escapeHtml(book.title)}">
+            <button class="reader-exit" type="button" data-action="close">Put Back</button>
+            <button class="page-turn prev" type="button" data-action="prev" ${pageIndex === 0 ? "disabled" : ""} aria-label="Previous page">‹</button>
+            <button class="page-turn next" type="button" data-action="next" aria-label="Next page">›</button>
+            <div class="reader-title">${escapeHtml(currentPage.chapterTitle)}</div>
+            <article class="reader-content">
               <div class="reader-text">${pageText}</div>
-              <div class="reader-actions">
-                <button class="secondary-action" type="button" data-action="prev" ${page === 0 ? "disabled" : ""}>BACK</button>
-                <button class="primary-action" type="button" data-action="next">${page === book.pages.length - 1 ? "FINISH" : "NEXT"}</button>
-                <button class="secondary-action" type="button" data-action="close">PUT BACK</button>
-              </div>
             </article>
+            ${renderFooter(pageIndex)}
           </section>
         `;
       }
 
-      function renderEnd() {
+      function renderTitlePage(currentPage, extraClass = "") {
         return `
-          <section class="reader-screen reader-end" aria-label="The end">
-            <article class="reader-paper">
-              <div class="reader-end-title">THE END</div>
-              <p>You finished:</p>
-              <h1>${escapeHtml(book.title)}</h1>
-              <div class="reader-actions">
-                <button class="primary-action" type="button" data-action="again">READ AGAIN</button>
-                <button class="secondary-action" type="button" data-action="close">PUT BACK</button>
-              </div>
+          <section class="reader-screen title-page ${extraClass}" aria-label="${escapeHtml(book.title)}">
+            <button class="reader-exit" type="button" data-action="close">Put Back</button>
+            <button class="page-turn next" type="button" data-action="next" aria-label="Start reading">›</button>
+            <img class="title-cover" src="${escapeHtml(currentPage.cover)}" alt="" draggable="false" />
+            <h1 class="title-heading">${escapeHtml(currentPage.title)}</h1>
+            <div class="reader-footer">${pages.length} pages</div>
+          </section>
+        `;
+      }
+
+      function renderChapterPage(currentPage, extraClass = "", pageIndex = page) {
+        return `
+          <section class="reader-screen chapter-screen ${extraClass}" aria-label="${escapeHtml(currentPage.chapterTitle)}">
+            <button class="reader-exit" type="button" data-action="close">Put Back</button>
+            <button class="page-turn prev" type="button" data-action="prev" aria-label="Previous page">‹</button>
+            <button class="page-turn next" type="button" data-action="next" aria-label="Next page">›</button>
+            <img class="chapter-image" src="${escapeHtml(currentPage.image)}" alt="" draggable="false" />
+            <article class="chapter-body">
+              <div class="chapter-number">Chapter ${currentPage.chapterNumber}</div>
+              <h1 class="chapter-name">${escapeHtml(currentPage.chapterTitle)}</h1>
+              <div class="chapter-text">${renderParagraphs(currentPage.text)}</div>
             </article>
+            ${renderFooter(pageIndex)}
+          </section>
+        `;
+      }
+
+      function renderChapterEndPage(currentPage, extraClass = "", pageIndex = page) {
+        return `
+          <section class="reader-screen ${extraClass}" aria-label="${escapeHtml(currentPage.chapterTitle)}">
+            <button class="reader-exit" type="button" data-action="close">Put Back</button>
+            <button class="page-turn prev" type="button" data-action="prev" aria-label="Previous page">‹</button>
+            <button class="page-turn next" type="button" data-action="next" aria-label="Next page">›</button>
+            <div class="reader-title">${escapeHtml(currentPage.chapterTitle)}</div>
+            <article class="chapter-end-content">
+              <div class="reader-text">${renderParagraphs(currentPage.text)}</div>
+              <img class="chapter-end-image" src="${escapeHtml(currentPage.image)}" alt="" draggable="false" />
+            </article>
+            ${renderFooter(pageIndex)}
+          </section>
+        `;
+      }
+
+      function renderEnd(extraClass = "") {
+        return `
+          <section class="reader-screen reader-end ${extraClass}" aria-label="The end">
+            <button class="reader-exit" type="button" data-action="close">Put Back</button>
+            <div class="reader-end-title">THE END</div>
+            <p>You finished</p>
+            <h1>${escapeHtml(book.title)}</h1>
+            <button class="page-turn prev" type="button" data-action="again" aria-label="Read again">‹</button>
           </section>
         `;
       }
@@ -262,23 +629,101 @@
           .replaceAll("'", "&#39;");
       }
 
+      function renderParagraphs(paragraphs) {
+        return paragraphs
+          .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+          .join("");
+      }
+
+      function renderFooter(pageIndex) {
+        return `<div class="reader-footer">Page ${pageIndex + 1} of ${pages.length}</div>`;
+      }
+
+      function buildPages(sourceBook) {
+        return [
+          {
+            type: "title",
+            title: sourceBook.title,
+            cover: sourceBook.cover
+          },
+          ...sourceBook.chapters.flatMap((chapter, chapterIndex) =>
+            chapter.pages.map((chapterPage) => ({
+              ...chapterPage,
+              type: "chapter",
+              chapterTitle: chapter.title,
+              chapterNumber: chapterIndex + 1,
+              image: chapter.image
+            })),
+          )
+        ];
+      }
+
       document.addEventListener("click", (event) => {
         const button = event.target.closest("[data-action]");
         if (!button) return;
 
         const action = button.dataset.action;
-        if (action === "prev") page = Math.max(0, page - 1);
-        if (action === "next") page += 1;
-        if (action === "again") page = 0;
-        if (action === "close") page = 0;
-        render();
+        if (action === "prev") goToPreviousPage();
+        if (action === "next") goToNextPage();
+        if (action === "again") {
+          page = 0;
+          turnDirection = "turn-prev";
+          render();
+        }
+        if (action === "close") {
+          page = 0;
+          turnDirection = "";
+          render();
+        }
       });
 
       document.addEventListener("keydown", (event) => {
-        if (event.key === "ArrowLeft") page = Math.max(0, page - 1);
-        if (event.key === "ArrowRight" && page < book.pages.length) page += 1;
-        render();
+        if (event.key === "ArrowLeft") goToPreviousPage();
+        if (event.key === "ArrowRight") goToNextPage();
+        if (event.key === "Escape") {
+          page = 0;
+          turnDirection = "";
+          render();
+        }
       });
+
+      document.getElementById("stage").addEventListener("pointerdown", (event) => {
+        if (event.target.closest("button")) return;
+        swipeStarted = true;
+        swipeStartX = event.clientX;
+        swipeStartY = event.clientY;
+      });
+
+      document.getElementById("stage").addEventListener("pointerup", (event) => {
+        if (!swipeStarted) return;
+        swipeStarted = false;
+        const deltaX = event.clientX - swipeStartX;
+        const deltaY = event.clientY - swipeStartY;
+
+        if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) {
+          return;
+        }
+
+        if (deltaX < 0) {
+          goToNextPage();
+        } else {
+          goToPreviousPage();
+        }
+      });
+
+      function goToNextPage() {
+        if (page >= pages.length) return;
+        page += 1;
+        turnDirection = "turn-next";
+        render();
+      }
+
+      function goToPreviousPage() {
+        if (page <= 0) return;
+        page = Math.max(0, page - 1);
+        turnDirection = "turn-prev";
+        render();
+      }
 
       render();
     </script>
