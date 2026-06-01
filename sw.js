@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260601-1";
+const CACHE_VERSION = "davids-shelves-20260601-2";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -119,7 +119,6 @@ async function warmReaderBooks(cache) {
   const urls = ids.flatMap((id) => [
     `/data/reader/books/${id}.json`,
     `/assets/media/books/covers/${id}.jpg`,
-    ...[1, 2, 3, 4, 5].map((page) => `/assets/media/books/chapters/${id}-${page}.jpg`),
   ]);
   await addExisting(cache, urls);
 }

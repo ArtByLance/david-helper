@@ -1494,3 +1494,42 @@ button:disabled {
     transform: translateY(12px);
   }
 }
+
+/* Low-power tablets keep the same object model but avoid expensive GPU work. */
+html.perf-lite #app-main {
+  will-change: auto;
+}
+
+html.perf-lite .media-spine-item,
+html.perf-lite .media-front-item,
+html.perf-lite .today-led-clock,
+html.perf-lite .today-menu-card,
+html.perf-lite .today-special-card,
+html.perf-lite .section-plate,
+html.perf-lite #meal-timer,
+html.perf-lite .handoff-note {
+  filter: none !important;
+}
+
+html.perf-lite .shelf-strip-window,
+html.perf-lite .shelf-window {
+  scroll-snap-type: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+html.perf-lite #app-main.view-transition-out,
+html.perf-lite #app-main.view-transition-in,
+html.perf-lite .take-off-layer,
+html.perf-lite .take-off-layer.take-off-exiting,
+html.perf-lite .take-off-actions,
+html.perf-lite .take-off-media-shell .media-front-item,
+html.perf-lite .take-off-exiting .take-off-media-shell .media-front-item,
+html.perf-lite .take-off-exiting .take-off-actions,
+html.perf-lite #meal-timer.alert-card-exiting,
+html.perf-lite #meal-timer.alert-card-entering {
+  animation-duration: 80ms !important;
+}
+
+html.perf-lite .media-titleText {
+  text-shadow: none;
+}

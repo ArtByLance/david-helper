@@ -7,6 +7,33 @@
     <meta name="theme-color" content="#2a1710" />
     <title>David's Things</title>
     <link rel="manifest" href="./manifest.webmanifest" />
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var requested = params.get("perf");
+        var stored = "";
+        try {
+          stored = window.localStorage.getItem("davidsShelves.perfMode") || "";
+          if (requested === "lite" || requested === "full") {
+            stored = requested;
+            window.localStorage.setItem("davidsShelves.perfMode", requested);
+          }
+        } catch (error) {
+          stored = requested || "";
+        }
+
+        var memory = navigator.deviceMemory || 0;
+        var userAgent = navigator.userAgent || "";
+        var lowPowerDevice =
+          (memory > 0 && memory <= 2) ||
+          /Silk|KFTT|KF[A-Z0-9]+|K102|Android 4|Android 5/i.test(userAgent);
+        var mode = stored || (lowPowerDevice ? "lite" : "full");
+
+        window.KIOSK_PERF_MODE = mode;
+        document.documentElement.dataset.perf = mode;
+        if (mode === "lite") document.documentElement.classList.add("perf-lite");
+      })();
+    </script>
 
     <!--
       David's Things

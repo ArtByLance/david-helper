@@ -57,6 +57,21 @@ Optional override:
 VOICEMONKEY_ENDPOINT
 ```
 
+### Tablet performance mode
+
+Old/low-power tablets automatically use lite rendering. You can force it and
+save the preference on the tablet with:
+
+```text
+https://davidsshelves.netlify.app/?perf=lite
+```
+
+To force the full renderer again:
+
+```text
+https://davidsshelves.netlify.app/?perf=full
+```
+
 ## Current Structure
 
 - `index.html` provides the kiosk-safe portrait stage and compact meal timer.

@@ -274,7 +274,10 @@ function bindGlobalControls() {
     ?.addEventListener("click", handleMainClick);
   document
     .getElementById("app-main")
-    ?.addEventListener("scroll", handleShelfScroll, true);
+    ?.addEventListener("scroll", handleShelfScroll, {
+      capture: true,
+      passive: true,
+    });
   document
     .getElementById("app-main")
     ?.addEventListener("pointerdown", handleReaderPointerDown);
@@ -807,6 +810,17 @@ function renderMediaTitleLayer({ item, title, mode, skin, svgId }) {
     mode === "spine"
       ? renderMediaSpineTitle(title, titleBox, svgId, titleTint)
       : renderMediaFrontTitle(title, titleBox, svgId, titleTint);
+  const filters = isLitePerformanceMode()
+    ? ""
+    : `
+        <filter id="${svgId}-titleShadow" x="-80%" y="-80%" width="260%" height="260%">
+          <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".9" />
+          <feDropShadow dx="0" dy="0" stdDeviation="39" flood-color="#000" flood-opacity=".92" />
+        </filter>
+        <filter id="${svgId}-spineTitleGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feDropShadow dx="0" dy="0" stdDeviation="34" flood-color="#000" flood-opacity=".92" />
+        </filter>
+      `;
 
   return `
     <svg
@@ -817,13 +831,7 @@ function renderMediaTitleLayer({ item, title, mode, skin, svgId }) {
     >
       <defs>
         ${renderMediaClipPath("title", skin.titlePolygon, svgId)}
-        <filter id="${svgId}-titleShadow" x="-80%" y="-80%" width="260%" height="260%">
-          <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".9" />
-          <feDropShadow dx="0" dy="0" stdDeviation="39" flood-color="#000" flood-opacity=".92" />
-        </filter>
-        <filter id="${svgId}-spineTitleGlow" x="-80%" y="-80%" width="260%" height="260%">
-          <feDropShadow dx="0" dy="0" stdDeviation="34" flood-color="#000" flood-opacity=".92" />
-        </filter>
+        ${filters}
       </defs>
       <g clip-path="url(#${svgId}-title)">
         ${text}
@@ -835,6 +843,10 @@ function renderMediaTitleLayer({ item, title, mode, skin, svgId }) {
 function renderMediaSpineTitle(title, titleBox, svgId, titleTint) {
   const anchorX = titleBox.centerX + MEDIA_SPINE_TITLE_X_OFFSET;
   const anchorY = titleBox.maxY - 70 + MEDIA_SPINE_TITLE_Y_OFFSET;
+  const isLite = isLitePerformanceMode();
+  const liteAttrs = isLite
+    ? `stroke="#000" stroke-width="4" paint-order="stroke fill"`
+    : "";
   const attrs = `
     class="media-titleText"
     x="${anchorX}"
@@ -844,7 +856,10 @@ function renderMediaSpineTitle(title, titleBox, svgId, titleTint) {
     font-size="42"
     style="fill: ${escapeAttribute(titleTint)};"
     transform="rotate(-90 ${anchorX} ${anchorY})"
+    ${liteAttrs}
   `;
+
+  if (isLite) return `<text ${attrs}>${escapeHtml(title)}</text>`;
 
   return `
     <text ${attrs} filter="url(#${svgId}-spineTitleGlow)">${escapeHtml(title)}</text>
@@ -855,6 +870,10 @@ function renderMediaSpineTitle(title, titleBox, svgId, titleTint) {
 function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
   const words = String(title).trim().split(/\s+/);
   const lineHeight = 72;
+  const isLite = isLitePerformanceMode();
+  const liteAttrs = isLite
+    ? `stroke="#000" stroke-width="5" paint-order="stroke fill"`
+    : "";
   const startY =
     titleBox.maxY -
     MEDIA_FRONT_TITLE_BOTTOM_INSET -
@@ -867,9 +886,18 @@ function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
       text-anchor="end"
       font-size="76"
       style="fill: ${escapeAttribute(titleTint)};"
+      ${liteAttrs}
       ${filter}
     >${escapeHtml(word)}</text>
   `;
+  if (isLite) {
+    return `
+      <g transform="rotate(${titleBox.angle + MEDIA_FRONT_TITLE_ROTATION_OFFSET} ${titleBox.centerX} ${titleBox.centerY})">
+        ${words.map((word, index) => renderLine(word, index)).join("")}
+      </g>
+    `;
+  }
+
   const glowLines = words
     .map((word, index) =>
       renderLine(word, index, `filter="url(#${svgId}-titleShadow)"`),
@@ -885,6 +913,10 @@ function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
       ${cleanLines}
     </g>
   `;
+}
+
+function isLitePerformanceMode() {
+  return window.KIOSK_PERF_MODE === "lite";
 }
 
 function renderMediaSectionPlates(
