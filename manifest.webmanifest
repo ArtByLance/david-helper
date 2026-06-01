@@ -1,0 +1,13 @@
+{
+  "name": "David's Shelves",
+  "short_name": "Shelves",
+  "description": "David's tablet companion shelves.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#2a1710",
+  "theme_color": "#2a1710",
+  "categories": ["lifestyle"],
+  "prefer_related_applications": false
+}

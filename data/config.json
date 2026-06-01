@@ -8,8 +8,7 @@
   "kiosk": {
     "commsMode": "OFFSITE",
     "vm": {
-      "endpoint": "https://api-v2.voicemonkey.io/trigger",
-      "token": "9217cf7600b1535895bedf351b9847c8_f6e71eae15ddb3db9d05f4ce1a16abdb"
+      "proxyEndpoint": "/.netlify/functions/voice-monkey"
     }
   },
   "theme": {
