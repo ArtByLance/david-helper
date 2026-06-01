@@ -1,11 +1,6 @@
-import {
-  MEALS,
-  READ_CONTENT,
-  TODAY_SPECIALS,
-  WATCH_CONTENT,
-} from "./app-data.js";
+import { MEALS, READ_CONTENT, TODAY_SPECIALS } from "./app-data.js";
 import { fitStageToViewport } from "./layout.js";
-import { PlaybackService } from "./playback.js";
+import { launchVideoItem } from "./playback.js";
 import { getReaderPageCount, renderReaderView } from "./reader.js";
 import {
   formatClock,
@@ -21,19 +16,26 @@ const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
 const ALERT_TRANSITION_MS = 260;
 const ALERT_HOME_ENTRY_DELAY_MS = 750;
-const VIEW_TRANSITION_OUT_MS = 150;
-const VIEW_TRANSITION_IN_MS = 240;
+const VIEW_TRANSITION_OUT_MS = 120;
+const VIEW_TRANSITION_IN_MS = 180;
 const SHELF_PANEL_WIDTH = 800;
 const SHOWS_SPINE_START_X = 1810;
-const MEDIA_SPINE_TO_SPINE_GAP = 50;
+const MEDIA_SPINE_TO_SPINE_GAP = 70;
 const SHOWS_GROUP_GAP = 170 * 3;
 const MEDIA_SPINE_BOTTOM = 245;
 const MEDIA_SPINE_HEIGHT = 806;
 const SHELF_EXTENSION_IMAGE = "./assets/shelves/shelf0.jpg";
+const HOME_SCENE_BY_DAY_PART = {
+  night: "./assets/scenes/main-1.jpg",
+  dawn: "./assets/scenes/main-2.jpg",
+  day: "./assets/scenes/main-3.jpg",
+  sunset: "./assets/scenes/main-4.jpg",
+};
 const TODAY_CLOCK_IMAGE = "./assets/objects/clock.png";
 const TODAY_MENU_IMAGE = "./assets/objects/card-menu.png";
 const TODAY_NEXT_FLAG_IMAGE = "./assets/objects/next-flag-2.png";
 const TODAY_SPECIAL_IMAGE = "./assets/objects/card-special.png";
+const POST_IT_IMAGE = "./assets/objects/post-it.png";
 const SHELF_IMAGE_BY_KIND = {
   TODAY: "./assets/shelves/shelf1.jpg",
   SHOWS: "./assets/shelves/shelf2.jpg",
@@ -41,7 +43,7 @@ const SHELF_IMAGE_BY_KIND = {
 };
 const SHOWS_EXTENSION_PANELS = 7;
 const SHOWS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * SHOWS_EXTENSION_PANELS;
-const BOOKS_EXTENSION_PANELS = 6;
+const BOOKS_EXTENSION_PANELS = 8;
 const BOOKS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * BOOKS_EXTENSION_PANELS;
 const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 4;
 const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 3;
@@ -84,46 +86,18 @@ const mediaSkins = {
   },
 };
 const MEDIA_SPINE_VIEW_FACE_OPACITY = 0;
+const MEDIA_SPINE_VIEW_FACE_TINT_OPACITY = 0.2;
 const MEDIA_SPINE_VIEW_SIDE_TINT = "#2f66f2";
-const MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY = 0.65;
+const MEDIA_SPINE_VIEW_SPINE_TINT_OPACITY = 0.89;
 const MEDIA_FRONT_VIEW_SPINE_OPACITY = 0.4;
 const MEDIA_FRONT_TITLE_ROTATION_OFFSET = -4.8;
 const MEDIA_FRONT_TITLE_RIGHT_INSET = 92;
-const MEDIA_FRONT_TITLE_BOTTOM_INSET = 105;
+const MEDIA_FRONT_TITLE_BOTTOM_INSET = 115;
 const MEDIA_DEFAULT_TITLE_TINT = "#fff6df";
 const MEDIA_SPINE_TITLE_X_OFFSET = 7;
-const MEDIA_SPINE_TITLE_Y_OFFSET = 34;
-const SHOWS_TEST_MEDIA = [
-  {
-    id: "frasier",
-    title: "Frasier",
-    type: "dvd",
-    category: "Favorites",
-    masterArt: "./assets/media/frasier.svg",
-  },
-  {
-    id: "bones",
-    title: "Bones",
-    type: "dvd",
-    category: "Favorites",
-    masterArt: "./assets/media/bones.svg",
-  },
-  {
-    id: "western",
-    title: "Western Movie",
-    type: "dvd",
-    category: "Favorites",
-    masterArt: "./assets/media/western-movie.svg",
-  },
-  {
-    id: "gospel",
-    title: "Gospel Music",
-    type: "dvd",
-    category: "Favorites",
-    masterArt: "./assets/media/gospel-music.svg",
-  },
-];
+const MEDIA_SPINE_TITLE_Y_OFFSET = 15;
 let booksShelfMedia = [];
+let showsShelfMedia = [];
 
 // When shelf content is built out, keep one extra blank panel past the expected
 // far-right end so overscroll never exposes the stage edge.
@@ -135,6 +109,7 @@ const state = {
   todayScrollLeft: 0,
   selectedItem: null,
   selectedKind: null,
+  takeOffExiting: false,
   readerItem: null,
   readerPage: 0,
   readerTurnDirection: "",
@@ -143,6 +118,7 @@ const state = {
   readerSwipeStarted: false,
   handoffItem: null,
   handoffTimer: null,
+  videoLaunchDebug: null,
   highlightedShowId: null,
   alertHidden: false,
   alertTransitioning: false,
@@ -175,8 +151,8 @@ async function loadBooksShelfMedia() {
           displayTitle: book.displayTitle,
           type: "book",
           category: section.title,
-          masterArt: `./assets/media/covers/${item.id}.jpg`,
-          cover: `./assets/media/covers/${item.id}.jpg`,
+          masterArt: `./assets/media/books/covers/${item.id}.jpg`,
+          cover: `./assets/media/books/covers/${item.id}.jpg`,
           baseColor: book.baseColor,
           titleTint: book.titleTint,
           chapters: buildReaderBookChapters(item.id, book),
@@ -188,6 +164,55 @@ async function loadBooksShelfMedia() {
     console.warn("Could not load reader index for book shelf.", error);
     booksShelfMedia = [];
   }
+}
+
+async function loadShowsShelfMedia() {
+  try {
+    const response = await fetch("./data/shows.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Shows ${response.status}`);
+
+    const library = await response.json();
+    const categories = orderShowCategories(
+      library.categories ?? [],
+      library.startCategoryId,
+    );
+
+    showsShelfMedia = categories.flatMap((category) =>
+      (category.items ?? []).map((item) => ({
+        id: item.id,
+        title: item.title,
+        command: item.command,
+        active: item.active,
+        type: "dvd",
+        category: category.title,
+        baseColor: item.baseColor ?? category.baseColor,
+        titleTint: item.titleTint ?? category.titleTint,
+        masterArt: `./assets/media/shows/covers/${getShowCoverFile(item.id)}`,
+      })),
+    );
+  } catch (error) {
+    console.warn("Could not load shows shelf media.", error);
+    showsShelfMedia = [];
+  }
+}
+
+function orderShowCategories(categories, startCategoryId) {
+  if (!startCategoryId) return categories;
+
+  const startIndex = categories.findIndex(
+    (category) => category.id === startCategoryId,
+  );
+  if (startIndex <= 0) return categories;
+
+  return [
+    categories[startIndex],
+    ...categories.slice(0, startIndex),
+    ...categories.slice(startIndex + 1),
+  ];
+}
+
+function getShowCoverFile(id) {
+  return `${String(id).replaceAll("_", "-")}.jpg`;
 }
 
 async function loadReaderBookDetails(id) {
@@ -206,15 +231,39 @@ async function loadReaderBookDetails(id) {
 function buildReaderBookChapters(bookId, book) {
   return (book.chapters ?? []).map((chapter, index) => ({
     ...chapter,
-    image: chapter.image ?? `./assets/media/scenes/${bookId}-${index + 1}.jpg`,
+    image:
+      chapter.image ??
+      `./assets/media/books/chapters/${bookId}-${index + 1}.jpg`,
   }));
+}
+
+async function loadKioskConfig() {
+  try {
+    const response = await fetch("./data/config.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Config ${response.status}`);
+
+    const config = await response.json();
+    if (!config.kiosk) return;
+
+    window.KIOSK = {
+      ...(window.KIOSK ?? {}),
+      ...config.kiosk,
+      vm: {
+        ...(window.KIOSK?.vm ?? {}),
+        ...(config.kiosk.vm ?? {}),
+      },
+    };
+  } catch (error) {
+    console.warn("Could not load kiosk config.", error);
+  }
 }
 
 async function bootstrap() {
   applyInitialShelfRoute();
   fitStageToViewport();
   bindGlobalControls();
-  await loadBooksShelfMedia();
+  await loadKioskConfig();
+  await Promise.all([loadBooksShelfMedia(), loadShowsShelfMedia()]);
   render();
   window.setInterval(renderMealTimerOnly, 20 * 1000);
 }
@@ -266,9 +315,9 @@ function renderMain(now) {
   if (!main) return;
 
   const stage = document.getElementById("tv-stage");
-  stage?.toggleAttribute("data-home", isHomeView());
-  stage?.toggleAttribute("data-image-shell", isShelfImageView());
-  stage?.toggleAttribute("data-reader", Boolean(state.readerItem));
+  setBooleanDataAttribute(stage, "data-home", isHomeView());
+  setBooleanDataAttribute(stage, "data-image-shell", isShelfImageView());
+  setBooleanDataAttribute(stage, "data-reader", Boolean(state.readerItem));
 
   if (state.readerItem) {
     main.innerHTML = renderReaderView({
@@ -297,6 +346,15 @@ function renderMain(now) {
 
   if (state.selectedItem) {
     main.insertAdjacentHTML("beforeend", renderTakeOffOverlay());
+  }
+}
+
+function setBooleanDataAttribute(element, name, enabled) {
+  if (!element) return;
+  if (enabled) {
+    element.setAttribute(name, "true");
+  } else {
+    element.removeAttribute(name);
   }
 }
 
@@ -330,10 +388,11 @@ function renderMealTimer(now) {
 
 function renderHome(now) {
   const dateReadout = getHomeDateReadout(now);
+  const homeScene = getHomeScene(now);
 
   return `
     <section class="screen home-screen" aria-label="David's Stuff">
-      <img class="home-main-image" src="./assets/home.jpg" alt="" aria-hidden="true" draggable="false" />
+      <img class="home-main-image" src="${homeScene}" alt="" aria-hidden="true" draggable="false" />
       <div class="home-date-readout" aria-label="${escapeAttribute(dateReadout.ariaLabel)}">
         <strong><span>${escapeHtml(dateReadout.weekday)}</span> ${escapeHtml(dateReadout.dayPart)}</strong>
       </div>
@@ -345,6 +404,14 @@ function renderHome(now) {
       <button class="home-tap-zone books-tap-zone" type="button" data-action="expand-shelf" data-shelf="BOOKS" aria-label="Books shelf"></button>
     </section>
   `;
+}
+
+function getHomeScene(now) {
+  const hour = now.getHours();
+  if (hour < 6 || hour >= 20) return HOME_SCENE_BY_DAY_PART.night;
+  if (hour < 9) return HOME_SCENE_BY_DAY_PART.dawn;
+  if (hour < 17) return HOME_SCENE_BY_DAY_PART.day;
+  return HOME_SCENE_BY_DAY_PART.sunset;
 }
 
 function getHomeDateReadout(now) {
@@ -370,10 +437,10 @@ function getHomeDateReadout(now) {
 
 function getDayPart(now) {
   const hour = now.getHours();
+  if (hour < 6 || hour >= 21) return "Bedtime";
   if (hour < 12) return "Morning";
   if (hour < 17) return "Afternoon";
-  if (hour < 21) return "Evening";
-  return "Night";
+  return "Evening";
 }
 
 function renderShelfImageShell(kind, now = getNow()) {
@@ -515,8 +582,8 @@ function renderShowsImageStrip() {
           <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.SHOWS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
-          ${renderMediaSpineItems(SHOWS_TEST_MEDIA, "SHOWS")}
-          ${renderMediaSectionPlates(SHOWS_TEST_MEDIA, "shows-section-plate")}
+          ${renderMediaSpineItems(showsShelfMedia, "SHOWS")}
+          ${renderMediaSectionPlates(showsShelfMedia, "shows-section-plate")}
           ${renderScrollLabel()}
         </div>
       </div>
@@ -544,16 +611,12 @@ function renderMediaSpineItems(items, kind, gap = MEDIA_SPINE_TO_SPINE_GAP) {
 function renderMediaSpineItem(item) {
   const skin = getMediaSkin(item, "spine");
   const width = getMediaObjectWidth(skin, item.height);
-  const hotspotClipPath = polygonCssClipPath(
-    skin.artPolygons.spineArt,
-    skin.viewBox,
-  );
 
   return `
     <div
       class="media-object media-spine media-spine-item media-spine-${item.type}"
       aria-label="${escapeAttribute(item.title)}"
-      style="--media-x: ${item.x}px; --media-bottom: ${item.bottom}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-z-index: ${item.zIndex}; --media-hotspot-clip: ${hotspotClipPath};"
+      style="--media-x: ${item.x}px; --media-bottom: ${item.bottom}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-z-index: ${item.zIndex};"
     >
       ${renderMediaObjectContent({ item, mode: "spine", skin })}
       <button
@@ -569,14 +632,18 @@ function renderMediaSpineItem(item) {
   `;
 }
 
-function renderMediaFrontItem(item) {
+function renderMediaFrontItem(item, action = "") {
   const skin = getMediaSkin(item, "front");
   const width = getMediaObjectWidth(skin, item.height);
+  const actionAttributes = action
+    ? `data-action="${escapeAttribute(action)}" role="button" tabindex="0"`
+    : "";
 
   return `
     <div
       class="media-object media-front media-front-item media-front-${item.type}"
       aria-label="${escapeAttribute(item.title)}"
+      ${actionAttributes}
       style="--media-x: ${item.x}px; --media-y: ${item.y}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-rotation: ${item.rotationDegrees}deg;"
     >
       ${renderMediaObjectContent({ item, mode: "front", skin })}
@@ -615,6 +682,7 @@ function renderMediaSpineArtLayer({ item, skin, svgId }) {
   const artImages = Object.entries(skin.artPolygons)
     .map(([name]) => {
       const isSideFace = name === "sideFaceArt";
+      const isSpineFace = name === "spineArt";
 
       return `
         <image
@@ -626,16 +694,24 @@ function renderMediaSpineArtLayer({ item, skin, svgId }) {
           clip-path="url(#${svgId}-${name})"
         />
         ${
-          baseColor && isSideFace
+          baseColor && isSpineFace
             ? `<rect
                 width="${skin.viewBox.width}"
                 height="${skin.viewBox.height}"
                 fill="${escapeAttribute(displayColor)}"
-                opacity="${MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY}"
+                opacity="${MEDIA_SPINE_VIEW_SPINE_TINT_OPACITY}"
                 clip-path="url(#${svgId}-${name})"
               />`
-            : !baseColor && isSideFace
+            : baseColor && isSideFace
               ? `<rect
+                width="${skin.viewBox.width}"
+                height="${skin.viewBox.height}"
+                fill="${escapeAttribute(displayColor)}"
+                opacity="${MEDIA_SPINE_VIEW_FACE_TINT_OPACITY}"
+                clip-path="url(#${svgId}-${name})"
+              />`
+              : !baseColor && isSideFace
+                ? `<rect
                 width="${skin.viewBox.width}"
                 height="${skin.viewBox.height}"
                 fill="#000"
@@ -646,10 +722,10 @@ function renderMediaSpineArtLayer({ item, skin, svgId }) {
                 width="${skin.viewBox.width}"
                 height="${skin.viewBox.height}"
                 fill="${MEDIA_SPINE_VIEW_SIDE_TINT}"
-                opacity="${MEDIA_SPINE_VIEW_SIDE_TINT_OPACITY}"
+                opacity="0"
                 clip-path="url(#${svgId}-${name})"
               />`
-              : ""
+                : ""
         }
       `;
     })
@@ -765,7 +841,7 @@ function renderMediaSpineTitle(title, titleBox, svgId, titleTint) {
     y="${anchorY}"
     text-anchor="start"
     dominant-baseline="middle"
-    font-size="36"
+    font-size="42"
     style="fill: ${escapeAttribute(titleTint)};"
     transform="rotate(-90 ${anchorX} ${anchorY})"
   `;
@@ -985,15 +1061,6 @@ function renderMediaClipPath(name, polygon, svgId) {
   `;
 }
 
-function polygonCssClipPath(polygon, viewBox) {
-  return `polygon(${parsePolygon(polygon)
-    .map(
-      ([x, y]) =>
-        `${roundPercent((x / viewBox.width) * 100)}% ${roundPercent((y / viewBox.height) * 100)}%`,
-    )
-    .join(", ")})`;
-}
-
 function polygonBounds(polygon) {
   const points = parsePolygon(polygon);
   const xs = points.map(([x]) => x);
@@ -1054,7 +1121,7 @@ function slugify(value) {
 }
 
 function renderScrollLabel() {
-  return `<div class="shelf-scroll-label" aria-hidden="true">&lt; &nbsp; SCROLL &nbsp; &gt;</div>`;
+  return `<div class="shelf-scroll-label" aria-hidden="true">SCROLL &nbsp; &gt;</div>`;
 }
 
 function renderTodayShelfPreview(now, nextMealId, special) {
@@ -1243,10 +1310,10 @@ function renderTakeOffOverlay() {
   };
 
   return `
-    <div class="take-off-layer" role="dialog" aria-label="${item.title}">
+    <div class="take-off-layer${state.takeOffExiting ? " take-off-exiting" : ""}" role="dialog" aria-label="${item.title}">
       <div class="shelf-dim"></div>
       <div class="take-off-media-shell">
-        ${renderMediaFrontItem(coverItem)}
+        ${renderMediaFrontItem(coverItem, action)}
         <div class="take-off-actions">
           <button class="primary-action icon-action" type="button" data-action="${action}">
             ${isBook ? renderBookIcon() : renderRemoteIcon()}
@@ -1293,17 +1360,43 @@ function renderReturnIcon() {
 }
 
 function renderHandoff() {
+  const debugText = getVideoLaunchDebugText();
+
   return `
-      <section class="screen handoff-screen" aria-label="TV handoff">
-      <div class="handoff-card">
-        <div class="screen-kicker">SHOWS SHELF</div>
-        <h1>Starting the show</h1>
-        <p>${state.handoffItem.title}</p>
-        <p>This will return to the shelf in a minute.</p>
-        <button class="secondary-action" type="button" data-action="return-shows">PUT BACK</button>
+    <section class="screen handoff-screen" aria-label="TV handoff">
+      <div class="handoff-shelf-backdrop" aria-hidden="true">
+        ${renderShowsImageStrip()}
       </div>
+      <div class="handoff-card">
+        <div class="handoff-note">
+          <img class="handoff-post-it" src="${POST_IT_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+          <div class="handoff-content">
+            <h1>
+              <span>Starting</span>
+              <span>${escapeHtml(state.handoffItem.title)}</span>
+              <span>on your TV.</span>
+            </h1>
+            <p>Use your remote to control it.</p>
+            <p>This window will close in a minute.</p>
+          </div>
+        </div>
+        <button class="secondary-action handoff-put-back" type="button" data-action="return-shows">PUT BACK</button>
+      </div>
+      ${
+        debugText
+          ? `<div class="video-launch-debug" aria-live="polite">${escapeHtml(debugText)}</div>`
+          : ""
+      }
     </section>
   `;
+}
+
+function getVideoLaunchDebugText() {
+  const launch = state.videoLaunchDebug;
+  if (!launch) return "";
+  if (launch.mode === "LIVE" && launch.fired) return "";
+  if (launch.url) return launch.url;
+  return `VoiceMonkey URL not configured for ${launch.command || state.handoffItem?.command || state.handoffItem?.title || "this show"}`;
 }
 
 async function handleMainClick(event) {
@@ -1353,6 +1446,7 @@ async function handleMainClick(event) {
   if (action === "media-spine") {
     const kind = target.dataset.kind;
     state.selectedKind = kind;
+    state.takeOffExiting = false;
     state.selectedItem = findShelfMediaItem(
       kind,
       target.dataset.itemId,
@@ -1365,12 +1459,16 @@ async function handleMainClick(event) {
   if (action === "take-off") {
     const kind = target.dataset.kind;
     state.selectedKind = kind;
+    state.takeOffExiting = false;
     state.selectedItem = findItem(kind, target.dataset.itemId);
     render();
     return;
   }
 
   if (action === "put-back") {
+    state.takeOffExiting = true;
+    render();
+    await wait(VIEW_TRANSITION_OUT_MS);
     clearSelection();
     render();
     return;
@@ -1410,12 +1508,19 @@ async function handleMainClick(event) {
   if (action === "watch-item" && state.selectedItem) {
     const item = state.selectedItem;
     clearSelection();
-    await PlaybackService.play(item);
-    markRecent("davidsStuff.recentWatched", state.recentWatched, item.id);
-    state.highlightedShowId = item.id;
     state.handoffItem = item;
+    state.videoLaunchDebug = null;
     startHandoffTimer();
     render();
+
+    try {
+      state.videoLaunchDebug = launchVideoItem(item);
+      markRecent("davidsStuff.recentWatched", state.recentWatched, item.id);
+      state.highlightedShowId = item.id;
+      render();
+    } catch (error) {
+      console.error(`Could not launch ${item.title}.`, error);
+    }
     return;
   }
 
@@ -1449,6 +1554,17 @@ function handleReaderPointerUp(event) {
 }
 
 function handleReaderKeyDown(event) {
+  const activeAction = document.activeElement?.dataset?.action;
+  if (
+    activeAction &&
+    (activeAction === "read-book" || activeAction === "watch-item") &&
+    (event.key === "Enter" || event.key === " ")
+  ) {
+    event.preventDefault();
+    document.activeElement.click();
+    return;
+  }
+
   if (!state.readerItem) return;
   if (event.key === "ArrowLeft") goToPreviousReaderPage();
   if (event.key === "ArrowRight") goToNextReaderPage();
@@ -1654,6 +1770,7 @@ function finishHandoff() {
   window.clearTimeout(state.handoffTimer);
   state.handoffTimer = null;
   state.handoffItem = null;
+  state.videoLaunchDebug = null;
   state.view = "SHELF";
   state.activeShelf = "SHOWS";
   render();
@@ -1662,15 +1779,16 @@ function finishHandoff() {
 function clearSelection() {
   state.selectedItem = null;
   state.selectedKind = null;
+  state.takeOffExiting = false;
 }
 
 function findItem(kind, id) {
-  const source = kind === "BOOKS" ? READ_CONTENT : WATCH_CONTENT;
+  const source = kind === "BOOKS" ? READ_CONTENT : showsShelfMedia;
   return source.find((item) => item.id === id) ?? null;
 }
 
 function findShelfMediaItem(kind, id, title) {
-  const source = kind === "BOOKS" ? booksShelfMedia : SHOWS_TEST_MEDIA;
+  const source = kind === "BOOKS" ? booksShelfMedia : showsShelfMedia;
   const shelfItem =
     source.find((item) => item.id === id) ??
     source.find((item) => item.title === title) ??

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dementia Clock Prototype</title>
+
+    <style>
+      /*
+      Dementia Clock Prototype
+      --------------------------------------
+      Goal:
+      - Match the simple commercial dementia-clock layout more closely
+      - Keep the screen calm, bold, and easy to read from across the room
+      - Keep this file easy for Codex to pull apart later
+
+      Main visual choices from the reference:
+      - Thinner red weekday bar
+      - Cream/off-white face
+      - Centered period label close under the red bar
+      - Large time anchored low-left, not perfectly centered
+      - Small A.M./P.M. tucked near the lower-right of the time
+      - Sun icon sits above/right of A.M./P.M.
+      - Short blue date bar at the bottom
+    */
+
+      :root {
+        --page-bg: #d8d0c5;
+        --clock-bg: #f4f0ea;
+        --frame-outer: #222222;
+        --frame-inner: #0b0b0b;
+        --top-bar: #e80012;
+        --bottom-bar: #236ad6;
+        --text-main: #000000;
+        --text-light: #ffffff;
+        --sun: #e4a51e;
+        --sun-stroke: #ffffff;
+        --shadow: rgba(0, 0, 0, 0.35);
+        --outer-radius: 28px;
+        --screen-radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        background: var(--page-bg);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .clock-shell {
+        width: min(92vw, 880px);
+        aspect-ratio: 1.38 / 1;
+        padding: clamp(10px, 1.5vw, 18px);
+        border-radius: var(--outer-radius);
+        background: var(--frame-outer);
+        box-shadow: 0 18px 40px var(--shadow);
+      }
+
+      .clock-screen {
+        height: 100%;
+        overflow: hidden;
+        border-radius: var(--screen-radius);
+        background: var(--clock-bg);
+        border: 3px solid var(--frame-inner);
+        display: grid;
+        grid-template-rows: 23% 19% 40% 18%;
+      }
+
+      .weekday-bar {
+        display: grid;
+        place-items: center;
+        background: var(--top-bar);
+        color: var(--text-light);
+        font-size: clamp(2.4rem, 8.4vw, 5.8rem);
+        font-weight: 900;
+        line-height: 0.9;
+        letter-spacing: 0.015em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        padding-top: 0.02em;
+      }
+
+      .period-row {
+        display: grid;
+        place-items: start center;
+        color: var(--text-main);
+        font-size: clamp(1.7rem, 4.9vw, 3.9rem);
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.035em;
+        padding-top: clamp(12px, 2vw, 18px);
+      }
+
+      .time-row {
+        position: relative;
+        color: var(--text-main);
+        overflow: hidden;
+      }
+
+      .time-main {
+        position: absolute;
+        left: clamp(14px, 3vw, 34px);
+        bottom: clamp(-5px, -0.5vw, 0px);
+        display: flex;
+        align-items: flex-end;
+        font-weight: 900;
+        line-height: 0.78;
+        letter-spacing: -0.075em;
+        white-space: nowrap;
+      }
+
+      .time-text {
+        font-size: clamp(6rem, 18.2vw, 14.2rem);
+      }
+
+      .ampm {
+        font-size: clamp(1.55rem, 4.9vw, 3.9rem);
+        font-weight: 900;
+        line-height: 0.9;
+        letter-spacing: -0.02em;
+        margin-left: clamp(18px, 3vw, 34px);
+        margin-bottom: clamp(8px, 1.4vw, 18px);
+      }
+
+      .sun-icon {
+        position: absolute;
+        left: clamp(62%, 65vw, 70%);
+        top: clamp(14px, 3vw, 34px);
+        width: clamp(50px, 9vw, 92px);
+        height: clamp(50px, 9vw, 92px);
+        display: none;
+      }
+
+      .sun-icon.is-visible {
+        display: block;
+      }
+
+      .date-bar {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        align-items: center;
+        gap: clamp(10px, 2.5vw, 34px);
+        padding: 0 clamp(20px, 4vw, 52px);
+        background: var(--bottom-bar);
+        color: var(--text-light);
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .month {
+        font-size: clamp(1.75rem, 5.1vw, 4.4rem);
+        letter-spacing: 0.03em;
+      }
+
+      .day-number,
+      .year {
+        font-size: clamp(1.7rem, 4.9vw, 4.25rem);
+        letter-spacing: 0.02em;
+      }
+
+      /* Optional smaller embed mode for app testing */
+      .clock-shell.compact {
+        width: min(95vw, 620px);
+      }
+
+      @media (max-width: 520px) {
+        .clock-shell {
+          width: 96vw;
+        }
+
+        .clock-screen {
+          grid-template-rows: 24% 18% 40% 18%;
+        }
+
+        .sun-icon {
+          display: none !important;
+        }
+
+        .date-bar {
+          grid-template-columns: 1fr auto;
+        }
+
+        .year {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="clock-shell" aria-label="Dementia clock">
+      <section class="clock-screen">
+        <div class="weekday-bar" id="weekday">WEDNESDAY</div>
+
+        <div class="period-row" id="dayPeriod">NOON</div>
+
+        <div class="time-row">
+          <div class="time-main">
+            <span class="time-text" id="timeText">12:15</span>
+            <span class="ampm" id="ampmText">P.M.</span>
+          </div>
+
+          <!-- Simple inline SVG so no image file is needed -->
+          <svg
+            class="sun-icon"
+            id="sunIcon"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r="23"
+              fill="var(--sun)"
+              stroke="var(--sun-stroke)"
+              stroke-width="3"
+            ></circle>
+            <g stroke="var(--sun)" stroke-width="5.5" stroke-linecap="round">
+              <line x1="50" y1="6" x2="50" y2="19"></line>
+              <line x1="50" y1="81" x2="50" y2="94"></line>
+              <line x1="6" y1="50" x2="19" y2="50"></line>
+              <line x1="81" y1="50" x2="94" y2="50"></line>
+              <line x1="18" y1="18" x2="28" y2="28"></line>
+              <line x1="72" y1="72" x2="82" y2="82"></line>
+              <line x1="82" y1="18" x2="72" y2="28"></line>
+              <line x1="28" y1="72" x2="18" y2="82"></line>
+            </g>
+          </svg>
+        </div>
+
+        <div class="date-bar">
+          <div class="month" id="month">OCTOBER</div>
+          <div class="day-number" id="dayNumber">21</div>
+          <div class="year" id="year">2022</div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      /*
+      CONFIG
+      --------------------------------------
+      Use demoNow for screenshot/testing.
+      Leave demoNow as null for live time.
+
+      Example:
+      demoNow: new Date('2022-10-21T12:15:00')
+    */
+      const CONFIG = {
+        demoNow: null,
+        use24HourTime: false,
+        showSunIcon: true,
+        showYear: true,
+        updateEveryMs: 1000,
+
+        periodLabels: {
+          earlyMorning: "EARLY MORNING",
+          morning: "MORNING",
+          noon: "NOON",
+          afternoon: "AFTERNOON",
+          evening: "EVENING",
+          night: "NIGHT",
+        },
+      };
+
+      const dom = {
+        weekday: document.getElementById("weekday"),
+        dayPeriod: document.getElementById("dayPeriod"),
+        timeText: document.getElementById("timeText"),
+        ampmText: document.getElementById("ampmText"),
+        sunIcon: document.getElementById("sunIcon"),
+        month: document.getElementById("month"),
+        dayNumber: document.getElementById("dayNumber"),
+        year: document.getElementById("year"),
+      };
+
+      function getNow() {
+        return CONFIG.demoNow ? new Date(CONFIG.demoNow) : new Date();
+      }
+
+      function getPeriodLabel(date) {
+        const hour = date.getHours();
+        const minute = date.getMinutes();
+        const minutesSinceMidnight = hour * 60 + minute;
+
+        // Generous noon window keeps wording stable near lunch.
+        if (
+          minutesSinceMidnight >= 11 * 60 + 30 &&
+          minutesSinceMidnight < 12 * 60 + 30
+        ) {
+          return CONFIG.periodLabels.noon;
+        }
+
+        if (hour >= 5 && hour < 8) return CONFIG.periodLabels.earlyMorning;
+        if (hour >= 8 && hour < 12) return CONFIG.periodLabels.morning;
+        if (hour >= 12 && hour < 17) return CONFIG.periodLabels.afternoon;
+        if (hour >= 17 && hour < 21) return CONFIG.periodLabels.evening;
+        return CONFIG.periodLabels.night;
+      }
+
+      function getFormattedTime(date) {
+        let hour = date.getHours();
+        const minute = String(date.getMinutes()).padStart(2, "0");
+
+        if (CONFIG.use24HourTime) {
+          return {
+            time: `${String(hour).padStart(2, "0")}:${minute}`,
+            ampm: "",
+          };
+        }
+
+        const isPm = hour >= 12;
+        hour = hour % 12 || 12;
+
+        return {
+          time: `${hour}:${minute}`,
+          ampm: isPm ? "P.M." : "A.M.",
+        };
+      }
+
+      function renderClock() {
+        const now = getNow();
+        const { time, ampm } = getFormattedTime(now);
+
+        dom.weekday.textContent = now
+          .toLocaleDateString("en-US", { weekday: "long" })
+          .toUpperCase();
+        dom.dayPeriod.textContent = getPeriodLabel(now);
+        dom.timeText.textContent = time;
+        dom.ampmText.textContent = ampm;
+        dom.month.textContent = now
+          .toLocaleDateString("en-US", { month: "long" })
+          .toUpperCase();
+        dom.dayNumber.textContent = String(now.getDate());
+        dom.year.textContent = String(now.getFullYear());
+
+        dom.sunIcon.classList.toggle(
+          "is-visible",
+          CONFIG.showSunIcon && now.getHours() >= 6 && now.getHours() < 18,
+        );
+        dom.year.style.display = CONFIG.showYear ? "" : "none";
+      }
+
+      renderClock();
+      setInterval(renderClock, CONFIG.updateEveryMs);
+    </script>
+  </body>
+</html>

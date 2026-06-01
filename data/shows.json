@@ -1,0 +1,155 @@
+{
+  "startCategoryId": "tv",
+  "categories": [
+    {
+      "id": "tv",
+      "title": "TV SHOWS",
+      "baseColor": "#18324A",
+      "titleTint": "#BFEAFF",
+      "items": [
+        {
+          "id": "frasier",
+          "title": "Frasier",
+          "command": "frasierbutton",
+          "active": true
+        },
+        {
+          "id": "bones",
+          "title": "Bones",
+          "command": "bonesbutton",
+          "active": true
+        },
+        {
+          "id": "terminal_list",
+          "title": "Terminal List",
+          "command": "terminallistbutton",
+          "active": true
+        },
+        {
+          "id": "justified",
+          "title": "Justified",
+          "command": "justifiedbutton",
+          "active": true
+        },
+        {
+          "id": "the_unit",
+          "title": "The Unit",
+          "command": "theunitbutton",
+          "active": true
+        },
+        {
+          "id": "reacher",
+          "title": "Reacher",
+          "command": "reacherbutton",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "action",
+      "title": "Action Movies",
+      "baseColor": "#3F1712",
+      "titleTint": "#FFD36A",
+      "items": [
+        {
+          "id": "lucy",
+          "title": "Lucy",
+          "command": "lucybutton",
+          "active": true
+        },
+        {
+          "id": "hurt_locker",
+          "title": "Hurt Locker",
+          "command": "hurtlockerbutton",
+          "active": false
+        },
+        {
+          "id": "nobody",
+          "title": "Nobody",
+          "command": "nobodybutton",
+          "active": false
+        },
+        {
+          "id": "peppermint",
+          "title": "Peppermint",
+          "command": "peppermintbutton",
+          "active": true
+        },
+        {
+          "id": "wind_river",
+          "title": "Wind River",
+          "command": "windriverbutton",
+          "active": false
+        },
+        {
+          "id": "fury",
+          "title": "Fury",
+          "command": "furybutton",
+          "active": false
+        },
+        {
+          "id": "sisu",
+          "title": "Sisu",
+          "command": "sisubutton",
+          "active": true
+        },
+        {
+          "id": "sisu_2",
+          "title": "Sisu #2",
+          "command": "sisu2button",
+          "active": false
+        },
+        {
+          "id": "the_outpost",
+          "title": "The Outpost",
+          "command": "outpostbutton",
+          "active": false
+        },
+        {
+          "id": "hyena_road",
+          "title": "Hyena Road",
+          "command": "hyenaroadbutton",
+          "active": false
+        },
+        {
+          "id": "outlaw_josey_wales",
+          "title": "Outlaw Josey Wales",
+          "command": "outlawjoseywalesbutton",
+          "active": false
+        }
+      ]
+    },
+    {
+      "id": "drama",
+      "title": "Dramas",
+      "baseColor": "#2A1D3D",
+      "titleTint": "#FFD0E6",
+      "items": [
+        {
+          "id": "passengers",
+          "title": "Passengers",
+          "command": "passengersbutton",
+          "active": true
+        },
+        {
+          "id": "dances_with_wolves",
+          "title": "Dances with Wolves",
+          "command": "danceswithwolvesbutton",
+          "active": true
+        },
+        {
+          "id": "legends_of_the_fall",
+          "title": "Legends of the Fall",
+          "command": "legendsofthefallbutton",
+          "active": true
+        },
+        {
+          "id": "secretariat",
+          "title": "Secretariat",
+          "command": "secretariatbutton",
+          "active": false
+        }
+      ]
+    }
+  ]
+}

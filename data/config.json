@@ -5,6 +5,13 @@
   "dayEndHour": 21,
   "defaultHoldMinutes": 15,
   "topPrompt": "FOR TV SAY  “ <b>COMPUTER HOME</b> ”",
+  "kiosk": {
+    "commsMode": "OFFSITE",
+    "vm": {
+      "endpoint": "https://api-v2.voicemonkey.io/trigger",
+      "token": "9217cf7600b1535895bedf351b9847c8_f6e71eae15ddb3db9d05f4ce1a16abdb"
+    }
+  },
   "theme": {
     "bg": "#dbe4ef",
     "nextAccent": "#ff1a1a",

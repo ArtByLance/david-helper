@@ -1,0 +1,183 @@
+{
+  "id": "reacher-locate-the-team",
+  "title": "Reacher: Locate the Team",
+  "baseColor": "#12372F",
+  "titleTint": "#FFE36E",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "The Call",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The call came from an old friend who did not scare easy.",
+            "That told Reacher enough.",
+            "The voice on the line was low, tight, and careful. A team was missing. Good people. Trained people. People who should have been able to look after themselves.",
+            "Reacher asked one question.",
+            "\"Where?\""
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The answer took him to a hard little town with bad roads, cheap motels, and men who watched strangers too closely. Reacher liked places like that fine. They showed their teeth early.",
+            "He checked into a motel under his own name. Then he walked.",
+            "A black truck followed him for six blocks. Reacher saw it in a store window, then in the glass door of a closed pharmacy. Same truck. Same two men. Not locals out for a drive.",
+            "He turned down an alley and stopped behind a dumpster.",
+            "The truck rolled past the opening.",
+            "Reacher waited two seconds, then stepped out behind it. Quiet. Fast.",
+            "The men never saw him coming."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The driver went down first.",
+            "The passenger tried to move, but the seat belt slowed him just enough. Reacher opened the door, handled him, and took the phone from his pocket.",
+            "There were three numbers in the call log.",
+            "That was a start.",
+            "Reacher left the men breathing in the alley.",
+            "They had followed the wrong man."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "The First Trail",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The phone led him to a warehouse outside town.",
+            "It looked empty from the road. That meant nothing. Empty buildings were useful. They kept secrets, hid trucks, and made screams travel badly.",
+            "Reacher circled it once.",
+            "Then he found the fresh tire tracks."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The tracks were wide and deep. Heavy vehicle. Loaded going in. Lighter coming out. Reacher crouched beside them and touched the dirt.",
+            "Recent.",
+            "A guard stood by a side door, trying to look casual. He failed. Guards who try too hard always look like guards.",
+            "Reacher crossed the open ground before the man understood the danger. One hand covered the mouth. One move took the balance. The guard dropped without warning anyone.",
+            "Inside, the warehouse smelled like oil, dust, and fear.",
+            "There were signs of a fight. A chair turned over. A broken zip tie near the wall. Blood on the floor, but not much.",
+            "The team had been there.",
+            "And they had not gone quietly."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Reacher found a second guard near the office.",
+            "This one was awake enough to reach for a weapon. Not awake enough to use it.",
+            "Reacher took him out of the fight and found a clipboard on the desk. Most of it was useless numbers.",
+            "One address was circled twice.",
+            "Reacher smiled a little.",
+            "Bad men should not do paperwork."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "The Roadblock",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The address was twenty miles away.",
+            "Reacher got there on foot, by bus, and by stolen time. The last road was dark and narrow, with trees close on both sides.",
+            "Half a mile from the target, headlights came on.",
+            "Two trucks blocked the road."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "Four men stepped into the light. One had a shotgun. One had a bat. The other two had the nervous look of men who had been told this would be easy.",
+            "Reacher stopped in the middle of the road.",
+            "The man with the shotgun told him to turn around.",
+            "Reacher looked past him at the trucks. Then at the trees. Then at the men's feet.",
+            "\"No,\" he said.",
+            "That made them angry, which helped.",
+            "Angry men hurry. Hurried men miss things. The first man came in with the bat, and Reacher put him down before the swing finished.",
+            "The shotgun moved.",
+            "Reacher moved faster.",
+            "The weapon hit the road. The man followed it."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The other two tried to rush him together.",
+            "That was almost thoughtful.",
+            "Reacher stepped aside, let one man crash into the other, and ended both problems before they could separate. The road went quiet except for engines idling and one man groaning in the dirt.",
+            "Reacher dragged the trucks aside.",
+            "Then he kept walking.",
+            "The team was close.",
+            "So was the end of the men holding them."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "The Team",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The team was in an old barn past the tree line.",
+            "Reacher saw guards at the door, light through the boards, and movement inside. He counted slowly.",
+            "Six men outside or near the entrance.",
+            "More inside.",
+            "Good.",
+            "Now he knew where most of them were."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The first guard went down without a sound. The second turned at the wrong moment and joined him. Reacher took the weapon, checked the door, and stepped inside.",
+            "The room snapped toward him.",
+            "Men shouted. One fired wild. Reacher was already moving. He crossed the first ten feet hard and low, dropped the nearest man, and used him to block the next one.",
+            "A chair flipped. A lantern swung. The barn filled with noise.",
+            "The bad men had numbers.",
+            "Reacher had answers.",
+            "One man came from the left. Reacher handled him. Another came from the right. Reacher put him down beside a feed barrel. The last one near the captives reached for a knife.",
+            "That was a poor choice."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The knife man hit the wall and stayed there.",
+            "The barn went still.",
+            "Reacher cut the first captive loose, then the second, then the rest. They were bruised, angry, and alive. Good people. Trained people. People who had fought hard and waited for a chance.",
+            "One of them looked at the men on the floor.",
+            "\"You alone?\" he asked.",
+            "Reacher glanced around the barn.",
+            "\"Not anymore,\" he said.",
+            "Then he led the team out into the dark."
+          ]
+        }
+      ]
+    }
+  ]
+}

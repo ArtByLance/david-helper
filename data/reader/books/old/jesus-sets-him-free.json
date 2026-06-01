@@ -1,0 +1,148 @@
+{
+  "id": "jesus-sets-him-free",
+  "title": "Jesus Sets Him Free",
+  "baseColor": "#5A4216",
+  "titleTint": "#FFCF70",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "The Man Among the Tombs",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The man lived among the tombs.",
+            "People had tried to help him, then feared him, then stayed away. He was alone in a place meant for the dead, crying out where no one wanted to go.",
+            "But Jesus crossed the water toward him. Help was already coming."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The man had been hurting for a long time. Evil had taken hold of him and torn his life apart. He could not live safely in his home or rest among his people.",
+            "Others had tried chains, but the chains did not hold. They had tried distance, but distance did not heal him.",
+            "He needed more than strength against him. He needed authority over what held him.",
+            "Across the water, Jesus came with His disciples. The boat reached the shore, and the man saw Him. The evil inside the man knew Him too. That changed everything."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The man ran toward Jesus. It did not look peaceful. It did not look clean or easy.",
+            "But the broken man was now standing before the only One who could truly free him, and the disciples watched as the shore grew tense.",
+            "The man was not too far gone. Not for Jesus."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "Evil Must Obey",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Jesus did not run from him.",
+            "Others had feared the man. Others had kept away. Jesus stood before him with calm authority.",
+            "The evil spoke, but Jesus was not moved by it. He knew what was holding the man, and He had power over it."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The evil begged. That alone tells the story.",
+            "The man had been tormented for years, but the evil was not stronger than Jesus. It could rage in the man, frighten neighbors, and break chains. But it could not command the Son of God.",
+            "Jesus spoke, and the evil had to answer. The disciples saw the difference. The man was not facing a teacher only, or a helper only. He was facing the Lord, and the darkness knew it.",
+            "The evil had shouted long enough, and Jesus commanded it to leave. No battle of equals. No long struggle. No guessing.",
+            "Jesus spoke, and evil had to obey."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The change was terrible and sudden. The evil left the man, and the scene broke open with force.",
+            "Everyone nearby could see that something powerful had happened, but the most important thing was the man.",
+            "The one who had been trapped was no longer trapped. The one who had been driven was no longer driven. Jesus had set him free."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "Sitting and Clothed",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "When the people came, they saw the man sitting there, and that may have been the most shocking part.",
+            "He was not running, crying out, fighting chains, or hiding among tombs.",
+            "He was sitting near Jesus, clothed, clear-minded, and free."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The people knew what he had been. They knew the fear, the noise in the night, the shame around his name, and the way everyone had learned to avoid him.",
+            "Now they saw him changed. That should have made them rejoice. A son of their region had been restored, and a man who had lived like the dead was alive in front of them.",
+            "But the people were afraid. Sometimes mercy frightens people when it comes with power they cannot control.",
+            "They had wanted the man restrained. Jesus had made him whole. That was better.",
+            "It was also more than they knew how to handle. So they asked Jesus to leave."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The healed man wanted to go with Jesus. That made sense.",
+            "Jesus had given him back his life. Anyone would want to stay close to the One who did that.",
+            "But Jesus gave him a different task. He told him to go home and tell what God had done for him.",
+            "The man had a story now, and his home needed to hear it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "Go Home and Tell",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The man left the tombs behind.",
+            "He walked toward home as a different man. The people who had feared him would see him again, but not as before.",
+            "Jesus had not only freed him. Jesus had sent him."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The man did not need a long sermon. He had his own life as proof. His family could look at him and see the mercy of God. His neighbors could hear his voice calm and clear.",
+            "That was enough.",
+            "He could say, \"I was bound, and Jesus freed me.\" He could say, \"I was lost among the tombs, and Jesus sent me home.\" He could say, \"The evil had to obey Him.\"",
+            "No one could argue with the man standing in front of them. The story was simple, and it was strong.",
+            "Jesus had crossed the water for him. Jesus had spoken. The man was free."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The tombs were not his home anymore.",
+            "Fear was not his name anymore, and evil did not get the final word over his life. Jesus had the final word.",
+            "The man went back to his people with peace in his mind and mercy in his story, alive and going home."
+          ]
+        }
+      ]
+    }
+  ]
+}

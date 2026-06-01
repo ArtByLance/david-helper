@@ -1,0 +1,172 @@
+{
+  "id": "true-heroes-desmond-doss",
+  "title": "True Heroes: Desmond Doss",
+  "baseColor": "#18243D",
+  "titleTint": "#BFD7FF",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "The Soldier Who Would Not Carry a Gun",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Desmond Doss went to war without a rifle.",
+            "That made men stare.",
+            "He wore the uniform. He took the orders. He trained with the others. But he would not carry a weapon, because his conscience belonged to God.",
+            "Some men laughed at him.",
+            "Doss kept going."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The Army did not know what to do with him at first. A soldier who would not shoot seemed strange in a place built for fighting. Other men wondered if he would freeze when danger came.",
+            "Doss did not freeze.",
+            "He trained as a medic. His job was not to take life, but to save it. That sounded soft to some men until the shooting started. Then every wounded soldier wanted a medic who would come for him.",
+            "Doss was small, wiry, and stubborn in the best way. He could carry more than people expected. He could work through pain. He could take insults and keep his head.",
+            "The men did not understand him yet.",
+            "They would."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Doss stood apart in some ways, but he did not stand away from the men.",
+            "He prayed. He worked. He learned how to reach the wounded and get them home.",
+            "He did not need every man to like him.",
+            "He needed to be ready.",
+            "The day would come when those same men would call for help."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "The Climb",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The ridge rose like a wall.",
+            "The men called it Hacksaw Ridge. It was high, steep, and waiting for them. Enemy soldiers were dug in above, hidden and ready.",
+            "The Americans had to climb into danger.",
+            "Doss climbed with them."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The men went up ropes and ladders with the sound of war above their heads. The air was filled with smoke, shouting, and gunfire. Every man knew the top would be worse.",
+            "Doss carried medical supplies instead of a rifle. That meant he could not shoot back. It also meant he could move toward men who had already been hit.",
+            "At the top, the battle broke open hard.",
+            "Men fell across the ground. Some could crawl. Some could not move at all. Calls for medics came from every direction.",
+            "Doss heard them.",
+            "He moved low and fast, pulling one man behind cover, then another. He tied bandages. He dragged bodies through dirt. He kept going back.",
+            "The ridge was tearing men apart.",
+            "Doss was putting them back into reach."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The order came to pull back.",
+            "The fight had gone bad. Men were coming down from the ridge, and many wounded were still above.",
+            "Doss could have gone down with the others.",
+            "He did not.",
+            "He stayed on top of the ridge, alone in the danger, listening for voices that still needed help."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "One More",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Doss found one wounded man and dragged him to the edge.",
+            "Then he tied the rope and lowered him down.",
+            "The man reached safety below.",
+            "Doss looked back across the ridge.",
+            "There were more.",
+            "So he went back."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "Night settled over the ridge, but the danger did not leave. Enemy fire still cracked in the dark. Men still groaned from the ground. Some called for their mothers. Some called for God. Some just called, \"Medic.\"",
+            "Doss answered.",
+            "He crawled when he had to crawl. He ran when he had to run. He pulled men by their collars, their belts, their sleeves, whatever he could grip.",
+            "Each time, he brought one to the edge.",
+            "Each time, he lowered him down.",
+            "His hands hurt. His body was spent. Fear stayed close. But Doss prayed the same simple prayer again and again.",
+            "\"Lord, help me get one more.\"",
+            "Then he went back into the dark."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "One more became many.",
+            "The men below could hardly believe it. Another wounded soldier came down. Then another. Then another.",
+            "Doss did not make speeches from the top of the ridge.",
+            "He just kept rescuing men.",
+            "The soldiers who had doubted him were learning the truth.",
+            "A man without a gun could still be one of the bravest men on the battlefield."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "Carried by Courage",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Doss kept serving even after the rescue night.",
+            "He had already done more than most men could imagine. But the war was not over, and wounded men still needed him.",
+            "He went where the cries were.",
+            "That was his kind of courage."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "Later, Doss was wounded himself. Even then, he thought of others. He waited while another man was carried out first. That was how he lived.",
+            "He had been mocked for not carrying a weapon. Now men knew better. They had seen him cross ground other men could not cross. They had seen him stay when he had every reason to leave.",
+            "Doss did not win honor by hurting the enemy.",
+            "He won it by refusing to abandon the wounded.",
+            "The men who came home because of him never forgot that. They knew his faith was not talk. It had hands. It had feet. It climbed back into danger again and again."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Desmond Doss became a hero with empty hands.",
+            "No rifle. No revenge. No swagger.",
+            "Just courage, faith, and a stubborn love for men in trouble.",
+            "He asked God for one more.",
+            "Then he went and got him.",
+            "On that ridge, mercy looked strong."
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "id": "reacher-arrested-diner",
+  "title": "REACHER: ARRESTED AT THE DINER",
+  "baseColor": "#12372F",
+  "titleTint": "#FFE36E",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "THE DINER",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Reacher was eating breakfast when the police came for him.",
+            "He had walked into Margrave with no car, no bag, and no plan to stay. He found a diner, ordered food, and sat where he could see the room.",
+            "Then the police cars rolled up outside.",
+            "Reacher saw them before they saw him."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The door opened hard, and the room changed. Forks stopped moving. Coffee cups paused halfway to mouths. Small towns knew when trouble had walked in.",
+            "Two officers came toward Reacher like they already had their answer. One kept a hand near his weapon. The other did the talking, loud enough for the whole diner to hear.",
+            "Reacher looked at their hands first. Then their eyes. Then the door behind them.",
+            "He didn't get up. He didn't smile. He didn't ask what this was about.",
+            "\"You Jack Reacher?\" one of them said.",
+            "Reacher took a breath and looked at his plate.",
+            "\"That depends how much trouble comes with the name,\" he said.",
+            "The officer didn't like that.",
+            "Reacher could live with that."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "They told him to stand. Reacher stood slowly, because fast movement made nervous men more nervous.",
+            "The whole diner watched. Reacher didn't look embarrassed. He didn't look scared. He looked like a man counting exits.",
+            "They had badges and guns. He had timing.",
+            "They thought they had found their suspect.",
+            "They had found Reacher."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "BAD POLICE WORK",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "At the station, they tried to make him small.",
+            "They put him in a room, shut the door, and asked questions like they had already written the ending. Reacher sat still and listened.",
+            "He had been a military policeman.",
+            "This was not police work. This was panic with uniforms on."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "They wanted Reacher to explain why he was in town. They wanted him to explain why a man was dead. They wanted him to explain why a stranger with no local ties had shown up at the same time.",
+            "Reacher let them talk.",
+            "A man can learn a lot when angry people think they are in charge. Their words get loose. Their eyes move before their mouths do. Their story starts to show cracks.",
+            "One officer leaned over the table.",
+            "\"You got anything to say?\"",
+            "Reacher looked at him for a long second.",
+            "\"Yes,\" he said. \"You're rushing.\"",
+            "That landed badly.",
+            "The officer's face tightened. Reacher saw it. He filed it away.",
+            "He had been arrested before by better men than this. Better men had still been wrong."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The room was locked, but Reacher didn't feel trapped.",
+            "He watched the men move. He heard what they would not say. Somebody wanted this case closed fast, and somebody wanted Reacher to carry it.",
+            "That told him plenty.",
+            "The cuffs were temporary.",
+            "The mistake was theirs."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "THE CELL",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "They moved Reacher from the interview room to a cell.",
+            "That was their next mistake.",
+            "A cell was meant to make a man feel alone. Reacher had been alone most of his life. He knew how to stand quiet and let danger come close.",
+            "It usually did."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The men inside the holding area looked him over. They saw a stranger, tall and quiet, brought in by local police. Some men see quiet and think weak.",
+            "That mistake could cost a man.",
+            "One of them stepped too close. He had the look of someone used to people backing up. Reacher did not back up.",
+            "The man said something ugly. Reacher did not answer it.",
+            "He only said, \"Stay over there.\"",
+            "The man smiled like he had heard a joke. Then he came another step closer.",
+            "Reacher moved once.",
+            "The man went down hard and stayed down. The sound in the cell changed. The other men understood faster than he had.",
+            "Reacher went back to the wall."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Nobody else stepped close.",
+            "That was the first smart thing anyone had done all day.",
+            "Reacher didn't pace. He didn't brag. He didn't need to explain the lesson.",
+            "The room had fewer problems now.",
+            "Outside the cell, men were still trying to build a story around him. Inside the cell, the story had already changed.",
+            "Reacher was not prey."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "THE TOWN MADE A MISTAKE",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Margrave thought it had handled the stranger.",
+            "It had not handled him. It had only pointed him in the right direction.",
+            "They had pulled Reacher out of the diner, locked him up, and tried to scare him quiet. That told him the town was hiding something.",
+            "Now he was interested."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "Reacher began putting the pieces together. The arrest had been too quick. The questions had been too eager. The men in charge acted less like officers hunting truth and more like men protecting a secret.",
+            "That was useful.",
+            "A bad plan still tells you something about the planner. This plan told Reacher they were worried, rushed, and used to people folding.",
+            "He did not fold.",
+            "He remembered names. He remembered faces. He remembered who looked angry and who looked afraid.",
+            "Someone in Margrave had power. Someone had money. Someone thought a dead man and a quiet stranger could be tied together and buried.",
+            "Reacher knew better.",
+            "He had been trained to find the weak point."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The diner was where they first saw him.",
+            "It was not where this would end.",
+            "Reacher had walked into town alone, looking for nothing more than breakfast and old music. Now the town had his full attention.",
+            "That was bad news for the men hiding in the dark.",
+            "They thought they had caught their problem.",
+            "They had invited it in."
+          ]
+        }
+      ]
+    }
+  ]
+}

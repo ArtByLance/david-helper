@@ -134,7 +134,7 @@ function buildReaderPages(item) {
 }
 
 function getChapterImage(item, chapterIndex) {
-  return `./assets/media/scenes/${item.id}-${chapterIndex + 1}.jpg`;
+  return `./assets/media/books/chapters/${item.id}-${chapterIndex + 1}.jpg`;
 }
 
 function normalizeParagraphs(text) {

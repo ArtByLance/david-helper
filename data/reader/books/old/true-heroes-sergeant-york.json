@@ -1,0 +1,170 @@
+{
+  "id": "true-heroes-sergeant-york",
+  "title": "True Heroes: Sergeant York",
+  "baseColor": "#18243D",
+  "titleTint": "#BFD7FF",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "The Quiet Man",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Alvin York did not look like a man hunting glory.",
+            "He was a quiet man from the hills of Tennessee. He knew woods, rifles, hard work, and prayer. War had carried him far from home.",
+            "Now he stood in France, with mud under his boots and danger ahead."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "York had not wanted war. He had wrestled with it deep inside, because he believed in God and wanted to do right. But when he became a soldier, he did not become careless or cruel.",
+            "He became steady.",
+            "The men around him learned that quickly. York could shoot. He could move through rough ground. He could stay calm when other men got nervous.",
+            "That mattered in France.",
+            "The battlefield did not care where a man came from. It did not care if he was poor, quiet, homesick, or scared. It only asked whether he would stand when the time came.",
+            "York was not loud.",
+            "But he stood."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The orders came, and the men moved forward.",
+            "They were not marching in a parade. They were pushing through danger, low to the ground, with enemy fire cracking ahead of them.",
+            "York kept moving with the others.",
+            "He did not know yet what the day would ask of him.",
+            "But the day was coming fast."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "The Hill",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The hill was alive with gunfire.",
+            "German machine guns were cutting across the field, stopping the American advance cold. Men could not move without being hit.",
+            "York and a small group were sent around the side.",
+            "They had to find a way through."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The men moved through the brush, trying to get behind the German line. It was hard ground, full of noise and smoke. Every step mattered.",
+            "At first, the move worked.",
+            "They came up behind a group of German soldiers and surprised them. The enemy raised their hands. For a moment, it looked like the danger might be easing.",
+            "Then the machine guns opened again from higher ground.",
+            "The shots tore through the air and hit the American group hard. Men fell. Leaders were gone. The little group that had started strong was suddenly broken and exposed.",
+            "York saw what was happening.",
+            "The enemy guns had them pinned.",
+            "If no one stopped those guns, more men would die."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "York took cover and looked up the hill.",
+            "The German gunners were above him. They had the better position. They had more men. They had the guns.",
+            "York had his rifle, his training, and a calm hand.",
+            "He raised the rifle and began to fire.",
+            "The line had to hold."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "York Keeps Firing",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The enemy kept coming, and York kept stopping them.",
+            "He did not waste shots. He had learned to shoot in the Tennessee hills, where a man had to make one bullet count.",
+            "Now those old lessons mattered.",
+            "Every careful shot bought time."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The German soldiers tried to silence him. They fired down from the hill. They moved from cover to cover. They thought one man could not hold them long.",
+            "They were wrong.",
+            "York stayed low. He watched for movement. When a gunner showed himself, York fired. When another man tried to take the gun, York fired again.",
+            "The attack slowed.",
+            "Then more German soldiers rushed him. York saw them coming and changed targets fast. He had no time to panic. He had no room for speeches. He just did what had to be done so his men could live.",
+            "One by one, the danger in front of him broke.",
+            "The hill was still loud.",
+            "But York was louder with action."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The German officer saw what was happening.",
+            "His men were being stopped by one steady American who would not quit. The officer had seen enough.",
+            "He surrendered.",
+            "York did not swagger. He did not mock them. He took control, gathered the prisoners, and kept his weapon ready.",
+            "The fight was not over until his men were safe."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "The Long Walk Back",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "York started back with prisoners.",
+            "Not a few.",
+            "A long line of German soldiers moved ahead of him, guarded by York and the men who were still able to walk. It hardly seemed possible.",
+            "But there they were.",
+            "The hill had gone quiet behind them."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The walk back was dangerous too. A surrendered enemy could still turn. A hidden gun could still open fire. York knew that. He kept watching.",
+            "The prisoners kept moving.",
+            "More German soldiers came into view along the way. York handled them carefully, firmly, and without panic. By the time he reached the American line, the number had grown beyond what anyone expected.",
+            "Men stared.",
+            "York had helped stop the guns, saved lives, and brought back a crowd of prisoners. He had done it without acting proud, and without pretending it had been easy.",
+            "He was still the quiet man from Tennessee.",
+            "Only now everyone knew what quiet courage could do."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "York became a hero, but he had not gone looking for that.",
+            "He had gone where duty sent him. When fear came, he stood. When the guns opened, he answered.",
+            "The enemy kept coming.",
+            "York kept stopping them.",
+            "The line held, and many men lived because one quiet man did not quit."
+          ]
+        }
+      ]
+    }
+  ]
+}

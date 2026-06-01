@@ -1,0 +1,174 @@
+{
+  "id": "raylan-time-for-a-showdown",
+  "title": "Raylan: Time for a Showdown",
+  "baseColor": "#4A2B18",
+  "titleTint": "#FFD166",
+  "chapters": [
+    {
+      "id": "chapter-1",
+      "title": "The Man in the Hat",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "Raylan Givens wore the hat like he meant it.",
+            "Some men wore a hat to look tough. Raylan wore his because it fit the job. He was a marshal, and he had come back to Kentucky with old trouble waiting on him.",
+            "Trouble knew his name. Raylan knew trouble's face."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "Harlan County had a long memory. So did Raylan. He knew the roads, the hollers, the old grudges, and the kind of men who smiled right before they reached for a gun.",
+            "He had grown up around men like that. Now he carried a badge, but the badge did not make him safe. It only made the target clearer.",
+            "A man had been making threats. Another man had gone missing. Money had moved where it should not have moved. Old names were coming back into the air.",
+            "Raylan listened to the talk and kept his own voice low. One deputy asked if he was worried.",
+            "Raylan looked toward the bar. \"Wouldn't help much,\" he said.",
+            "Then he went inside."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The room got quieter when Raylan entered.",
+            "That was usually a sign. Men who had been laughing suddenly found their drinks interesting. One man at the back did not look away. He wanted Raylan to see him.",
+            "Raylan saw him.",
+            "The man had a gun under the table.",
+            "Raylan kept walking."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "Too Much Talk",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The man in the booth talked like a man trying to sound brave.",
+            "Raylan let him talk.",
+            "That was one of Raylan's gifts. He could sit still while a fool dug the hole deeper. Sometimes he even looked bored.",
+            "That made angry men careless."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "The man said Raylan had no business in Harlan. He said old matters should stay buried. He said men with badges did not understand how things worked there.",
+            "Raylan nodded a little, like he was hearing weather. Then the man's hand moved toward his coat.",
+            "\"Don't,\" Raylan said.",
+            "The hand stopped. The whole bar seemed to hold its breath.",
+            "The man smiled. \"Don't what?\"",
+            "Raylan looked at him plain. \"Don't make me explain it after.\"",
+            "That smile faded.",
+            "The hand moved again, slower this time, like slow made it smarter. It did not.",
+            "Raylan's hand moved once. The table jumped. The man's gun hit the floor before the man had finished his mistake."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Nobody spoke.",
+            "Raylan kicked the gun away and looked down at the man in the booth.",
+            "\"You were doing better when you were talking,\" he said.",
+            "The man held his hand and tried to look angry. It came out more like fear.",
+            "Raylan stood.",
+            "The message had been sent.",
+            "Some men would ignore it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "The Road Out",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "They came for Raylan on a back road.",
+            "That was not creative, but it was honest. Two trucks blocked the way. Men stood in the headlights with rifles, shotguns, and bad judgment.",
+            "Raylan stopped his car and sighed.",
+            "It was going to be that kind of night."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "He stepped out slowly, because fast movement made things stupid faster. The men spread out. One of them shouted for him to drop his gun.",
+            "Raylan looked at the road, then at the ditch, then at the men. \"You boys sure about this?\"",
+            "No one answered well.",
+            "That was an answer.",
+            "The first shot came wild. Raylan moved behind his door and returned fire clean. One man dropped his weapon and went down hard. Another ran toward the ditch and found out the ditch was not cover if Raylan already knew where he was going.",
+            "The third man froze. That saved him.",
+            "Raylan kept his gun trained and called out, \"Hands where I can see them.\"",
+            "This time, they listened."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The road went quiet except for engines and heavy breathing.",
+            "Raylan walked forward and cleared the weapons one by one. He did not hurry. He did not brag.",
+            "One man on the ground cursed at him.",
+            "Raylan looked down. \"You're alive,\" he said. \"Try gratitude.\"",
+            "Then he turned toward the trucks.",
+            "The real trouble was still ahead."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "Time for a Showdown",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The final man wanted a showdown.",
+            "Some men did. They thought it made them legends. They pictured dust, silence, and one clean moment that would prove who they were.",
+            "Raylan knew better.",
+            "A showdown was usually just a bad choice with witnesses."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "They met in an old coal yard as the light came up. Rusted metal stood around them. Gravel crunched under Raylan's boots. The other man stood with his coat open and his hand close.",
+            "He had done this before. So had Raylan.",
+            "The man talked about respect. He talked about fear. He talked about how this county belonged to men like him, not men with badges and clean paperwork.",
+            "Raylan let him finish. \"That your whole speech?\" he asked.",
+            "The man's eyes hardened. Raylan did not move.",
+            "The draw came fast. It had to. Men who live that way count on speed.",
+            "Raylan was faster.",
+            "The shot cracked once, and the fight was over."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "The man hit the gravel and did not get back up.",
+            "Raylan stood still a moment, gun low, eyes steady. He looked tired more than proud.",
+            "That was the truth of it.",
+            "The bad man had wanted a story. Raylan had given him an ending.",
+            "The sun came up over the coal yard.",
+            "Justice was still wearing the hat."
+          ]
+        }
+      ]
+    }
+  ]
+}

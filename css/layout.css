@@ -102,11 +102,19 @@ button:disabled {
 }
 
 #app-main.view-transition-out {
-  animation: viewFadeOut 150ms ease-in forwards;
+  animation: viewFadeOut 120ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 #app-main.view-transition-in {
-  animation: viewFadeIn 240ms ease-out both;
+  animation: viewFadeIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+#app-main.view-transition-in.view-transition-to-shelf {
+  animation-name: viewZoomToShelf;
+}
+
+#app-main.view-transition-in.view-transition-to-home {
+  animation-name: viewZoomToHome;
 }
 
 .screen {
@@ -146,7 +154,7 @@ button:disabled {
   transform: none;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0);
-  color: #eeb04b;
+  color: #d8b367;
   text-align: center;
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.65);
   pointer-events: none;
@@ -263,15 +271,12 @@ button:disabled {
 
 .media-spine-hotspot {
   position: absolute;
-  inset: 0;
+  inset: -24px;
   z-index: 4;
   display: block;
-  width: 100%;
-  height: 100%;
   padding: 0;
   border: 0;
   background: transparent;
-  clip-path: var(--media-hotspot-clip);
   appearance: none;
   -webkit-appearance: none;
 }
@@ -301,7 +306,7 @@ button:disabled {
 .media-titleText {
   color: #fff6df;
   fill: #fff6df;
-  font-family: "Bebas Neue", "Anton", "Impact", sans-serif;
+  font-family: "Bebas Neue", "Oswald", "Anton", "Impact", sans-serif;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -328,6 +333,11 @@ button:disabled {
   pointer-events: none;
 }
 
+.take-off-layer .media-front-item {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
 .today-object-layer {
   position: absolute;
   left: 1600px;
@@ -346,7 +356,7 @@ button:disabled {
 }
 
 .today-led-clock {
-  left: 70px;
+  left: 1740px;
   top: 630px;
   width: 660px;
   height: 426px;
@@ -391,7 +401,7 @@ button:disabled {
 }
 
 .today-menu-card {
-  left: 1597px;
+  left: 872px;
   top: 478px;
   width: 806px;
   height: 530px;
@@ -399,11 +409,15 @@ button:disabled {
 }
 
 .today-object-layer[data-has-special="false"] .today-menu-card {
-  left: 797px;
+  left: 70px;
+}
+
+.today-object-layer[data-has-special="false"] .today-led-clock {
+  left: 940px;
 }
 
 .today-special-card {
-  left: 872px;
+  left: 70px;
   top: 544px;
   width: 656px;
   height: 422px;
@@ -1027,6 +1041,11 @@ button:disabled {
   position: absolute;
   inset: 0;
   z-index: 80;
+  animation: takeOffLayerIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.take-off-layer.take-off-exiting {
+  animation: takeOffLayerOut 120ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .shelf-dim {
@@ -1049,10 +1068,20 @@ button:disabled {
   display: flex;
   justify-content: center;
   gap: 22px;
+  animation: takeOffActionsIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .take-off-media-shell .media-front-item {
   z-index: 24;
+  animation: takeOffCaseIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.take-off-exiting .take-off-media-shell .media-front-item {
+  animation: takeOffCaseOut 120ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.take-off-exiting .take-off-actions {
+  animation: takeOffActionsOut 120ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .taken-card {
@@ -1126,26 +1155,101 @@ button:disabled {
 }
 
 .handoff-screen {
-  display: grid;
-  place-items: center;
+  overflow: hidden;
+  background: #120d09;
+}
+
+.handoff-shelf-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  filter: brightness(0.34) saturate(0.7);
+}
+
+.handoff-shelf-backdrop .shelf-image-screen {
+  position: absolute;
+  inset: 0;
+}
+
+.handoff-shelf-backdrop .shelf-back-zone,
+.handoff-shelf-backdrop .media-spine-hotspot,
+.handoff-shelf-backdrop .scroll-label {
+  display: none;
+}
+
+.handoff-shelf-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.34);
 }
 
 .handoff-card {
-  width: 710px;
-  min-height: 610px;
+  position: absolute;
+  left: 46px;
+  top: 252px;
+  z-index: 20;
+  width: 708px;
+  height: 790px;
+}
+
+.handoff-note {
+  position: relative;
+  width: 100%;
+  height: 620px;
+  transform: rotate(-8deg);
+  transform-origin: center;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.34));
+}
+
+.handoff-post-it {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.handoff-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 56px;
-  border-radius: 8px;
-  background: #f5ecd7;
-  box-shadow: var(--paper-shadow);
+  padding: 22px 86px 132px;
+}
+
+.handoff-put-back {
+  position: absolute;
+  right: 78px;
+  top: 645px;
+  z-index: 22;
+}
+
+.video-launch-debug {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  min-height: 96px;
+  padding: 18px 28px;
+  background: #050505;
+  color: #f7e6a0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 20px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.35);
 }
 
 #meal-timer {
   position: absolute;
   right: -42px;
-  top: 139px;
+  top: 235px;
   z-index: 30;
   width: 560px;
   aspect-ratio: 1360 / 615;
@@ -1291,18 +1395,102 @@ button:disabled {
     transform: scale(1);
   }
   to {
-    opacity: 0.22;
-    transform: scale(0.985);
+    opacity: 0.62;
+    transform: scale(0.992);
   }
 }
 
 @keyframes viewFadeIn {
   from {
-    opacity: 0.22;
-    transform: scale(1.018);
+    opacity: 0.62;
+    transform: scale(1.006);
   }
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes viewZoomToShelf {
+  from {
+    opacity: 0.58;
+    transform: scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes viewZoomToHome {
+  from {
+    opacity: 0.58;
+    transform: scale(1.035);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes takeOffLayerIn {
+  from {
+    opacity: 0.58;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes takeOffLayerOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.62;
+  }
+}
+
+@keyframes takeOffCaseIn {
+  from {
+    opacity: 0.58;
+    transform: translateY(34px) scale(0.965) rotate(var(--media-rotation));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(var(--media-rotation));
+  }
+}
+
+@keyframes takeOffCaseOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(var(--media-rotation));
+  }
+  to {
+    opacity: 0.62;
+    transform: translateY(24px) scale(0.992) rotate(var(--media-rotation));
+  }
+}
+
+@keyframes takeOffActionsIn {
+  from {
+    opacity: 0.58;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes takeOffActionsOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0.62;
+    transform: translateY(12px);
   }
 }

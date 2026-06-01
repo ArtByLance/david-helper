@@ -1,27 +1,5 @@
 [
   {
-    "id": "jack-reacher",
-    "title": "Jack Reacher",
-    "items": [
-      {
-        "id": "reacher-arrested-diner",
-        "title": "Reacher: Arrested at the Diner"
-      },
-      {
-        "id": "reacher-brother-in-arms",
-        "title": "Reacher: Brother in Arms"
-      },
-      {
-        "id": "reacher-eliminate-the-duncans",
-        "title": "Reacher: Eliminate the Duncans"
-      },
-      {
-        "id": "reacher-locate-the-team",
-        "title": "Reacher: Locate the Team"
-      }
-    ]
-  },
-  {
     "id": "true-war-heroes",
     "title": "True War Heroes",
     "items": [
@@ -45,7 +23,7 @@
   },
   {
     "id": "western",
-    "title": "Western",
+    "title": "Westerns",
     "items": [
       {
         "id": "old-henry-unmasked",
@@ -58,6 +36,28 @@
       {
         "id": "boyd-fire-in-the-hole",
         "title": "Boyd: Fire in the Hole"
+      }
+    ]
+  },
+  {
+    "id": "jack-reacher",
+    "title": "Jack Reacher",
+    "items": [
+      {
+        "id": "reacher-arrested-diner",
+        "title": "Reacher: Arrested at the Diner"
+      },
+      {
+        "id": "reacher-brother-in-arms",
+        "title": "Reacher: Brother in Arms"
+      },
+      {
+        "id": "reacher-eliminate-the-duncans",
+        "title": "Reacher: Eliminate the Duncans"
+      },
+      {
+        "id": "reacher-locate-the-team",
+        "title": "Reacher: Locate the Team"
       }
     ]
   },

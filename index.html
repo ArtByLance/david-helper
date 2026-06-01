@@ -22,6 +22,14 @@
     <link rel="stylesheet" href="./css/layout.css?v=assets-20260530" />
     <link rel="stylesheet" href="./css/text.css?v=assets-20260530" />
     <link rel="stylesheet" href="./css/reader.css?v=assets-20260530" />
+    <script>
+      window.KIOSK = window.KIOSK || {};
+      window.KIOSK.commsMode = "OFFSITE";
+      window.KIOSK.vm = {
+        endpoint: "https://api-v2.voicemonkey.io/trigger",
+        token: "TOKEN_NOT_SET",
+      };
+    </script>
   </head>
   <body>
     <div id="app-shell">
