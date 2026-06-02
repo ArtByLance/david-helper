@@ -10,6 +10,18 @@ exports.handler = async (event) => {
     return { statusCode: 204, headers, body: "" };
   }
 
+  if (event.queryStringParameters?.health === "1") {
+    return json(
+      200,
+      {
+        ok: true,
+        tokenConfigured: Boolean(process.env.VOICEMONKEY_TOKEN),
+        endpointConfigured: Boolean(process.env.VOICEMONKEY_ENDPOINT),
+      },
+      headers,
+    );
+  }
+
   const command = getCommand(event);
   if (!command) {
     return json(400, { ok: false, error: "Missing VoiceMonkey command." }, headers);
@@ -28,6 +40,20 @@ exports.handler = async (event) => {
   const url = new URL(endpoint);
   url.searchParams.set("token", token);
   url.searchParams.set("device", command);
+
+  if (event.queryStringParameters?.dryRun === "1") {
+    return json(
+      200,
+      {
+        ok: true,
+        dryRun: true,
+        command,
+        endpoint,
+        tokenConfigured: true,
+      },
+      headers,
+    );
+  }
 
   try {
     const response = await fetch(url.toString(), { method: "GET" });

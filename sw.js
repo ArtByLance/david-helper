@@ -13,6 +13,7 @@ const CORE_ASSETS = [
   "/js/playback.js",
   "/js/reader.js",
   "/js/app-data.js",
+  "/js/dementia-clock.js",
   "/js/layout.js",
   "/js/time.js",
   "/js/utils.js",

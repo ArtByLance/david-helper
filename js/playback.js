@@ -19,22 +19,6 @@ export function buildVoiceMonkeyUrl(command, config = window.KIOSK?.vm) {
 }
 
 /**
- * Build a same-origin Netlify Function URL. This keeps the VoiceMonkey token
- * out of browser-delivered config; Netlify reads it from VOICEMONKEY_TOKEN.
- *
- * @param {string} command
- * @param {{ proxyEndpoint?: string }} config
- * @returns {string | null}
- */
-export function buildVoiceMonkeyProxyUrl(command, config = window.KIOSK?.vm) {
-  if (!config?.proxyEndpoint || !command) return null;
-
-  const url = new URL(config.proxyEndpoint, window.location.origin);
-  url.searchParams.set("device", command);
-  return url.toString();
-}
-
-/**
  * Fire a URL through a hidden iframe to avoid fetch/CORS issues.
  *
  * @param {string | null} url
@@ -111,8 +95,6 @@ export function launchVideoItem(item) {
 }
 
 function hasPlaceholderToken() {
-  if (window.KIOSK?.vm?.proxyEndpoint) return false;
-
   const token =
     window.KIOSK?.vm?.token ??
     window.DAVIDS_THINGS_VOICEMONKEY?.token ??
@@ -127,8 +109,6 @@ function getCommsMode() {
 function getConfiguredVoiceMonkeyUrl(command) {
   const kioskConfig = window.KIOSK?.vm ?? {};
   const legacyConfig = window.DAVIDS_THINGS_VOICEMONKEY ?? {};
-  const proxyUrl = buildVoiceMonkeyProxyUrl(command, kioskConfig);
-  if (proxyUrl) return proxyUrl;
 
   const commandUrl =
     kioskConfig.commands?.[command] ??

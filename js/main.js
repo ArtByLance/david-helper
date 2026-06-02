@@ -1,4 +1,8 @@
 import { MEALS, READ_CONTENT, TODAY_SPECIALS } from "./app-data.js";
+import {
+  refreshDementiaClocks,
+  renderDementiaClock,
+} from "./dementia-clock.js";
 import { fitStageToViewport } from "./layout.js";
 import { launchVideoItem } from "./playback.js";
 import { getReaderPageCount, renderReaderView } from "./reader.js";
@@ -19,6 +23,8 @@ const ALERT_TRANSITION_MS = 260;
 const ALERT_HOME_ENTRY_DELAY_MS = 750;
 const VIEW_TRANSITION_OUT_MS = 120;
 const VIEW_TRANSITION_IN_MS = 180;
+const IDLE_HOME_MS = 5 * 60 * 1000;
+const IDLE_CHECK_MS = 15 * 1000;
 const SHELF_PANEL_WIDTH = 800;
 const SHOWS_SPINE_START_X = 1810;
 const MEDIA_SPINE_TO_SPINE_GAP = 70;
@@ -46,8 +52,8 @@ const SHOWS_EXTENSION_PANELS = 7;
 const SHOWS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * SHOWS_EXTENSION_PANELS;
 const BOOKS_EXTENSION_PANELS = 8;
 const BOOKS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * BOOKS_EXTENSION_PANELS;
-const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 4;
-const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 3;
+const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 6;
+const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 5;
 const dvdSpineSkin = {
   overlay: "./assets/objects/dvd-spine.png",
   viewBox: { width: 196, height: 713 },
@@ -129,6 +135,8 @@ const state = {
   alertHidden: false,
   alertTransitioning: false,
   viewTransitioning: false,
+  lastInteractionAt: Date.now(),
+  idleReturnRunning: false,
   recentRead: loadRecent("davidsStuff.recentRead"),
   recentWatched: loadRecent("davidsStuff.recentWatched"),
 };
@@ -254,10 +262,7 @@ async function loadKioskConfig() {
     window.KIOSK = {
       ...(window.KIOSK ?? {}),
       ...config.kiosk,
-      vm: {
-        ...(window.KIOSK?.vm ?? {}),
-        ...(config.kiosk.vm ?? {}),
-      },
+      vm: config.kiosk.vm ?? window.KIOSK?.vm ?? {},
     };
   } catch (error) {
     console.warn("Could not load kiosk config.", error);
@@ -272,12 +277,25 @@ async function bootstrap() {
   await Promise.all([loadBooksShelfMedia(), loadShowsShelfMedia()]);
   render();
   window.setInterval(renderMealTimerOnly, 20 * 1000);
+  window.setInterval(checkIdleReturnHome, IDLE_CHECK_MS);
 }
 
 function bindGlobalControls() {
   document
     .getElementById("app-main")
     ?.addEventListener("click", handleMainClick);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("pointerdown", markUserInteraction, {
+      capture: true,
+      passive: true,
+    });
+  document
+    .getElementById("app-main")
+    ?.addEventListener("touchstart", markUserInteraction, {
+      capture: true,
+      passive: true,
+    });
   document
     .getElementById("app-main")
     ?.addEventListener("scroll", handleShelfScroll, {
@@ -295,6 +313,9 @@ function bindGlobalControls() {
     ?.addEventListener("pointerdown", handleHomeShelfPointerDown);
   document.addEventListener("pointerup", handleHomeShelfPointerUp);
   document.addEventListener("pointercancel", cancelHomeShelfSwipe);
+  document.addEventListener("keydown", markUserInteraction, {
+    capture: true,
+  });
   document.addEventListener("keydown", handleReaderKeyDown);
 }
 
@@ -317,6 +338,7 @@ function renderLiveClockText(now) {
     .forEach((element) => {
       element.textContent = formatClock(now);
     });
+  refreshDementiaClocks(now);
 }
 
 function applyInitialShelfRoute() {
@@ -343,34 +365,117 @@ function renderMain(now) {
   setBooleanDataAttribute(stage, "data-image-shell", isShelfImageView());
   setBooleanDataAttribute(stage, "data-reader", Boolean(state.readerItem));
 
-  if (state.readerItem) {
-    main.innerHTML = renderReaderView({
-      item: state.readerItem,
-      pageIndex: state.readerPage,
-      turnDirection: state.readerTurnDirection,
-    });
-    state.readerTurnDirection = "";
+  const homeLayer = ensureAppLayer(main, "home-layer");
+  const shelfLayer = ensureAppLayer(main, "shelf-layer");
+  const takeOffLayer = ensureAppLayer(main, "take-off-layer-slot");
+  const handoffLayer = ensureAppLayer(main, "handoff-layer");
+  const readerLayer = ensureAppLayer(main, "reader-layer");
+
+  renderHomeLayer(homeLayer, now);
+  renderShelfLayer(shelfLayer, now);
+  renderTakeOffLayerSlot(takeOffLayer);
+  renderHandoffLayer(handoffLayer);
+  renderReaderLayer(readerLayer);
+}
+
+function ensureAppLayer(main, className) {
+  let layer = main.querySelector(`.${className}`);
+  if (layer) return layer;
+
+  layer = document.createElement("div");
+  layer.className = `app-layer ${className}`;
+  main.appendChild(layer);
+  return layer;
+}
+
+function renderHomeLayer(layer, now) {
+  if (!layer.hasChildNodes()) {
+    layer.innerHTML = renderHome(now);
+  }
+
+  refreshHomeLayer(layer, now);
+  layer.toggleAttribute("aria-hidden", state.view !== "HOME");
+}
+
+function refreshHomeLayer(layer, now) {
+  const dateReadout = getHomeDateReadout(now);
+  layer.querySelector(".home-main-image")?.setAttribute("src", getHomeScene(now));
+
+  const leftDate = layer.querySelector(
+    ".home-date-readout:not(.home-date-readout-right)",
+  );
+  leftDate?.setAttribute("aria-label", dateReadout.ariaLabel);
+  const leftText = leftDate?.querySelector("strong");
+  if (leftText) {
+    leftText.innerHTML = `<span>${escapeHtml(dateReadout.weekday)}</span> ${escapeHtml(dateReadout.dayPart)}`;
+  }
+
+  const rightText = layer.querySelector(".home-date-readout-right small");
+  if (rightText) rightText.textContent = dateReadout.dateLabel;
+
+  const todayObjects = layer.querySelector(".home-today-object-layer");
+  if (todayObjects) {
+    const template = document.createElement("template");
+    template.innerHTML = renderHomeTodayObjects(now).trim();
+    todayObjects.replaceWith(template.content.firstElementChild);
+  }
+}
+
+function renderShelfLayer(layer, now) {
+  const shouldShowShelf = state.view === "SHELF" && Boolean(state.activeShelf);
+  layer.hidden = !shouldShowShelf;
+  if (!shouldShowShelf) return;
+
+  const key = `${state.activeShelf}:${state.activeShelf === "TODAY" ? formatWeekdayKey(now) : ""}`;
+  if (layer.dataset.renderKey === key) return;
+
+  layer.innerHTML = renderShelfImageShell(state.activeShelf, now);
+  layer.dataset.renderKey = key;
+}
+
+function renderTakeOffLayerSlot(layer) {
+  layer.hidden = !state.selectedItem;
+  if (!state.selectedItem) {
+    layer.replaceChildren();
+    delete layer.dataset.renderKey;
     return;
   }
 
-  if (state.handoffItem) {
-    main.innerHTML = renderHandoff();
+  const key = `${state.selectedKind}:${state.selectedItem.id}:${state.takeOffExiting}`;
+  if (layer.dataset.renderKey === key) return;
+
+  layer.innerHTML = renderTakeOffOverlay();
+  layer.dataset.renderKey = key;
+}
+
+function renderHandoffLayer(layer) {
+  layer.hidden = !state.handoffItem;
+  if (!state.handoffItem) {
+    layer.replaceChildren();
+    delete layer.dataset.renderKey;
     return;
   }
 
-  if (state.view === "HOME") {
-    main.innerHTML = renderHome(now);
-  } else if (state.activeShelf === "TODAY") {
-    main.innerHTML = renderShelfImageShell("TODAY", now);
-  } else if (state.activeShelf === "BOOKS") {
-    main.innerHTML = renderShelfImageShell("BOOKS");
-  } else if (state.activeShelf === "SHOWS") {
-    main.innerHTML = renderShelfImageShell("SHOWS");
+  const key = `${state.handoffItem.id}:${state.videoLaunchDebug?.url ?? ""}`;
+  if (layer.dataset.renderKey === key) return;
+
+  layer.innerHTML = renderHandoff();
+  layer.dataset.renderKey = key;
+}
+
+function renderReaderLayer(layer) {
+  layer.hidden = !state.readerItem;
+  if (!state.readerItem) {
+    layer.replaceChildren();
+    return;
   }
 
-  if (state.selectedItem) {
-    main.insertAdjacentHTML("beforeend", renderTakeOffOverlay());
-  }
+  layer.innerHTML = renderReaderView({
+    item: state.readerItem,
+    pageIndex: state.readerPage,
+    turnDirection: state.readerTurnDirection,
+  });
+  state.readerTurnDirection = "";
 }
 
 function setBooleanDataAttribute(element, name, enabled) {
@@ -398,6 +503,7 @@ function renderMealTimer(now) {
 
   mealTimer?.setAttribute("data-rest", String(mealState.resting));
   mealTimer?.setAttribute("data-eating", String(mealState.eating));
+  mealTimer?.setAttribute("data-urgent", String(mealState.urgent));
   mealTimer?.setAttribute("aria-hidden", String(shouldHideCard));
   mealTimer?.classList.toggle("alert-card-hidden", shouldHideCard);
   mealTimer?.style.setProperty(
@@ -578,15 +684,6 @@ function renderTodayObjects(now) {
 
   return `
     <div class="today-object-layer" data-has-special="${Boolean(special)}">
-      <div class="today-led-clock" aria-label="Current time">
-        <img src="${TODAY_CLOCK_IMAGE}" alt="" aria-hidden="true" draggable="false" />
-        <div class="today-led-clock-display">
-          <div class="today-led-clock-text">${formatClock(now)}</div>
-        </div>
-      </div>
-
-      ${special ? renderTodaySpecialCard(special) : ""}
-
       <section class="today-menu-card" aria-label="Meals today">
         <img src="${TODAY_MENU_IMAGE}" alt="" aria-hidden="true" draggable="false" />
         <div class="today-card-content">
@@ -596,6 +693,17 @@ function renderTodayObjects(now) {
           </div>
         </div>
       </section>
+
+      ${special ? renderTodaySpecialCard(special) : ""}
+
+      <div class="today-led-clock" aria-label="Current time">
+        <img src="${TODAY_CLOCK_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+        <div class="today-led-clock-display">
+          <div class="today-led-clock-text">${formatClock(now)}</div>
+        </div>
+      </div>
+
+      ${renderDementiaClock(now)}
     </div>
   `;
 }
@@ -1657,6 +1765,10 @@ function handleReaderPointerDown(event) {
   state.readerSwipeStartY = event.clientY;
 }
 
+function markUserInteraction() {
+  state.lastInteractionAt = Date.now();
+}
+
 function handleHomeShelfPointerDown(event) {
   if (!isHomeView()) return;
   const zone = event.target.closest?.(".home-tap-zone[data-shelf]");
@@ -1778,6 +1890,7 @@ function finishReading() {
 function handleShelfScroll(event) {
   const shelf = event.target.closest?.("[data-shelf-kind]");
   if (!shelf) return;
+  markUserInteraction();
   if (shelf.dataset.shelfKind === "BOOKS") {
     if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
       shelf.scrollLeft = SHELF_PANEL_WIDTH;
@@ -1825,6 +1938,34 @@ function clampBooksScroll(scrollLeft) {
 
 function clampTodayScroll(scrollLeft) {
   return clamp(scrollLeft, SHELF_PANEL_WIDTH, getTodayMaxScrollLeft());
+}
+
+async function checkIdleReturnHome() {
+  if (!shouldIdleReturnHome()) return;
+
+  state.idleReturnRunning = true;
+  state.lastInteractionAt = Date.now();
+  try {
+    clearSelection();
+    await transitionView("to-home", () => {
+      state.view = "HOME";
+      state.activeShelf = null;
+      render();
+    });
+    animateAlertEnterHome();
+  } finally {
+    state.idleReturnRunning = false;
+  }
+}
+
+function shouldIdleReturnHome() {
+  if (state.idleReturnRunning) return false;
+  if (Date.now() - state.lastInteractionAt < IDLE_HOME_MS) return false;
+  if (state.view !== "SHELF") return false;
+  if (state.readerItem || state.selectedItem || state.handoffItem) return false;
+  if (state.alertTransitioning || state.viewTransitioning || state.takeOffExiting)
+    return false;
+  return true;
 }
 
 async function transitionView(direction, updateView) {
@@ -1989,6 +2130,7 @@ function getMealState(now) {
       resting: false,
       hiddenForDay: false,
       eating: true,
+      urgent: nowMinutes <= currentMeal.minutes + 10,
       nextMealId: currentMeal.id,
       label: currentMeal.label,
       fillPercent: 0,
@@ -2006,6 +2148,7 @@ function getMealState(now) {
       resting: true,
       hiddenForDay: true,
       eating: false,
+      urgent: false,
       nextMealId: null,
       label: "REST WHEN READY",
       fillPercent: 100,
@@ -2031,6 +2174,7 @@ function getMealState(now) {
     resting: false,
     hiddenForDay: false,
     eating: false,
+    urgent: remaining <= 10,
     nextMealId: nextMeal.id,
     label: nextMeal.label,
     fillPercent,

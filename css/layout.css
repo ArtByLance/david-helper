@@ -101,6 +101,47 @@ button:disabled {
   will-change: transform, opacity;
 }
 
+.app-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.app-layer[hidden] {
+  display: none;
+}
+
+.home-layer {
+  z-index: 1;
+}
+
+.home-layer[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+.shelf-layer {
+  z-index: 10;
+}
+
+.take-off-layer-slot {
+  z-index: 30;
+}
+
+.handoff-layer {
+  z-index: 40;
+}
+
+.reader-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: auto;
+}
+
+#tv-stage[data-reader="true"] .shelf-layer,
+#tv-stage[data-reader="true"] .take-off-layer-slot {
+  pointer-events: none;
+}
+
 #app-main.view-transition-out {
   animation: viewFadeOut 120ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
@@ -144,7 +185,7 @@ button:disabled {
   left: 50px;
   top: 70px;
   z-index: 1;
-  width: 360px;
+  width: 470px;
   min-height: 49px;
   display: flex;
   flex-direction: row;
@@ -155,25 +196,31 @@ button:disabled {
   border-radius: 3px;
   background: rgba(0, 0, 0, 0);
   color: #d8b367;
-  text-align: center;
+  text-align: left;
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.65);
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .home-date-readout-right {
   right: 60px;
   left: auto;
+  width: 240px;
   justify-content: flex-end;
   text-align: right;
 }
 
 .home-date-readout strong {
   display: block;
+  max-width: 100%;
+  overflow: hidden;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 32px;
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-date-readout strong span {
@@ -183,11 +230,15 @@ button:disabled {
 .home-date-readout small {
   display: block;
   margin-top: 0;
+  max-width: 100%;
+  overflow: hidden;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 24px;
   line-height: 1;
   font-weight: 500;
   letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-today-object-layer {
@@ -226,9 +277,9 @@ button:disabled {
 
 .home-today-clock-display {
   position: absolute;
-  left: 21px;
+  left: 20px;
   right: 22px;
-  top: 17px;
+  top: 23px;
   display: grid;
   place-items: center;
   height: 52px;
@@ -434,6 +485,10 @@ button:disabled {
   -webkit-user-drag: none;
 }
 
+.shelf-strip-image + .shelf-strip-image {
+  margin-left: -1px;
+}
+
 .media-object {
   position: relative;
   width: var(--media-width);
@@ -536,6 +591,7 @@ button:disabled {
 }
 
 .today-led-clock,
+.dementia-clock-object,
 .today-menu-card,
 .today-special-card {
   position: absolute;
@@ -544,7 +600,7 @@ button:disabled {
 }
 
 .today-led-clock {
-  left: 1740px;
+  left: 1500px;
   top: 630px;
   width: 660px;
   height: 426px;
@@ -589,7 +645,7 @@ button:disabled {
 }
 
 .today-menu-card {
-  left: 872px;
+  left: 70px;
   top: 478px;
   width: 806px;
   height: 530px;
@@ -604,12 +660,154 @@ button:disabled {
   left: 940px;
 }
 
+.dementia-clock-object {
+  left: 2280px;
+  top: 420px;
+  width: 760px;
+  height: 551px;
+  padding: 13px;
+  border-radius: 28px;
+  background: #222;
+  transform: rotate(3deg);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.today-object-layer[data-has-special="false"] .dementia-clock-object {
+  left: 1740px;
+}
+
+.dementia-clock-screen {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border: 3px solid #0b0b0b;
+  border-radius: 18px;
+  display: grid;
+  grid-template-rows: 23% 19% 40% 18%;
+  background: #f4f0ea;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.dementia-clock-weekday {
+  display: grid;
+  place-items: center;
+  padding-top: 0.02em;
+  background: #e80012;
+  color: #fff;
+  font-size: 72px;
+  line-height: 0.9;
+  font-weight: 900;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dementia-clock-period {
+  display: grid;
+  place-items: start center;
+  padding-top: 17px;
+  color: #000;
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.dementia-clock-time-row {
+  position: relative;
+  overflow: hidden;
+  color: #000;
+}
+
+.dementia-clock-time-main {
+  position: absolute;
+  left: 81px;
+  bottom: 60px;
+  display: flex;
+  align-items: flex-end;
+  font-weight: 900;
+  line-height: 0.78;
+  letter-spacing: -0.075em;
+  white-space: nowrap;
+}
+
+.dementia-clock-time {
+  font-size: 194px;
+}
+
+.dementia-clock-ampm {
+  margin-bottom: 17px;
+  margin-left: 32px;
+  font-size: 80px;
+  line-height: 0.9;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.dementia-clock-sky-icon {
+  position: absolute;
+  left: 70%;
+  top: 180px;
+  display: none;
+  width: 95px;
+  height: 95px;
+}
+
+.dementia-clock-sky-icon.is-visible {
+  display: block;
+}
+
+.dementia-clock-sun circle {
+  fill: #e4a51e;
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.dementia-clock-sun g {
+  stroke: #e4a51e;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+}
+
+.dementia-clock-moon path {
+  fill: #e4a51e;
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.dementia-clock-date {
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 44px;
+  background: #236ad6;
+  color: #fff;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dementia-clock-month {
+  font-size: 42px;
+  letter-spacing: 0.03em;
+}
+
+.dementia-clock-day,
+.dementia-clock-year {
+  font-size: 40px;
+  letter-spacing: 0.02em;
+}
+
 .today-special-card {
-  left: 70px;
+  left: 900px;
   top: 544px;
   width: 656px;
   height: 422px;
-  transform: rotate(5deg);
+  transform: rotate(5deg) scale(0.85);
+  transform-origin: center;
 }
 
 .today-card-content {
@@ -1451,6 +1649,10 @@ button:disabled {
   isolation: isolate;
 }
 
+#meal-timer[data-urgent="true"] {
+  --meal-status-color: #ff1f18;
+}
+
 #meal-timer::before {
   content: "";
   position: absolute;
@@ -1480,6 +1682,16 @@ button:disabled {
   mix-blend-mode: screen;
   pointer-events: none;
   animation: urgentPinGlow 1.4s ease-in-out infinite;
+}
+
+#meal-timer[data-urgent="true"]::after {
+  background: radial-gradient(
+    circle,
+    rgba(255, 50, 38, 1) 0%,
+    rgba(231, 12, 0, 0.82) 42%,
+    rgba(231, 12, 0, 0) 76%
+  );
+  animation: urgentPinRedFlash 0.8s ease-in-out infinite;
 }
 
 #meal-timer.alert-card-exiting {
@@ -1695,6 +1907,20 @@ button:disabled {
   }
 }
 
+@keyframes urgentPinRedFlash {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.88);
+    filter: blur(1px) drop-shadow(0 0 2px rgba(255, 0, 0, 0.55));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.42);
+    filter: blur(2px) drop-shadow(0 0 10px rgba(255, 0, 0, 0.92));
+  }
+}
+
 @keyframes takeOffCaseIn {
   from {
     opacity: 0.58;
@@ -1750,6 +1976,7 @@ html.perf-lite .home-today-clock,
 html.perf-lite .home-today-special-card,
 html.perf-lite .home-today-menu-card,
 html.perf-lite .today-led-clock,
+html.perf-lite .dementia-clock-object,
 html.perf-lite .today-menu-card,
 html.perf-lite .today-special-card,
 html.perf-lite .section-plate,
