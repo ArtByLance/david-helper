@@ -6,7 +6,7 @@
   "defaultHoldMinutes": 15,
   "topPrompt": "FOR TV SAY  “ <b>COMPUTER HOME</b> ”",
   "kiosk": {
-    "commsMode": "OFFSITE",
+    "commsMode": "LIVE",
     "vm": {
       "proxyEndpoint": "/.netlify/functions/voice-monkey"
     }
