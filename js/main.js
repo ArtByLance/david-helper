@@ -14,6 +14,7 @@ import { getNow } from "./time.js";
 
 const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
+const MEAL_ACTIVE_MINUTES = 45;
 const ALERT_TRANSITION_MS = 260;
 const ALERT_HOME_ENTRY_DELAY_MS = 750;
 const VIEW_TRANSITION_OUT_MS = 120;
@@ -376,6 +377,7 @@ function renderMealTimer(now) {
     mealState.hiddenForDay;
 
   mealTimer?.setAttribute("data-rest", String(mealState.resting));
+  mealTimer?.setAttribute("data-eating", String(mealState.eating));
   mealTimer?.setAttribute("aria-hidden", String(shouldHideCard));
   mealTimer?.classList.toggle("alert-card-hidden", shouldHideCard);
   mealTimer?.style.setProperty(
@@ -1842,12 +1844,36 @@ function getMealState(now) {
     ...meal,
     minutes: parseTimeToMinutes(meal.time),
   }));
+  const currentMeal = [...mealsWithMinutes]
+    .reverse()
+    .find(
+      (meal) =>
+        nowMinutes >= meal.minutes &&
+        nowMinutes < meal.minutes + MEAL_ACTIVE_MINUTES,
+    );
+
+  if (currentMeal) {
+    return {
+      resting: false,
+      hiddenForDay: false,
+      eating: true,
+      nextMealId: currentMeal.id,
+      label: currentMeal.label,
+      fillPercent: 0,
+      nowPercent: 100,
+      timeLeft: "",
+      targetLabel: formatShelfMealTime(currentMeal.time),
+      message: "It's time to eat.",
+    };
+  }
+
   const nextMeal = mealsWithMinutes.find((meal) => nowMinutes < meal.minutes);
 
   if (!nextMeal) {
     return {
       resting: true,
       hiddenForDay: true,
+      eating: false,
       nextMealId: null,
       label: "REST WHEN READY",
       fillPercent: 100,
@@ -1872,6 +1898,7 @@ function getMealState(now) {
   return {
     resting: false,
     hiddenForDay: false,
+    eating: false,
     nextMealId: nextMeal.id,
     label: nextMeal.label,
     fillPercent,

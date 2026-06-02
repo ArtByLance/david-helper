@@ -1348,6 +1348,10 @@ button:disabled {
   display: none;
 }
 
+#meal-timer[data-eating="true"] #meal-bar-track {
+  display: none;
+}
+
 #meal-timer[data-rest="true"] #meal-target-label {
   display: none;
 }
