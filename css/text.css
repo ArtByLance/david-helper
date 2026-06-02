@@ -305,7 +305,7 @@ p {
   line-height: 1;
   font-weight: 900;
   letter-spacing: 0.4px;
-  color: #4b2219;
+  color: var(--meal-status-color);
   text-align: right;
 }
 
@@ -322,8 +322,8 @@ p {
 }
 
 #meal-message {
-  font-size: 26px;
-  line-height: 1.12;
+  font-size: 28px;
+  line-height: 1.08;
   font-weight: 800;
   color: #4a3422;
 }

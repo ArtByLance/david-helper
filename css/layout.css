@@ -201,21 +201,23 @@ button:disabled {
 }
 
 .home-today-clock,
-.home-today-special-card {
+.home-today-special-card,
+.home-today-menu-card {
   position: absolute;
   user-select: none;
 }
 
 .home-today-clock {
-  left: 252px;
-  top: 552px;
-  width: 126px;
-  height: 82px;
-  filter: drop-shadow(0 5px 7px rgba(28, 15, 8, 0.32));
+  left: 266px;
+  top: 488px;
+  width: 181px;
+  height: 117px;
+  filter: drop-shadow(0 7px 9px rgba(14, 7, 4, 0.42));
 }
 
 .home-today-clock > img,
-.home-today-special-card > img {
+.home-today-special-card > img,
+.home-today-menu-card > img {
   display: block;
   width: 100%;
   height: 100%;
@@ -224,12 +226,12 @@ button:disabled {
 
 .home-today-clock-display {
   position: absolute;
-  left: 12px;
-  right: 15px;
-  top: 10px;
+  left: 21px;
+  right: 22px;
+  top: 17px;
   display: grid;
   place-items: center;
-  height: 36px;
+  height: 52px;
   overflow: hidden;
   transform: skewX(-5deg) rotate(-4deg);
   transform-origin: center;
@@ -238,7 +240,7 @@ button:disabled {
 .home-today-clock-text {
   color: #f02d28;
   font-family: var(--font-led);
-  font-size: 29px;
+  font-size: 36px;
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
@@ -249,10 +251,10 @@ button:disabled {
 }
 
 .home-today-special-card {
-  left: 408px;
-  top: 533px;
-  width: 222px;
-  height: 138px;
+  left: 512px;
+  top: 488px;
+  width: 226px;
+  height: 146px;
   transform: rotate(5deg);
   filter: drop-shadow(0 5px 7px rgba(39, 21, 10, 0.28));
 }
@@ -292,6 +294,88 @@ button:disabled {
   font-size: 14px;
   line-height: 1;
   font-weight: 800;
+}
+
+.home-today-menu-card {
+  left: 460px;
+  top: 478px;
+  width: 365px;
+  height: 240px;
+  transform: rotate(-3deg);
+  filter: drop-shadow(18px 40px 24px rgba(20, 9, 3, 0.6))
+    drop-shadow(0 6px 8px rgba(28, 16, 8, 0.6));
+}
+
+.home-today-object-layer[data-has-special="true"] .home-today-menu-card {
+  display: none;
+}
+
+.home-today-menu-content {
+  position: absolute;
+  inset: 23px 35px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  color: #342512;
+  font-family: var(--font-serif);
+  text-align: center;
+}
+
+.home-today-menu-content h2 {
+  margin: 0 0 12px;
+  color: #6f9fbd;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.home-today-meal-list {
+  display: grid;
+  gap: 7px;
+}
+
+.home-today-meal-line {
+  position: relative;
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 22px;
+  min-width: 0;
+  color: #373026;
+  text-align: left;
+}
+
+.home-today-meal-line[data-next="true"] {
+  color: #9a2d22;
+}
+
+.home-today-meal-line strong,
+.home-today-meal-line span {
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-today-meal-line span {
+  text-align: right;
+  text-transform: lowercase;
+}
+
+.home-today-next-meal-flag {
+  position: absolute;
+  left: -69px;
+  top: calc(50% + 3px);
+  width: 136px;
+  height: auto;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 3px 4px rgba(49, 29, 12, 0.22));
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .shelf-image-screen {
@@ -707,6 +791,7 @@ button:disabled {
   position: absolute;
   z-index: 10;
   display: block;
+  touch-action: none;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -1353,16 +1438,48 @@ button:disabled {
 
 #meal-timer {
   position: absolute;
-  right: -42px;
-  top: 235px;
+  right: -54px;
+  top: 210px;
   z-index: 30;
+  --meal-status-color: #b75b45;
   width: 560px;
   aspect-ratio: 1360 / 615;
   padding: 48px 88px 46px 78px;
-  background: url("../assets/objects/card-urgent.png") center / 100% 100%
-    no-repeat;
+  background: transparent;
   color: #342216;
   filter: drop-shadow(0 14px 20px rgba(37, 20, 10, 0.3));
+  isolation: isolate;
+}
+
+#meal-timer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: translateX(25px);
+  background: url("../assets/objects/card-urgent.png") center / 100% 100%
+    no-repeat;
+  pointer-events: none;
+}
+
+#meal-timer::after {
+  content: "";
+  position: absolute;
+  left: 51px;
+  top: 9px;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 234, 2, 0.9) 0%,
+    rgba(223, 184, 117, 0.55) 42%,
+    rgba(226, 165, 56, 0) 72%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: urgentPinGlow 1.4s ease-in-out infinite;
 }
 
 #meal-timer.alert-card-exiting {
@@ -1380,7 +1497,9 @@ button:disabled {
 }
 
 #meal-progress-group {
-  transform: translateY(3px);
+  margin-left: -112px;
+  transform: translateY(-2px) scale(0.75);
+  transform-origin: top right;
 }
 
 #meal-name {
@@ -1390,7 +1509,7 @@ button:disabled {
 #meal-target-label {
   display: block;
   margin-top: 1px;
-  color: #513721;
+  color: var(--meal-status-color);
   font-size: 26px;
   line-height: 1;
   font-weight: 900;
@@ -1416,7 +1535,7 @@ button:disabled {
   width: 100%;
   min-width: 0;
   border-radius: 6px;
-  background: #b75b45;
+  background: var(--meal-status-color);
   transition: width 700ms ease;
 }
 
@@ -1428,7 +1547,7 @@ button:disabled {
   align-items: center;
   gap: 6px;
   margin-top: 6px;
-  color: #3b2718;
+  color: var(--meal-status-color);
   font-size: 25px;
   line-height: 1;
   font-weight: 900;
@@ -1442,11 +1561,13 @@ button:disabled {
   height: 0;
   border-right: 10px solid transparent;
   border-left: 10px solid transparent;
-  border-bottom: 15px solid #3b2718;
+  border-bottom: 15px solid var(--meal-status-color);
 }
 
 #meal-message {
-  margin: 0 0 12px;
+  margin: 0 0 8px 22px;
+  text-align: left;
+  white-space: pre-line;
 }
 
 #meal-timer[data-rest="true"] #meal-bar-track {
@@ -1560,6 +1681,20 @@ button:disabled {
   }
 }
 
+@keyframes urgentPinGlow {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scale(0.78);
+    filter: blur(1px);
+  }
+  50% {
+    opacity: 0.92;
+    transform: scale(1.28);
+    filter: blur(2px);
+  }
+}
+
 @keyframes takeOffCaseIn {
   from {
     opacity: 0.58;
@@ -1613,6 +1748,7 @@ html.perf-lite .media-spine-item,
 html.perf-lite .media-front-item,
 html.perf-lite .home-today-clock,
 html.perf-lite .home-today-special-card,
+html.perf-lite .home-today-menu-card,
 html.perf-lite .today-led-clock,
 html.perf-lite .today-menu-card,
 html.perf-lite .today-special-card,

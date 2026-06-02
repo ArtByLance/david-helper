@@ -117,6 +117,11 @@ const state = {
   readerSwipeStartX: 0,
   readerSwipeStartY: 0,
   readerSwipeStarted: false,
+  homeSwipeShelf: null,
+  homeSwipeStartX: 0,
+  homeSwipeStartY: 0,
+  homeSwipeStarted: false,
+  homeSwipeConsumed: false,
   handoffItem: null,
   handoffTimer: null,
   videoLaunchDebug: null,
@@ -285,6 +290,11 @@ function bindGlobalControls() {
   document
     .getElementById("app-main")
     ?.addEventListener("pointerup", handleReaderPointerUp);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("pointerdown", handleHomeShelfPointerDown);
+  document.addEventListener("pointerup", handleHomeShelfPointerUp);
+  document.addEventListener("pointercancel", cancelHomeShelfSwipe);
   document.addEventListener("keydown", handleReaderKeyDown);
 }
 
@@ -425,9 +435,10 @@ function renderHome(now) {
 function renderHomeTodayObjects(now) {
   const weekdayKey = formatWeekdayKey(now);
   const special = TODAY_SPECIALS[weekdayKey];
+  const mealState = getMealState(now);
 
   return `
-    <div class="home-today-object-layer" aria-hidden="true">
+    <div class="home-today-object-layer" data-has-special="${Boolean(special)}" aria-hidden="true">
       <div class="home-today-clock">
         <img src="${TODAY_CLOCK_IMAGE}" alt="" draggable="false" />
         <div class="home-today-clock-display">
@@ -435,6 +446,7 @@ function renderHomeTodayObjects(now) {
         </div>
       </div>
       ${special ? renderHomeTodaySpecialCard(special) : ""}
+      ${renderHomeTodayMealCard(mealState)}
     </div>
   `;
 }
@@ -448,6 +460,31 @@ function renderHomeTodaySpecialCard(special) {
         <strong>${escapeHtml(special.title)}</strong>
         <span>${escapeHtml(special.time)}</span>
       </div>
+    </div>
+  `;
+}
+
+function renderHomeTodayMealCard(mealState) {
+  return `
+    <div class="home-today-menu-card">
+      <img src="${TODAY_MENU_IMAGE}" alt="" draggable="false" />
+      <div class="home-today-menu-content">
+        <h2>Meals Today</h2>
+        <div class="home-today-meal-list">
+          ${MEALS.map((meal) => renderHomeTodayMealLine(meal, mealState.nextMealId)).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderHomeTodayMealLine(meal, nextMealId) {
+  const isNext = meal.id === nextMealId;
+  return `
+    <div class="home-today-meal-line" data-next="${isNext}">
+      ${isNext ? `<img class="home-today-next-meal-flag" src="${TODAY_NEXT_FLAG_IMAGE}" alt="" aria-hidden="true" draggable="false" />` : ""}
+      <strong>${toTitleCase(meal.label)}</strong>
+      <span>${formatShelfMealTime(meal.time)}</span>
     </div>
   `;
 }
@@ -1474,11 +1511,30 @@ function getVideoLaunchDebugText() {
   return `VoiceMonkey URL not configured for ${launch.command || state.handoffItem?.command || state.handoffItem?.title || "this show"}`;
 }
 
+async function openShelf(shelf) {
+  if (!shelf || state.alertTransitioning || state.viewTransitioning) return;
+
+  clearSelection();
+  if (shelf === "SHOWS") state.showsScrollLeft = SHELF_PANEL_WIDTH;
+  if (shelf === "BOOKS") state.booksScrollLeft = SHELF_PANEL_WIDTH;
+  if (shelf === "TODAY") state.todayScrollLeft = SHELF_PANEL_WIDTH;
+  animateAlertExitToShelf();
+  await transitionView("to-shelf", () => {
+    state.view = "SHELF";
+    state.activeShelf = shelf;
+    render();
+  });
+}
+
 async function handleMainClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
 
   const action = target.dataset.action;
+  if (action === "expand-shelf" && state.homeSwipeConsumed) {
+    state.homeSwipeConsumed = false;
+    return;
+  }
   if (
     (state.alertTransitioning || state.viewTransitioning) &&
     (action === "expand-shelf" || action === "back-home")
@@ -1486,17 +1542,7 @@ async function handleMainClick(event) {
     return;
 
   if (action === "expand-shelf") {
-    const shelf = target.dataset.shelf;
-    clearSelection();
-    if (shelf === "SHOWS") state.showsScrollLeft = SHELF_PANEL_WIDTH;
-    if (shelf === "BOOKS") state.booksScrollLeft = SHELF_PANEL_WIDTH;
-    if (shelf === "TODAY") state.todayScrollLeft = SHELF_PANEL_WIDTH;
-    animateAlertExitToShelf();
-    await transitionView("to-shelf", () => {
-      state.view = "SHELF";
-      state.activeShelf = shelf;
-      render();
-    });
+    await openShelf(target.dataset.shelf);
     return;
   }
 
@@ -1611,6 +1657,46 @@ function handleReaderPointerDown(event) {
   state.readerSwipeStartY = event.clientY;
 }
 
+function handleHomeShelfPointerDown(event) {
+  if (!isHomeView()) return;
+  const zone = event.target.closest?.(".home-tap-zone[data-shelf]");
+  if (!zone) return;
+
+  zone.setPointerCapture?.(event.pointerId);
+  state.homeSwipeShelf = zone.dataset.shelf;
+  state.homeSwipeStartX = event.clientX;
+  state.homeSwipeStartY = event.clientY;
+  state.homeSwipeStarted = true;
+  state.homeSwipeConsumed = false;
+}
+
+function cancelHomeShelfSwipe() {
+  state.homeSwipeStarted = false;
+  state.homeSwipeShelf = null;
+}
+
+async function handleHomeShelfPointerUp(event) {
+  if (!state.homeSwipeStarted) return;
+
+  const shelf = state.homeSwipeShelf;
+  state.homeSwipeStarted = false;
+  state.homeSwipeShelf = null;
+  if (!isHomeView() || !shelf) return;
+
+  const deltaX = event.clientX - state.homeSwipeStartX;
+  const deltaY = event.clientY - state.homeSwipeStartY;
+  const horizontalSwipe =
+    Math.abs(deltaX) >= 35 && Math.abs(deltaX) > Math.abs(deltaY);
+  if (!horizontalSwipe) return;
+
+  event.preventDefault();
+  state.homeSwipeConsumed = true;
+  window.setTimeout(() => {
+    state.homeSwipeConsumed = false;
+  }, 500);
+  await openShelf(shelf);
+}
+
 function handleReaderPointerUp(event) {
   if (!state.readerItem || !state.readerSwipeStarted) return;
   state.readerSwipeStarted = false;
@@ -1650,6 +1736,11 @@ function goToNextReaderPage() {
   if (!state.readerItem) return;
 
   const pageCount = getReaderPageCount(state.readerItem);
+  if (state.readerPage >= pageCount - 1) {
+    markRecent("davidsStuff.recentRead", state.recentRead, state.readerItem.id);
+    finishReading();
+    return;
+  }
   if (state.readerPage >= pageCount) return;
 
   state.readerPage += 1;
@@ -1946,7 +2037,7 @@ function getMealState(now) {
     nowPercent,
     timeLeft,
     targetLabel: formatShelfMealTime(nextMeal.time),
-    message: `We eat in ${timeLeft}.`,
+    message: `We eat in\n${timeLeft}.`,
   };
 }
 
