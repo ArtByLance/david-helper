@@ -296,7 +296,17 @@ function render() {
 }
 
 function renderMealTimerOnly() {
-  renderMealTimer(getNow());
+  const now = getNow();
+  renderMealTimer(now);
+  renderLiveClockText(now);
+}
+
+function renderLiveClockText(now) {
+  document
+    .querySelectorAll(".home-today-clock-text, .today-led-clock-text")
+    .forEach((element) => {
+      element.textContent = formatClock(now);
+    });
 }
 
 function applyInitialShelfRoute() {
@@ -398,6 +408,7 @@ function renderHome(now) {
   return `
     <section class="screen home-screen" aria-label="David's Stuff">
       <img class="home-main-image" src="${homeScene}" alt="" aria-hidden="true" draggable="false" />
+      ${renderHomeTodayObjects(now)}
       <div class="home-date-readout" aria-label="${escapeAttribute(dateReadout.ariaLabel)}">
         <strong><span>${escapeHtml(dateReadout.weekday)}</span> ${escapeHtml(dateReadout.dayPart)}</strong>
       </div>
@@ -408,6 +419,36 @@ function renderHome(now) {
       <button class="home-tap-zone shows-tap-zone" type="button" data-action="expand-shelf" data-shelf="SHOWS" aria-label="Shows shelf"></button>
       <button class="home-tap-zone books-tap-zone" type="button" data-action="expand-shelf" data-shelf="BOOKS" aria-label="Books shelf"></button>
     </section>
+  `;
+}
+
+function renderHomeTodayObjects(now) {
+  const weekdayKey = formatWeekdayKey(now);
+  const special = TODAY_SPECIALS[weekdayKey];
+
+  return `
+    <div class="home-today-object-layer" aria-hidden="true">
+      <div class="home-today-clock">
+        <img src="${TODAY_CLOCK_IMAGE}" alt="" draggable="false" />
+        <div class="home-today-clock-display">
+          <div class="home-today-clock-text">${formatClock(now)}</div>
+        </div>
+      </div>
+      ${special ? renderHomeTodaySpecialCard(special) : ""}
+    </div>
+  `;
+}
+
+function renderHomeTodaySpecialCard(special) {
+  return `
+    <div class="home-today-special-card">
+      <img src="${TODAY_SPECIAL_IMAGE}" alt="" draggable="false" />
+      <div class="home-today-special-content">
+        <h2>Today Only</h2>
+        <strong>${escapeHtml(special.title)}</strong>
+        <span>${escapeHtml(special.time)}</span>
+      </div>
+    </div>
   `;
 }
 

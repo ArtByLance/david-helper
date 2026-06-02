@@ -190,6 +190,110 @@ button:disabled {
   letter-spacing: 0;
 }
 
+.home-today-object-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 800px;
+  height: 1280px;
+  pointer-events: none;
+}
+
+.home-today-clock,
+.home-today-special-card {
+  position: absolute;
+  user-select: none;
+}
+
+.home-today-clock {
+  left: 252px;
+  top: 552px;
+  width: 126px;
+  height: 82px;
+  filter: drop-shadow(0 5px 7px rgba(28, 15, 8, 0.32));
+}
+
+.home-today-clock > img,
+.home-today-special-card > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  -webkit-user-drag: none;
+}
+
+.home-today-clock-display {
+  position: absolute;
+  left: 12px;
+  right: 15px;
+  top: 10px;
+  display: grid;
+  place-items: center;
+  height: 36px;
+  overflow: hidden;
+  transform: skewX(-5deg) rotate(-4deg);
+  transform-origin: center;
+}
+
+.home-today-clock-text {
+  color: #f02d28;
+  font-family: var(--font-led);
+  font-size: 29px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-shadow:
+    0 0 4px rgba(238, 34, 28, 0.5),
+    0 1px 1px rgba(0, 0, 0, 0.86);
+  transform: skewX(5deg);
+}
+
+.home-today-special-card {
+  left: 408px;
+  top: 533px;
+  width: 222px;
+  height: 138px;
+  transform: rotate(5deg);
+  filter: drop-shadow(0 5px 7px rgba(39, 21, 10, 0.28));
+}
+
+.home-today-special-content {
+  position: absolute;
+  inset: 19px 25px 17px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  color: #342512;
+  font-family: Georgia, "Times New Roman", serif;
+  text-align: center;
+}
+
+.home-today-special-content h2 {
+  margin: 0 0 5px;
+  color: #7b5613;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.home-today-special-content strong {
+  display: block;
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-today-special-content span {
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 800;
+}
+
 .shelf-image-screen {
   padding: 0;
 }
@@ -601,6 +705,7 @@ button:disabled {
 
 .home-tap-zone {
   position: absolute;
+  z-index: 10;
   display: block;
   padding: 0;
   border: 0;
@@ -1506,6 +1611,8 @@ html.perf-lite #app-main {
 
 html.perf-lite .media-spine-item,
 html.perf-lite .media-front-item,
+html.perf-lite .home-today-clock,
+html.perf-lite .home-today-special-card,
 html.perf-lite .today-led-clock,
 html.perf-lite .today-menu-card,
 html.perf-lite .today-special-card,
