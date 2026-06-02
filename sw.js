@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260602-2";
+const CACHE_VERSION = "davids-shelves-20260602-3";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -116,11 +116,33 @@ async function warmShowCovers(cache) {
 async function warmReaderBooks(cache) {
   const sections = await fetchJson("/data/reader/readerIndex.json");
   const ids = sections.flatMap((section) => (section.items ?? []).map((item) => item.id));
-  const urls = ids.flatMap((id) => [
-    `/data/reader/books/${id}.json`,
-    `/assets/media/books/covers/${id}.jpg`,
-  ]);
+  const bookUrls = ids.map((id) => `/data/reader/books/${id}.json`);
+  const books = await Promise.allSettled(bookUrls.map((url) => fetchJson(url)));
+  const chapterImageUrls = books.flatMap((result, bookIndex) => {
+    if (result.status !== "fulfilled") return [];
+
+    const book = result.value;
+    const bookId = book.id ?? ids[bookIndex];
+    return (book.chapters ?? []).map((chapter, chapterIndex) =>
+      normalizeCacheUrl(
+        chapter.image ??
+          `/assets/media/books/chapters/${bookId}-${chapterIndex + 1}.jpg`,
+      ),
+    );
+  });
+  const urls = [
+    ...bookUrls,
+    ...ids.map((id) => `/assets/media/books/covers/${id}.jpg`),
+    ...chapterImageUrls,
+  ];
   await addExisting(cache, urls);
+}
+
+function normalizeCacheUrl(url) {
+  if (typeof url !== "string") return "";
+  if (url.startsWith("./")) return url.slice(1);
+  if (!url.startsWith("/")) return `/${url}`;
+  return url;
 }
 
 async function fetchJson(url) {
