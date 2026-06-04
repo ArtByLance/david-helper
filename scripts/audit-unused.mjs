@@ -80,6 +80,8 @@ const PRODUCTION_SUPPORT_PREFIXES = [
   "netlify/functions/",
 ];
 
+const PRODUCTION_SUPPORT_FILES = new Set(["scripts/audit-unused.mjs"]);
+
 const STATIC_REFERENCE_EXTENSIONS = new Set([
   ".html",
   ".css",
@@ -146,7 +148,8 @@ function classifyPreservedFiles() {
     }
     if (ARCHIVE_OR_LAB_FILES.has(file)) archiveOrLab.add(file);
     if (
-      PRODUCTION_SUPPORT_PREFIXES.some((prefix) => file.startsWith(prefix))
+      PRODUCTION_SUPPORT_PREFIXES.some((prefix) => file.startsWith(prefix)) ||
+      PRODUCTION_SUPPORT_FILES.has(file)
     ) {
       productionSupport.add(file);
       markUsed(file, "production support");
