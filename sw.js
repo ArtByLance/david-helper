@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260603-6";
+const CACHE_VERSION = "davids-shelves-20260604-1";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -28,13 +28,11 @@ const CORE_ASSETS = [
   "/assets/scenes/main-3.jpg",
   "/assets/scenes/main-4.jpg",
   "/assets/objects/book-front.png",
-  "/assets/objects/book-spine.png",
   "/assets/objects/card-menu.png",
   "/assets/objects/card-special.png",
   "/assets/objects/card-urgent.png",
   "/assets/objects/clock.png",
   "/assets/objects/dvd-front.png",
-  "/assets/objects/dvd-spine.png",
   "/assets/objects/next-flag-2.png",
   "/assets/objects/plate-section.png",
   "/assets/objects/post-it.png",
