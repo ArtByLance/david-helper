@@ -151,7 +151,7 @@ function buildReaderPages(item) {
 
 // Default image convention for chapters that do not specify a custom image.
 function getChapterImage(item, chapterIndex) {
-  return `./assets/media/books/chapters/${item.id}-${chapterIndex + 1}.jpg`;
+  return `./assets/media/books/${item.id}/${item.id}-${chapterIndex + 1}.jpg`;
 }
 
 // Accept either paragraph arrays or double-newline separated text.

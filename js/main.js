@@ -167,8 +167,8 @@ async function loadBooksShelfMedia() {
           displayTitle: book.displayTitle,
           type: "book",
           category: section.title,
-          masterArt: `./assets/media/books/covers/${item.id}.jpg`,
-          cover: `./assets/media/books/covers/${item.id}.jpg`,
+          masterArt: `./assets/media/books/${item.id}/${item.id}-0.jpg`,
+          cover: `./assets/media/books/${item.id}/${item.id}-0.jpg`,
           baseColor: book.baseColor,
           titleTint: book.titleTint,
           chapters: buildReaderBookChapters(item.id, book),
@@ -254,7 +254,7 @@ function buildReaderBookChapters(bookId, book) {
     ...chapter,
     image:
       chapter.image ??
-      `./assets/media/books/chapters/${bookId}-${index + 1}.jpg`,
+      `./assets/media/books/${bookId}/${bookId}-${index + 1}.jpg`,
   }));
 }
 

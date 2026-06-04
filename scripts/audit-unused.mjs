@@ -216,13 +216,13 @@ function traceRuntimeDataReferences() {
   for (const bookId of bookIds) {
     const bookFile = `data/reader/books/${bookId}.json`;
     markUsed(bookFile, "book listed in readerIndex.json");
-    markUsed(`assets/media/books/covers/${bookId}.jpg`, "book cover");
+    markUsed(`assets/media/books/${bookId}/${bookId}-0.jpg`, "book cover");
 
     const book = readJson(bookFile);
     (book?.chapters ?? []).forEach((chapter, index) => {
       const image = chapter.image
         ? normalizePath(chapter.image)
-        : `assets/media/books/chapters/${bookId}-${index + 1}.jpg`;
+        : `assets/media/books/${bookId}/${bookId}-${index + 1}.jpg`;
       markUsed(image, `chapter image for ${bookId}`);
     });
   }
