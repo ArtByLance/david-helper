@@ -1,93 +1,76 @@
-export function renderReaderView({ item, pageIndex, turnDirection = "" }) {
+export function renderReaderView({ item, pageIndex }) {
   const pages = buildReaderPages(item);
-  const isEnd = pageIndex >= pages.length;
+  const safePageIndex = clamp(pageIndex, 0, Math.max(0, pages.length - 1));
 
-  if (isEnd) return renderEndPage(item, turnDirection);
-  return renderReaderPage(item, pages, pageIndex, turnDirection);
+  return `
+    <section class="screen reader-screen reader-slider-screen" aria-label="${escapeHtml(item.title)}">
+      ${renderPutBackButton()}
+      <div class="reader-page-track" data-reader-current-page="${safePageIndex}" data-reader-page-count="${pages.length}">
+        ${pages
+          .map((page, index) => renderReaderPagePanel(item, page, index, pages.length))
+          .join("")}
+      </div>
+      ${renderReaderControls(safePageIndex, pages.length)}
+    </section>
+  `;
 }
 
 export function getReaderPageCount(item) {
   return buildReaderPages(item).length;
 }
 
-function renderReaderPage(item, pages, pageIndex, turnDirection) {
-  const page = pages[pageIndex];
-
+function renderReaderPagePanel(item, page, pageIndex, pageCount) {
   if (page.type === "title") {
-    return renderTitlePage(item, page, pages.length, turnDirection);
+    return renderTitlePagePanel(item, page, pageIndex, pageCount);
   }
   if (page.layout === "image-text") {
-    return renderChapterPage(page, pageIndex, turnDirection);
+    return renderChapterPagePanel(page, pageIndex, pageCount);
   }
   if (page.layout === "text-image") {
-    return renderChapterEndPage(page, pageIndex, turnDirection);
+    return renderChapterEndPagePanel(page, pageIndex, pageCount);
   }
 
   return `
-    <section class="screen reader-screen ${turnDirection}" aria-label="${escapeHtml(item.title)}">
-      ${renderPutBackButton()}
-      ${renderPageTurns(pageIndex)}
+    <article class="reader-page reader-text-page" aria-label="${escapeHtml(page.chapterTitle)}">
       <div class="reader-title">${escapeHtml(page.chapterTitle)}</div>
-      <article class="reader-content">
+      <div class="reader-content">
         <div class="reader-text">${renderParagraphs(page.text)}</div>
-      </article>
-      ${renderFooter(pageIndex, pages.length)}
-    </section>
+      </div>
+    </article>
   `;
 }
 
-function renderTitlePage(item, page, pageCount, turnDirection) {
+function renderTitlePagePanel(item, page, pageIndex, pageCount) {
   return `
-    <section class="screen reader-screen title-page ${turnDirection}" aria-label="${escapeHtml(item.title)}">
-      ${renderPutBackButton()}
-      <button class="page-turn next" type="button" data-action="reader-next" aria-label="Start reading">Next</button>
+    <article class="reader-page title-page" aria-label="${escapeHtml(item.title)}">
       <img class="title-cover" src="${escapeAttribute(page.cover)}" alt="" draggable="false" />
       <h1 class="title-heading">${escapeHtml(page.title)}</h1>
-      <div class="reader-footer">${pageCount} pages</div>
-    </section>
+    </article>
   `;
 }
 
-function renderChapterPage(page, pageIndex, turnDirection) {
+function renderChapterPagePanel(page, pageIndex, pageCount) {
   return `
-    <section class="screen reader-screen chapter-screen ${turnDirection}" aria-label="${escapeHtml(page.chapterTitle)}">
-      ${renderPutBackButton()}
-      ${renderPageTurns(pageIndex)}
+    <article class="reader-page chapter-screen" aria-label="${escapeHtml(page.chapterTitle)}">
       <img class="chapter-image" src="${escapeAttribute(page.image)}" alt="" draggable="false" />
-      <article class="chapter-body">
+      <div class="chapter-body">
         <div class="chapter-number">Chapter ${page.chapterNumber}</div>
         <h1 class="chapter-name">${escapeHtml(page.chapterTitle)}</h1>
         <div class="chapter-text">${renderParagraphs(page.text)}</div>
-      </article>
-      ${renderFooter(pageIndex, page.totalPages)}
-    </section>
+      </div>
+    </article>
   `;
 }
 
-function renderChapterEndPage(page, pageIndex, turnDirection) {
+function renderChapterEndPagePanel(page, pageIndex, pageCount) {
   return `
-    <section class="screen reader-screen ${turnDirection}" aria-label="${escapeHtml(page.chapterTitle)}">
-      ${renderPutBackButton()}
-      ${renderPageTurns(pageIndex)}
+    <article class="reader-page chapter-end-screen" aria-label="${escapeHtml(page.chapterTitle)}">
       <div class="reader-title">${escapeHtml(page.chapterTitle)}</div>
-      <article class="chapter-end-content">
+      <div class="chapter-end-content">
         <div class="reader-text">${renderParagraphs(page.text)}</div>
         <img class="chapter-end-image" src="${escapeAttribute(page.image)}" alt="" draggable="false" />
-      </article>
-      ${renderFooter(pageIndex, page.totalPages)}
-    </section>
-  `;
-}
-
-function renderEndPage(item, turnDirection) {
-  return `
-    <section class="screen reader-screen reader-end ${turnDirection}" aria-label="The end">
-      ${renderPutBackButton()}
-      <div class="reader-end-title">THE END</div>
-      <p>You finished</p>
-      <h1>${escapeHtml(item.title)}</h1>
-      <button class="page-turn prev" type="button" data-action="read-again" aria-label="Read again">Read again</button>
-    </section>
+      </div>
+    </article>
   `;
 }
 
@@ -95,10 +78,14 @@ function renderPutBackButton() {
   return `<button class="reader-exit" type="button" data-action="finish-reading">Put Back</button>`;
 }
 
-function renderPageTurns(pageIndex) {
+function renderReaderControls(pageIndex, pageCount) {
+  const isLastPage = pageIndex >= pageCount - 1;
   return `
-    <button class="page-turn prev" type="button" data-action="reader-prev" ${pageIndex === 0 ? "disabled" : ""} aria-label="Previous page">Previous</button>
-    <button class="page-turn next" type="button" data-action="reader-next" aria-label="Next page">Next</button>
+    <div class="reader-controls" aria-label="Reading controls">
+      <button class="reader-control reader-control-prev" type="button" data-action="reader-prev" ${pageIndex === 0 ? "disabled" : ""}>Back</button>
+      ${renderFooter(pageIndex, pageCount)}
+      <button class="reader-control reader-control-next" type="button" data-action="reader-next">${isLastPage ? "Done" : "Next"}</button>
+    </div>
   `;
 }
 
@@ -150,6 +137,10 @@ function renderParagraphs(paragraphs) {
   return paragraphs
     .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
     .join("");
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function escapeHtml(value) {

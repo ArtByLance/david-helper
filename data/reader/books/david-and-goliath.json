@@ -13,7 +13,7 @@
           "layout": "image-text",
           "text": [
             "The giant came out every day and shouted.",
-            "His name was Goliath. He was tall, armed, and loud. His armor flashed in the sun, and his spear looked too heavy for an ordinary man.",
+            "His name was Goliath.",
             "Israel heard him, and Israel was afraid."
           ]
         },
@@ -21,9 +21,10 @@
           "id": "page-2",
           "layout": "text",
           "text": [
-            "The armies stood on opposite hills with the valley between them. The Philistines had their champion. Israel had soldiers, weapons, and a king, but no man wanted to face Goliath.",
-            "The giant knew it. He came out morning and evening, calling for one man to fight him. If Israel's man won, the Philistines would serve Israel. If Goliath won, Israel would serve the Philistines.",
-            "It sounded simple, but it felt terrible. Every shout made the fear grow. Men who'd trained for battle stood still. They looked at the giant, then at each other, and nobody stepped forward.",
+            "The armies stood on opposite hills with the valley between them.",
+            "The Philistines had their champion.",
+            "Israel had soldiers, weapons, and a king, but no man wanted to face Goliath.",
+            "The giant knew it.",
             "Goliath kept talking, and no one answered."
           ]
         },
@@ -32,8 +33,7 @@
           "layout": "text-image",
           "text": [
             "The fear spread through the camp.",
-            "Saul was king, but he didn't go. The soldiers were strong, but they didn't go. The giant's voice filled the valley and made brave men feel small.",
-            "Then a young shepherd came to the camp. His name was David, and he hadn't come to fight.",
+            "Saul was king, but he did not go.",
             "Not yet."
           ]
         }
@@ -48,27 +48,27 @@
           "layout": "image-text",
           "text": [
             "David came carrying food for his brothers.",
-            "He was young, and he looked like a shepherd because he was one. He'd watched sheep, fought wild animals, and learned to trust Yahweh when no one else was watching.",
-            "Then he heard Goliath. David didn't hear only a big man. He heard defiance against God."
+            "He was young, and he looked like a shepherd because he was one.",
+            "He heard defiance against God."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "The soldiers heard a giant. David heard an insult against the living God, and that changed everything.",
-            "The men around him talked about Goliath's size, his armor, and his spear. David talked about Yahweh. He remembered the lion and the bear. He remembered how God had helped him when danger came for the sheep.",
-            "This was bigger, but it wasn't different. David wasn't careless. He knew Goliath was dangerous, but he also knew the battle didn't belong only to tall men with armor.",
-            "King Saul heard about David and called for him. Saul saw a boy. David spoke like a man who knew God."
+            "The soldiers heard a giant.",
+            "David heard an insult against the living God, and that changed everything.",
+            "The men around him talked about Goliath's size, his armor, and his spear.",
+            "David talked about God.",
+            "David spoke like a man who knew God."
           ]
         },
         {
           "id": "page-3",
           "layout": "text-image",
           "text": [
-            "Saul offered David armor, but it didn't fit him.",
-            "It belonged to another man's way of fighting, so David took it off. He picked up his staff, his sling, and five smooth stones from the brook.",
-            "No sword. No heavy armor.",
+            "Saul offered David armor, but it did not fit him.",
+            "It belonged to another man's way of fighting, so David took it off.",
             "Just trust, courage, and a clean shot."
           ]
         }
@@ -83,19 +83,19 @@
           "layout": "image-text",
           "text": [
             "David walked into the valley.",
-            "Goliath saw him coming and mocked him. To the giant, David looked too small, too young, and too poorly armed.",
-            "David kept walking. He knew what Goliath could see, and he knew what Goliath couldn't see."
+            "Goliath saw him coming and mocked him.",
+            "He knew what Goliath could see, and he knew what Goliath could not see."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "Goliath came forward with his spear and shield. His armor made him look almost impossible to beat, and his voice was full of contempt.",
-            "David answered with faith. He told the giant that he came with sword, spear, and javelin, but David came in the name of Yahweh. The battle belonged to God.",
-            "Then David ran toward him. That matters.",
-            "He didn't creep forward. He didn't wait for the giant to make fear larger. He ran into the battle, reached into his bag, and put one stone in the sling.",
-            "The sling spun. The stone flew. The whole valley seemed to hold its breath."
+            "Goliath came forward with his spear and shield.",
+            "His armor made him look almost impossible to beat.",
+            "His voice was full of contempt.",
+            "David answered with faith.",
+            "The whole valley seemed to hold its breath."
           ]
         },
         {
@@ -103,7 +103,7 @@
           "layout": "text-image",
           "text": [
             "The stone struck Goliath, and the giant stopped.",
-            "Then he fell forward to the ground. The shouting stopped. The man who'd terrified an army was lying in the dirt because a shepherd boy had trusted Yahweh.",
+            "Then he fell forward to the ground.",
             "David ran to him, and the battle turned in a moment."
           ]
         }
@@ -118,19 +118,19 @@
           "layout": "image-text",
           "text": [
             "When Goliath fell, the valley changed.",
-            "Israel saw it. The Philistines saw it. The soldiers who'd been afraid suddenly remembered they were an army.",
-            "The giant was down. God had answered, and courage began to move."
+            "Israel saw it.",
+            "God had answered, and courage began to move."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "David stood where no one else had wanted to stand. He hadn't trusted size, armor, or pride. He'd trusted Yahweh.",
+            "David stood where no one else had wanted to stand.",
+            "He had not trusted size, armor, or pride.",
+            "He had trusted God.",
             "That was the real victory.",
-            "Goliath had looked unbeatable until he was beaten. His strength had filled the valley with fear, but his strength didn't save him.",
-            "The Philistines began to run. Israel rose and chased them. The fear that had held them back was broken. One young shepherd had stepped forward, and the whole army found its feet again.",
-            "David didn't win because he looked strong. He won because God was with him."
+            "He won because God was with him."
           ]
         },
         {
@@ -138,10 +138,8 @@
           "layout": "text-image",
           "text": [
             "The story was remembered because the giant fell.",
-            "But the deeper thing was this: David saw the battle rightly. He saw more than armor. He saw more than height. He saw more than fear.",
-            "He saw Yahweh.",
-            "The giant shouted. David trusted. The stone flew. The giant fell.",
-            "And God's people knew the victory belonged to Yahweh."
+            "But the deeper thing was this: David saw the battle rightly.",
+            "And God's people knew the victory belonged to God."
           ]
         }
       ]

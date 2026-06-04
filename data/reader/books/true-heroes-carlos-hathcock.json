@@ -1,6 +1,6 @@
 {
   "id": "true-heroes-carlos-hathcock",
-  "title": "True Heroes: Carlos Hathcock",
+  "title": "Carlos Hathcock",
   "baseColor": "#18243D",
   "titleTint": "#BFD7FF",
   "chapters": [
@@ -13,19 +13,19 @@
           "layout": "image-text",
           "text": [
             "Carlos Hathcock was known by the white feather in his hat.",
-            "That wasn't because he wanted attention. It was because the enemy already knew his name, and he wouldn't hide from it.",
-            "He was a Marine sniper. Quiet work. Dangerous work. And he was very good at it."
+            "That was not because he wanted attention.",
+            "And he was very good at it."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "Hathcock didn't fight like men in movies fight. He didn't rush into rooms or shout over the noise. His work was slower, colder, and harder on the nerves.",
+            "Hathcock did not fight like men in movies fight.",
+            "He did not rush into rooms or shout over the noise.",
+            "His work was slower, colder, and harder on the nerves.",
             "He waited.",
-            "That was part of the job. A sniper had to stay still when insects crawled on him. He had to breathe slowly when danger was close. He had to see what other men missed.",
-            "In Vietnam, the jungle could hide anything. Enemy soldiers moved through trees, grass, and shadows. A careless man could be gone before anyone heard the shot.",
-            "Hathcock wasn't careless. He watched the jungle until the jungle gave something away."
+            "He watched the jungle until the jungle gave something away."
           ]
         },
         {
@@ -33,8 +33,7 @@
           "layout": "text-image",
           "text": [
             "Other Marines knew what he meant to them.",
-            "A good sniper could stop an attack before it reached the line. He could take out a hidden threat before it hurt more men.",
-            "Hathcock's rifle didn't make noise for show. It spoke only when it mattered.",
+            "A good sniper could stop an attack before it reached the line of men.",
             "Men lived because he stayed patient."
           ]
         }
@@ -49,7 +48,7 @@
           "layout": "image-text",
           "text": [
             "Some missions were almost too dangerous to believe.",
-            "Hathcock once had to move across open ground toward a place guarded by the enemy. He couldn't walk. He couldn't run.",
+            "Hathcock once had to move across open ground toward a place guarded by the enemy soldiers.",
             "He had to crawl, not for minutes, but for a very long time."
           ]
         },
@@ -57,11 +56,11 @@
           "id": "page-2",
           "layout": "text",
           "text": [
-            "He moved through grass and dirt, inch by inch. The sun pressed down on him. Bugs crawled over his skin. Every muscle wanted to hurry, but hurry would get him seen.",
-            "He kept still when he had to be still.",
-            "Enemy soldiers were near enough to end him if they spotted one wrong movement. He could hear sounds from their camp: voices, steps, small noises that told him men were awake and armed.",
-            "Hathcock kept moving. A little farther. Then still. A little farther. Then still again.",
-            "That kind of courage doesn't look loud. It looks like discipline. It looks like a man refusing to panic while death stands close enough to breathe on him."
+            "He moved through grass and dirt, inch by inch.",
+            "The sun pressed down on him.",
+            "Bugs crawled over his skin.",
+            "Every muscle wanted to hurry, but hurry would get him seen.",
+            "Death stands close enough to breathe on him."
           ]
         },
         {
@@ -69,8 +68,8 @@
           "layout": "text-image",
           "text": [
             "At last, he reached the place he needed.",
-            "He watched. He waited. He chose the moment with care. One shot ended the threat.",
-            "Then he had to leave the same way he'd come, slow and low through the grass. The mission was finished, but the danger wasn't."
+            "He watched.",
+            "The mission was finished, but the danger was not."
           ]
         }
       ]
@@ -83,23 +82,20 @@
           "id": "page-1",
           "layout": "image-text",
           "text": [
-            "The enemy sent a sniper to find Hathcock.",
-            "That man was dangerous too. He knew the work. He knew how to hide. He knew how to wait.",
-            "This wasn't a wild fight. It was a hunt, and both men knew it."
+            "the enemy soldiers sent a sniper to find Hathcock.",
+            "That man was dangerous too.",
+            "It was a hunt, and both men knew it."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "Hathcock moved through the jungle knowing another rifle might already be watching him. That changes the way a man breathes. It changes the way every leaf looks.",
-            "A branch moves. Maybe wind. Maybe not.",
-            "A flash of light appears and disappears. Maybe nothing. Maybe a scope.",
-            "Hathcock stayed calm. He'd spent too many hours behind a rifle to trust panic. Panic makes noise. Panic moves too fast. Panic gets a man seen.",
-            "Then he saw it.",
-            "A tiny glint in the distance. Small enough for most men to miss. Enough for Hathcock.",
-            "He lined up his shot.",
-            "The enemy sniper had been looking for him. Hathcock found him first."
+            "Hathcock moved through the jungle knowing another rifle might already be watching him.",
+            "That changes the way a man breathes.",
+            "It changes the way every leaf looks.",
+            "A branch moves.",
+            "Hathcock found him first."
           ]
         },
         {
@@ -107,9 +103,8 @@
           "layout": "text-image",
           "text": [
             "The shot was clean, and the threat ended.",
-            "For other Marines, that meant the jungle was a little safer. One hidden danger had been stopped before it could take more lives.",
-            "Hathcock didn't celebrate like a fool. He stayed alert.",
-            "In the jungle, one danger gone didn't mean all danger gone. It only meant his men had a better chance."
+            "For other Marines, that meant the jungle was a little safer.",
+            "It only meant his men had a better chance."
           ]
         }
       ]
@@ -122,8 +117,8 @@
           "id": "page-1",
           "layout": "image-text",
           "text": [
-            "Hathcock's work was lonely, but it wasn't selfish.",
-            "He was out there for the men behind him. Marines on patrol. Marines in camps. Marines who might never know his name, but might live because he saw danger first.",
+            "Hathcock's work was lonely, but it was not selfish.",
+            "He was out there for the men behind him.",
             "That was enough."
           ]
         },
@@ -131,10 +126,10 @@
           "id": "page-2",
           "layout": "text",
           "text": [
-            "There were days when heat and fear pressed hard. Days when the jungle seemed to watch back. Days when a man had to decide whether he'd keep serving after his body and mind were worn thin.",
+            "There were days when heat and fear pressed hard.",
+            "Days when the jungle seemed to watch back.",
+            "Days when a man had to decide whether he had keep serving after his body and mind were worn thin.",
             "Hathcock kept serving.",
-            "He took hard missions. He made hard crawls. He faced men who were trying to find and stop him. He didn't do it to look brave. He did it because hidden threats had to be stopped.",
-            "A sniper's courage isn't always seen by crowds. Sometimes it's seen by no one. Sometimes it's one man alone in the grass, choosing not to move, because one careless move could cost many lives.",
             "Hathcock understood that, so he stayed steady."
           ]
         },
@@ -143,9 +138,8 @@
           "layout": "text-image",
           "text": [
             "Carlos Hathcock became a legend, but the better word is faithful.",
-            "Faithful to his men. Faithful to the mission. Faithful under pressure most people couldn't imagine.",
-            "The white feather became famous, but the real story was the man beneath it.",
-            "Quiet. Patient. Brave. Watching so others could live."
+            "Faithful to his men.",
+            "Watching so others could live."
           ]
         }
       ]

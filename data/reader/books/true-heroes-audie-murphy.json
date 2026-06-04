@@ -1,151 +1,184 @@
 {
   "id": "true-heroes-audie-murphy",
-  "title": "True Heroes: Audie Murphy",
+  "title": "Audie Murphy",
   "baseColor": "#18243D",
   "titleTint": "#BFD7FF",
   "chapters": [
     {
       "id": "chapter-1",
-      "title": "The Young Soldier",
+      "title": "Too Small to Join",
+      "image": "./assets/media/books/chapters/true-heroes-audie-murphy-5.jpg",
       "pages": [
         {
           "id": "page-1",
           "layout": "image-text",
           "text": [
-            "Audie Murphy didn't look like the most dangerous man on the field.",
-            "He was young, small, and quiet. Some men might've missed him in a crowd, but war didn't miss him.",
-            "It put him in hard places, under fire, with men depending on him. Murphy kept standing."
+            "Audie Murphy was a small young man from Texas.",
+            "He was about 5 feet 5 inches tall.",
+            "He weighed about 110 pounds."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "He'd come from Texas, from a hard life and a poor family. He knew hunger. He knew work. He knew what it meant to carry more than people expected.",
-            "The Army gave him a uniform and a rifle. The war gave him danger, cold, smoke, and fear.",
-            "Murphy didn't become loud. He didn't become careless. He became watchful.",
-            "The men around him learned quickly that size didn't tell the whole story. Murphy could move when others froze. He could aim when the air was full of noise. He could think when panic was trying to take the room.",
-            "He was young, but he was already steady."
+            "Audie wanted to be a soldier.",
+            "The Marines said no.",
+            "The paratroopers said no.",
+            "Audie looked too small and too light.",
+            "Audie did not quit."
           ]
         },
         {
           "id": "page-3",
           "layout": "text-image",
           "text": [
-            "By the time the fighting reached France, Murphy had seen too much for a man his age.",
-            "He'd lost friends. He'd watched good men fall. He'd learned that courage wasn't a feeling. It was what a man did when the feeling was gone.",
-            "Ahead of him, another fight was waiting. This one would ask almost everything."
+            "Audie kept trying.",
+            "At last, the Army let Audie join.",
+            "The small young man would become a very brave soldier."
           ]
         }
       ]
     },
     {
       "id": "chapter-2",
-      "title": "The Attack",
+      "title": "The Young Soldier",
+      "image": "./assets/media/books/chapters/true-heroes-audie-murphy-1.jpg",
       "pages": [
         {
           "id": "page-1",
           "layout": "image-text",
           "text": [
-            "The enemy came hard.",
-            "German infantry moved with tanks behind them. The American line was thin, tired, and under pressure. The men could hear the engines before they saw the armor.",
-            "Murphy saw what was happening. If the line broke, many men would be lost."
+            "Audie did not look strong at first.",
+            "Audie was young, small, and quiet.",
+            "But Audie kept standing when danger came."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "The order was to pull back. Murphy sent his men toward safer ground, but he didn't leave with them. Somebody had to slow the enemy down.",
-            "He stayed.",
-            "Shells hit the ground around him. Bullets cut through the trees. Smoke drifted across the road and made the world small.",
-            "Murphy called in artillery by radio. His voice stayed steady while the enemy came closer. He watched the movement ahead and gave the fire where it needed to land.",
-            "The Germans kept pressing forward, and Murphy kept talking.",
-            "The line behind him needed time. Wounded men needed time. Men running low on strength needed one more chance to live.",
-            "Murphy gave them that time."
+            "Audie came from a poor family in Texas.",
+            "Audie knew hunger.",
+            "Audie knew hard work.",
+            "The Army gave Audie a uniform and a rifle.",
+            "Audie became careful and steady."
           ]
         },
         {
           "id": "page-3",
           "layout": "text-image",
           "text": [
-            "Then he saw the burning tank destroyer.",
-            "It was damaged, smoking, and dangerous. But the machine gun still worked, so Murphy climbed onto it.",
-            "The enemy could see him there. That didn't matter. From that burning vehicle, he had a better angle, and he had work to do."
+            "Audie saw hard fighting in the war.",
+            "Audie lost friends.",
+            "Audie learned that courage means doing the right thing while afraid."
           ]
         }
       ]
     },
     {
       "id": "chapter-3",
-      "title": "Holding the Line",
+      "title": "The Attack",
+      "image": "./assets/media/books/chapters/true-heroes-audie-murphy-2.jpg",
       "pages": [
         {
           "id": "page-1",
           "layout": "image-text",
           "text": [
-            "Murphy stood on the burning tank destroyer and opened fire.",
-            "The enemy came through smoke and trees. Murphy met them with the machine gun and fired until they dropped, scattered, or stopped moving forward.",
-            "The vehicle could've blown apart under him. He stayed anyway."
+            "Enemy soldiers came toward Audie and his men.",
+            "Tanks came behind them.",
+            "The American line was tired and thin."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "The Germans tried to move around him. Murphy shifted the gun and stopped them. They tried to press from another side, and he turned and stopped that too.",
-            "The smoke burned his eyes. The heat rose under his boots. Enemy fire snapped around him and struck the metal near his body.",
-            "He kept firing.",
-            "This wasn't glory. This was one man buying time for many. Every second he held the enemy back gave his men more room to regroup. Every burst from the gun said the line wasn't gone yet.",
-            "The attack slowed, then broke apart.",
-            "Men who had come forward with confidence were now looking for cover. Murphy was still standing."
+            "Audie sent his men back to safer ground.",
+            "Audie stayed behind.",
+            "Someone had to slow the enemy soldiers.",
+            "Audie used the radio to call for help.",
+            "His voice stayed calm."
           ]
         },
         {
           "id": "page-3",
           "layout": "text-image",
           "text": [
-            "The radio stayed close, and Murphy kept directing fire.",
-            "At one point, artillery landed so near his own position that a man might've thought he'd gone too far. Murphy knew the danger. He also knew the enemy was closer.",
-            "He did what had to be done.",
-            "The line held. His men had time now."
+            "Then Audie saw a burning tank destroyer.",
+            "The machine gun still worked.",
+            "Audie climbed on top and got ready to fight."
           ]
         }
       ]
     },
     {
       "id": "chapter-4",
-      "title": "He Comes Back",
+      "title": "Holding the Line",
+      "image": "./assets/media/books/chapters/true-heroes-audie-murphy-3.jpg",
       "pages": [
         {
           "id": "page-1",
           "layout": "image-text",
           "text": [
-            "When the gun ran out and the moment passed, Murphy climbed down.",
-            "He'd been alone in the open, standing on a burning vehicle, facing an enemy force much larger than himself.",
-            "Now he walked back through smoke. The men saw him coming, and he was still alive."
+            "Audie stood on the burning machine.",
+            "Enemy fire came from many sides.",
+            "Audie fired the machine gun and held the line."
           ]
         },
         {
           "id": "page-2",
           "layout": "text",
           "text": [
-            "Murphy didn't walk back like a man looking for praise. He came back like a soldier who still had work to do.",
-            "He'd helped stop the attack. He'd given his men time. He'd stood where most men could not stand and done what the moment required.",
-            "Then he joined the fight again.",
-            "That was the measure of him.",
-            "He wasn't big. He wasn't old. He wasn't trying to look brave for a picture. He was a young soldier who saw danger coming and chose to stand between that danger and his men.",
-            "The enemy had come hard. Murphy had held."
+            "Smoke hurt Audie's eyes.",
+            "Heat rose under his boots.",
+            "Bullets hit the metal near him.",
+            "Audie kept firing.",
+            "His men got time to get safe."
           ]
         },
         {
           "id": "page-3",
           "layout": "text-image",
           "text": [
-            "Audie Murphy became one of America's great war heroes.",
-            "But the story isn't really about medals. It's about the moment when the line was thin and someone had to stay.",
-            "Murphy stayed.",
-            "The attack slowed, then broke. His men lived because he didn't run from the fire."
+            "The attack slowed.",
+            "The enemy soldiers stopped moving forward.",
+            "Audie had helped save his men."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chapter-5",
+      "title": "He Comes Back",
+      "image": "./assets/media/books/chapters/true-heroes-audie-murphy-4.jpg",
+      "pages": [
+        {
+          "id": "page-1",
+          "layout": "image-text",
+          "text": [
+            "The gun ran out.",
+            "Audie climbed down from the burning machine.",
+            "Audie walked back through the smoke."
+          ]
+        },
+        {
+          "id": "page-2",
+          "layout": "text",
+          "text": [
+            "Audie did not ask for praise.",
+            "Audie still had work to do.",
+            "Audie joined his men again.",
+            "The small soldier had done a very brave thing."
+          ]
+        },
+        {
+          "id": "page-3",
+          "layout": "text-image",
+          "text": [
+            "Audie Murphy became one of America's great heroes.",
+            "The medals came later.",
+            "That day, Audie stayed when his men needed him."
           ]
         }
       ]

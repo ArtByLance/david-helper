@@ -1,15 +1,20 @@
 export const MEALS = [
-  { id: "breakfast", label: "BREAKFAST", time: "07:00", displayTime: "7:00 AM" },
+  {
+    id: "breakfast",
+    label: "BREAKFAST",
+    time: "07:00",
+    displayTime: "7:00 AM",
+  },
   { id: "lunch", label: "LUNCH", time: "12:00", displayTime: "12:00 PM" },
   { id: "supper", label: "SUPPER", time: "17:00", displayTime: "5:00 PM" },
 ];
 
 export const TODAY_SPECIALS = {
-  wednesday: {
+  thursday: {
     title: "Bible Study",
     time: "10:30 AM",
-    place: "Movie Room",
-    note: "Bible Study is today in the Movie Room.",
+    place: "Gathering Room",
+    note: "Bible Study is today in the Gathering Room.",
   },
   friday: {
     title: "Laundry and Cleaning",
@@ -79,13 +84,23 @@ const ACTION_PAGES = [
 
 export const READ_CONTENT = [
   makeBook("long-rider", "Long Rider", "COWBOY STORIES", COWBOY_PAGES),
-  makeBook("dry-creek-sheriff", "Dry Creek Sheriff", "COWBOY STORIES", COWBOY_PAGES),
+  makeBook(
+    "dry-creek-sheriff",
+    "Dry Creek Sheriff",
+    "COWBOY STORIES",
+    COWBOY_PAGES,
+  ),
   makeBook("ranch-war", "Ranch War", "COWBOY STORIES", COWBOY_PAGES),
   makeBook("sniper-hill", "Sniper Hill", "WAR STORIES", WAR_PAGES),
   makeBook("pacific-patrol", "Pacific Patrol", "WAR STORIES", WAR_PAGES),
   makeBook("tank-crew", "Tank Crew", "WAR STORIES", WAR_PAGES),
   makeBook("joseph", "Joseph", "BIBLE STORIES", BIBLE_PAGES),
-  makeBook("david-and-goliath", "David and Goliath", "BIBLE STORIES", BIBLE_PAGES),
+  makeBook(
+    "david-and-goliath",
+    "David and Goliath",
+    "BIBLE STORIES",
+    BIBLE_PAGES,
+  ),
   makeBook("pauls-journey", "Paul's Journey", "BIBLE STORIES", BIBLE_PAGES),
   makeBook("bridge-rescue", "Bridge Rescue", "ACTION STORIES", ACTION_PAGES),
   makeBook("mountain-road", "Mountain Road", "ACTION STORIES", ACTION_PAGES),

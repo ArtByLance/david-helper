@@ -1,4 +1,4 @@
-import { MEALS, READ_CONTENT, TODAY_SPECIALS } from "./app-data.js";
+import { MEALS, TODAY_SPECIALS } from "./app-data.js";
 import {
   refreshDementiaClocks,
   renderDementiaClock,
@@ -18,7 +18,7 @@ import { getNow } from "./time.js";
 
 const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
-const MEAL_ACTIVE_MINUTES = 45;
+const MEAL_ACTIVE_MINUTES = 30;
 const ALERT_TRANSITION_MS = 260;
 const ALERT_HOME_ENTRY_DELAY_MS = 750;
 const VIEW_TRANSITION_OUT_MS = 120;
@@ -27,6 +27,16 @@ const IDLE_HOME_MS = 5 * 60 * 1000;
 const IDLE_CHECK_MS = 15 * 1000;
 const SHELF_PANEL_WIDTH = 800;
 const SHOWS_SPINE_START_X = 1810;
+const FRONT_SHELF_START_X = 1624;
+const FRONT_SHELF_BASE_Y = 1016;
+// Shelf front-case spacing. Use a negative value if the visible plastic edges
+// need to overlap because the source PNG includes transparent side canvas.
+const FRONT_SHELF_ITEM_GAP = -100;
+const FRONT_SHELF_GROUP_GAP = 230;
+const FRONT_SHELF_DVD_HEIGHT = 424;
+const FRONT_SHELF_BOOK_HEIGHT = 438;
+const FRONT_SHELF_SCALE = 2.4;
+const FRONT_SHELF_ROTATION_DEGREES = 4;
 const MEDIA_SPINE_TO_SPINE_GAP = 70;
 const SHOWS_GROUP_GAP = 170 * 3;
 const MEDIA_SPINE_BOTTOM = 245;
@@ -48,10 +58,6 @@ const SHELF_IMAGE_BY_KIND = {
   SHOWS: "./assets/shelves/shelf2.jpg",
   BOOKS: "./assets/shelves/shelf3.jpg",
 };
-const SHOWS_EXTENSION_PANELS = 7;
-const SHOWS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * SHOWS_EXTENSION_PANELS;
-const BOOKS_EXTENSION_PANELS = 8;
-const BOOKS_MAX_SCROLL_LEFT = SHELF_PANEL_WIDTH * BOOKS_EXTENSION_PANELS;
 const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 6;
 const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 5;
 const dvdSpineSkin = {
@@ -99,6 +105,7 @@ const MEDIA_SPINE_VIEW_SPINE_TINT_OPACITY = 0.89;
 const MEDIA_FRONT_VIEW_SPINE_OPACITY = 0.4;
 const MEDIA_FRONT_TITLE_ROTATION_OFFSET = -4.8;
 const MEDIA_FRONT_TITLE_RIGHT_INSET = 92;
+const MEDIA_FRONT_TITLE_LEFT_INSET = 126;
 const MEDIA_FRONT_TITLE_BOTTOM_INSET = 115;
 const MEDIA_DEFAULT_TITLE_TINT = "#fff6df";
 const MEDIA_SPINE_TITLE_X_OFFSET = 7;
@@ -304,6 +311,12 @@ function bindGlobalControls() {
     });
   document
     .getElementById("app-main")
+    ?.addEventListener("scroll", handleReaderScroll, {
+      capture: true,
+      passive: true,
+    });
+  document
+    .getElementById("app-main")
     ?.addEventListener("pointerdown", handleReaderPointerDown);
   document
     .getElementById("app-main")
@@ -323,7 +336,10 @@ function render() {
   const now = getNow();
   renderMain(now);
   renderMealTimer(now);
-  requestAnimationFrame(restoreShelfScroll);
+  requestAnimationFrame(() => {
+    restoreShelfScroll();
+    restoreReaderScroll();
+  });
 }
 
 function renderMealTimerOnly() {
@@ -399,7 +415,9 @@ function renderHomeLayer(layer, now) {
 
 function refreshHomeLayer(layer, now) {
   const dateReadout = getHomeDateReadout(now);
-  layer.querySelector(".home-main-image")?.setAttribute("src", getHomeScene(now));
+  layer
+    .querySelector(".home-main-image")
+    ?.setAttribute("src", getHomeScene(now));
 
   const leftDate = layer.querySelector(
     ".home-date-readout:not(.home-date-readout-right)",
@@ -735,7 +753,7 @@ function renderTodayMealLine(meal, nextMealId) {
 
 function renderBooksImageStrip() {
   const extensionPanels = Array.from(
-    { length: BOOKS_EXTENSION_PANELS },
+    { length: getBooksExtensionPanelCount() },
     () => `
     <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
   `,
@@ -748,8 +766,7 @@ function renderBooksImageStrip() {
           <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.BOOKS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
-          ${renderMediaSpineItems(booksShelfMedia, "BOOKS")}
-          ${renderMediaSectionPlates(booksShelfMedia, "books-section-plate")}
+          ${renderCoverShelfRows("BOOKS", booksShelfMedia, state.recentRead)}
           ${renderScrollLabel()}
         </div>
       </div>
@@ -760,7 +777,7 @@ function renderBooksImageStrip() {
 
 function renderShowsImageStrip() {
   const extensionPanels = Array.from(
-    { length: SHOWS_EXTENSION_PANELS },
+    { length: getShowsExtensionPanelCount() },
     () => `
     <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
   `,
@@ -773,13 +790,141 @@ function renderShowsImageStrip() {
           <img class="shelf-strip-image" src="${SHELF_EXTENSION_IMAGE}" alt="" aria-hidden="true" draggable="false" />
           <img class="shelf-strip-image" src="${SHELF_IMAGE_BY_KIND.SHOWS}" alt="" aria-hidden="true" draggable="false" />
           ${extensionPanels}
-          ${renderMediaSpineItems(showsShelfMedia, "SHOWS")}
-          ${renderMediaSectionPlates(showsShelfMedia, "shows-section-plate")}
+          ${renderCoverShelfRows("SHOWS", showsShelfMedia, state.recentWatched)}
           ${renderScrollLabel()}
         </div>
       </div>
       <button class="shelf-back-zone" type="button" data-action="back-home" aria-label="Back to home">BACK</button>
     </section>
+  `;
+}
+
+function renderCoverShelfRows(kind, items, recentMap) {
+  const layout = buildFrontShelfLayout(kind, items);
+
+  return `
+    <div class="front-shelf-layer front-shelf-layer-${kind.toLowerCase()}">
+      ${layout.sections
+        .map((section) => renderFrontShelfSectionPlate(kind, section))
+        .join("")}
+      ${layout.items
+        .map((item) => renderFrontShelfItem(kind, item, recentMap))
+        .join("")}
+    </div>
+  `;
+}
+
+function buildFrontShelfLayout(kind, items) {
+  let x = FRONT_SHELF_START_X;
+  const sections = [];
+  const shelfItems = [];
+
+  for (const [category, categoryItems] of groupByCategory(items)) {
+    const sectionX = x;
+
+    categoryItems.forEach((item, itemIndex) => {
+      const shelfItem = createFrontShelfItem(kind, item, x, itemIndex);
+      shelfItems.push(shelfItem);
+      x += shelfItem.width + FRONT_SHELF_ITEM_GAP;
+    });
+
+    sections.push({
+      category,
+      x: sectionX,
+      width: Math.max(220, x - sectionX - FRONT_SHELF_ITEM_GAP),
+    });
+    x += FRONT_SHELF_GROUP_GAP;
+  }
+
+  return { sections, items: shelfItems, endX: getFrontShelfEndX(shelfItems) };
+}
+
+function createFrontShelfItem(kind, item, x, itemIndex) {
+  const slotHeight =
+    kind === "BOOKS" ? FRONT_SHELF_BOOK_HEIGHT : FRONT_SHELF_DVD_HEIGHT;
+  const height = slotHeight * FRONT_SHELF_SCALE;
+  const skin = getMediaSkin(item, "front");
+  const width = getMediaObjectWidth(skin, height);
+  const stagger = itemIndex % 2 === 0 ? 0 : 11;
+
+  return {
+    ...item,
+    svgScope: `shelf-${kind}-${item.id}`,
+    x,
+    y: FRONT_SHELF_BASE_Y - height + stagger,
+    width,
+    height,
+    rotationDegrees: FRONT_SHELF_ROTATION_DEGREES,
+  };
+}
+
+function getFrontShelfEndX(items) {
+  if (!items.length) return SHELF_PANEL_WIDTH * 2;
+  return Math.max(...items.map((item) => item.x + item.width));
+}
+
+function getFrontShelfMaxScrollLeft(kind) {
+  const items = kind === "BOOKS" ? booksShelfMedia : showsShelfMedia;
+  return Math.max(
+    SHELF_PANEL_WIDTH,
+    Math.ceil(buildFrontShelfLayout(kind, items).endX),
+  );
+}
+
+function getFrontShelfExtensionPanelCount(kind) {
+  const maxScrollLeft = getFrontShelfMaxScrollLeft(kind);
+  const requiredContentWidth = maxScrollLeft + SHELF_PANEL_WIDTH;
+  return Math.max(1, Math.ceil(requiredContentWidth / SHELF_PANEL_WIDTH) - 2);
+}
+
+function getShowsExtensionPanelCount() {
+  return getFrontShelfExtensionPanelCount("SHOWS");
+}
+
+function getBooksExtensionPanelCount() {
+  return getFrontShelfExtensionPanelCount("BOOKS");
+}
+
+function getShowsMaxScrollLeft() {
+  return getFrontShelfMaxScrollLeft("SHOWS");
+}
+
+function getBooksMaxScrollLeft() {
+  return getFrontShelfMaxScrollLeft("BOOKS");
+}
+
+function renderFrontShelfSectionPlate(kind, section) {
+  const className =
+    kind === "BOOKS" ? "books-section-plate" : "shows-section-plate";
+
+  return `
+    <div
+      class="section-plate ${className}"
+      style="left: ${section.x}px;"
+      aria-hidden="true"
+    ><span>${escapeHtml(section.category)}</span></div>
+  `;
+}
+
+function renderFrontShelfItem(kind, item, recentMap) {
+  const recent = isRecent(recentMap[item.id]);
+  const highlighted = kind === "SHOWS" && state.highlightedShowId === item.id;
+  const skin = getMediaSkin(item, "front");
+
+  return `
+    <button
+      class="media-object media-front media-front-item front-shelf-media front-shelf-media-${item.type}"
+      type="button"
+      data-action="take-off"
+      data-kind="${kind}"
+      data-item-id="${escapeAttribute(item.id)}"
+      data-recent="${recent}"
+      data-highlighted="${highlighted}"
+      aria-label="${escapeAttribute(item.title)}"
+      style="--media-x: ${item.x}px; --media-y: ${item.y}px; --media-width: ${item.width}px; --media-height: ${item.height}px; --media-rotation: ${item.rotationDegrees}deg;"
+    >
+      ${renderMediaObjectContent({ item, mode: "front", skin })}
+    </button>
   `;
 }
 
@@ -844,7 +989,7 @@ function renderMediaFrontItem(item, action = "") {
 
 function renderMediaObjectContent({ item, mode, skin }) {
   const title = item.displayTitle ?? item.title;
-  const svgId = `${slugify(item.title)}-${mode}`;
+  const svgId = `${slugify(item.svgScope ?? item.id ?? item.title)}-${mode}`;
 
   return `
     ${renderMediaArtLayer({ item, mode, skin, svgId })}
@@ -1056,7 +1201,10 @@ function renderMediaSpineTitle(title, titleBox, svgId, titleTint) {
 }
 
 function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
-  const words = String(title).trim().split(/\s+/);
+  const maxLineWidth =
+    (titleBox.maxX - MEDIA_FRONT_TITLE_RIGHT_INSET) -
+    (titleBox.minX + MEDIA_FRONT_TITLE_LEFT_INSET);
+  const words = wrapMediaTitleLines(title, maxLineWidth, 76);
   const lineHeight = 72;
   const isLite = isLitePerformanceMode();
   const liteAttrs = isLite
@@ -1101,6 +1249,40 @@ function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
       ${cleanLines}
     </g>
   `;
+}
+
+function wrapMediaTitleLines(title, maxLineWidth, fontSize) {
+  const words = String(title).trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const candidate = currentLine ? `${currentLine} ${word}` : word;
+    if (
+      currentLine &&
+      estimateMediaTitleWidth(candidate, fontSize) > maxLineWidth
+    ) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = candidate;
+    }
+  }
+
+  if (currentLine) lines.push(currentLine);
+  return lines.length ? lines : [String(title)];
+}
+
+function estimateMediaTitleWidth(value, fontSize) {
+  return String(value)
+    .split("")
+    .reduce((width, char) => {
+      if (char === " ") return width + fontSize * 0.22;
+      if (/[:;,.!'-]/.test(char)) return width + fontSize * 0.22;
+      if (/[ilI1]/.test(char)) return width + fontSize * 0.24;
+      if (/[mwMW]/.test(char)) return width + fontSize * 0.64;
+      return width + fontSize * 0.48;
+    }, 0);
 }
 
 function isLitePerformanceMode() {
@@ -1377,7 +1559,7 @@ function renderMediaShelfPreview(kind, label, items, recentMap) {
     <button class="home-shelf media-home-shelf" type="button" data-action="expand-shelf" data-shelf="${kind}">
       <div class="home-shelf-label">${label.toUpperCase()}</div>
       <div class="home-shelf-board">
-        <div class="preview-spines">
+        <div class="preview-covers">
           ${items.map((item) => renderPreviewItem(kind, item, recentMap)).join("")}
           <div class="preview-blank-space"></div>
         </div>
@@ -1387,11 +1569,12 @@ function renderMediaShelfPreview(kind, label, items, recentMap) {
 }
 
 function renderPreviewItem(kind, item, recentMap) {
-  const className = kind === "BOOKS" ? "book-spine" : "dvd-case";
+  const className =
+    kind === "BOOKS" ? "preview-book-cover" : "preview-dvd-cover";
   return `
-    <div class="shelf-item ${className}" data-recent="${isRecent(recentMap[item.id])}">
-      <span class="recent-ribbon" aria-hidden="true"></span>
-      <span class="item-title">${item.title}</span>
+    <div class="preview-cover-item ${className}" data-recent="${isRecent(recentMap[item.id])}">
+      <img src="${escapeAttribute(item.masterArt)}" alt="" aria-hidden="true" draggable="false" />
+      <span>${escapeHtml(item.title)}</span>
     </div>
   `;
 }
@@ -1498,11 +1681,12 @@ function renderShelfSection(kind, category, items, recentMap) {
 function renderShelfItem(kind, item, recentMap) {
   const recent = isRecent(recentMap[item.id]);
   const highlighted = kind === "SHOWS" && state.highlightedShowId === item.id;
-  const className = kind === "BOOKS" ? "book-spine" : "dvd-case";
+  const className =
+    kind === "BOOKS" ? "expanded-book-cover" : "expanded-dvd-cover";
 
   return `
     <button
-      class="shelf-item ${className}"
+      class="shelf-item expanded-cover-item ${className}"
       type="button"
       data-action="take-off"
       data-kind="${kind}"
@@ -1510,8 +1694,8 @@ function renderShelfItem(kind, item, recentMap) {
       data-recent="${recent}"
       data-highlighted="${highlighted}"
     >
-      <span class="recent-ribbon" aria-hidden="true"></span>
-      <span class="item-title">${item.title}</span>
+      <img src="${escapeAttribute(item.masterArt)}" alt="" aria-hidden="true" draggable="false" />
+      <span class="item-title">${escapeHtml(item.title)}</span>
     </button>
   `;
 }
@@ -1523,6 +1707,7 @@ function renderTakeOffOverlay() {
   const action = isBook ? "read-book" : "watch-item";
   const coverItem = {
     ...item,
+    svgScope: `take-off-${item.id}`,
     x: -32,
     y: -75,
     height: 1277,
@@ -1597,7 +1782,7 @@ function renderHandoff() {
               <span>on your TV.</span>
             </h1>
             <p>Use your remote to control it.</p>
-            <p>This window will close in a minute.</p>
+            <p>This window will close shortly.</p>
           </div>
         </div>
         <button class="secondary-action handoff-put-back" type="button" data-action="return-shows">PUT BACK</button>
@@ -1759,10 +1944,8 @@ async function handleMainClick(event) {
 }
 
 function handleReaderPointerDown(event) {
-  if (!state.readerItem || event.target.closest("button")) return;
-  state.readerSwipeStarted = true;
-  state.readerSwipeStartX = event.clientX;
-  state.readerSwipeStartY = event.clientY;
+  if (!state.readerItem) return;
+  state.readerSwipeStarted = false;
 }
 
 function markUserInteraction() {
@@ -1810,20 +1993,8 @@ async function handleHomeShelfPointerUp(event) {
 }
 
 function handleReaderPointerUp(event) {
-  if (!state.readerItem || !state.readerSwipeStarted) return;
+  if (!state.readerItem) return;
   state.readerSwipeStarted = false;
-
-  const deltaX = event.clientX - state.readerSwipeStartX;
-  const deltaY = event.clientY - state.readerSwipeStartY;
-  if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) {
-    return;
-  }
-
-  if (deltaX < 0) {
-    goToNextReaderPage();
-  } else {
-    goToPreviousReaderPage();
-  }
 }
 
 function handleReaderKeyDown(event) {
@@ -1887,6 +2058,54 @@ function finishReading() {
   render();
 }
 
+function handleReaderScroll(event) {
+  if (!state.readerItem) return;
+
+  const track = event.target.closest?.(".reader-page-track");
+  if (!track) return;
+
+  markUserInteraction();
+  const pageWidth = track.clientWidth || SHELF_PANEL_WIDTH;
+  const pageCount = getReaderPageCount(state.readerItem);
+  const nextPage = clamp(
+    Math.round(track.scrollLeft / pageWidth),
+    0,
+    Math.max(0, pageCount - 1),
+  );
+  state.readerPage = nextPage;
+  state.readerTurnDirection = "";
+  syncReaderControls(nextPage, pageCount);
+}
+
+function restoreReaderScroll() {
+  if (!state.readerItem) return;
+
+  const track = document.querySelector(".reader-page-track");
+  if (!track) return;
+
+  const pageWidth = track.clientWidth || SHELF_PANEL_WIDTH;
+  const targetScrollLeft = state.readerPage * pageWidth;
+  if (Math.abs(track.scrollLeft - targetScrollLeft) <= 2) return;
+  track.scrollLeft = targetScrollLeft;
+  syncReaderControls(state.readerPage, getReaderPageCount(state.readerItem));
+}
+
+function syncReaderControls(pageIndex, pageCount) {
+  const screen = document.querySelector(".reader-screen");
+  if (!screen) return;
+
+  const footer = screen.querySelector(".reader-controls .reader-footer");
+  if (footer) footer.textContent = `Page ${pageIndex + 1} of ${pageCount}`;
+
+  const previousButton = screen.querySelector('[data-action="reader-prev"]');
+  if (previousButton) previousButton.disabled = pageIndex === 0;
+
+  const nextButton = screen.querySelector('[data-action="reader-next"]');
+  if (nextButton) {
+    nextButton.textContent = pageIndex >= pageCount - 1 ? "Done" : "Next";
+  }
+}
+
 function handleShelfScroll(event) {
   const shelf = event.target.closest?.("[data-shelf-kind]");
   if (!shelf) return;
@@ -1894,15 +2113,15 @@ function handleShelfScroll(event) {
   if (shelf.dataset.shelfKind === "BOOKS") {
     if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
       shelf.scrollLeft = SHELF_PANEL_WIDTH;
-    } else if (shelf.scrollLeft > BOOKS_MAX_SCROLL_LEFT) {
-      shelf.scrollLeft = BOOKS_MAX_SCROLL_LEFT;
+    } else if (shelf.scrollLeft > getBooksMaxScrollLeft()) {
+      shelf.scrollLeft = getBooksMaxScrollLeft();
     }
     state.booksScrollLeft = shelf.scrollLeft;
   } else if (shelf.dataset.shelfKind === "SHOWS") {
     if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
       shelf.scrollLeft = SHELF_PANEL_WIDTH;
-    } else if (shelf.scrollLeft > SHOWS_MAX_SCROLL_LEFT) {
-      shelf.scrollLeft = SHOWS_MAX_SCROLL_LEFT;
+    } else if (shelf.scrollLeft > getShowsMaxScrollLeft()) {
+      shelf.scrollLeft = getShowsMaxScrollLeft();
     }
     state.showsScrollLeft = shelf.scrollLeft;
   } else if (shelf.dataset.shelfKind === "TODAY") {
@@ -1929,11 +2148,11 @@ function restoreShelfScroll() {
 }
 
 function clampShowsScroll(scrollLeft) {
-  return clamp(scrollLeft, SHELF_PANEL_WIDTH, SHOWS_MAX_SCROLL_LEFT);
+  return clamp(scrollLeft, SHELF_PANEL_WIDTH, getShowsMaxScrollLeft());
 }
 
 function clampBooksScroll(scrollLeft) {
-  return clamp(scrollLeft, SHELF_PANEL_WIDTH, BOOKS_MAX_SCROLL_LEFT);
+  return clamp(scrollLeft, SHELF_PANEL_WIDTH, getBooksMaxScrollLeft());
 }
 
 function clampTodayScroll(scrollLeft) {
@@ -1963,7 +2182,11 @@ function shouldIdleReturnHome() {
   if (Date.now() - state.lastInteractionAt < IDLE_HOME_MS) return false;
   if (state.view !== "SHELF") return false;
   if (state.readerItem || state.selectedItem || state.handoffItem) return false;
-  if (state.alertTransitioning || state.viewTransitioning || state.takeOffExiting)
+  if (
+    state.alertTransitioning ||
+    state.viewTransitioning ||
+    state.takeOffExiting
+  )
     return false;
   return true;
 }
@@ -2090,7 +2313,7 @@ function clearSelection() {
 }
 
 function findItem(kind, id) {
-  const source = kind === "BOOKS" ? READ_CONTENT : showsShelfMedia;
+  const source = kind === "BOOKS" ? booksShelfMedia : showsShelfMedia;
   return source.find((item) => item.id === id) ?? null;
 }
 
