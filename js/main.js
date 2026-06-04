@@ -120,6 +120,7 @@ const state = {
   readerItem: null,
   readerPage: 0,
   readerTurnDirection: "",
+  readerScrollTarget: null,
   readerSwipeStartX: 0,
   readerSwipeStartY: 0,
   readerSwipeStarted: false,
@@ -1561,6 +1562,7 @@ async function handleMainClick(event) {
     state.readerItem = state.selectedItem;
     state.readerPage = 0;
     state.readerTurnDirection = "";
+    state.readerScrollTarget = null;
     clearSelection();
     render();
     return;
@@ -1577,9 +1579,7 @@ async function handleMainClick(event) {
   }
 
   if (action === "read-again") {
-    state.readerPage = 0;
-    state.readerTurnDirection = "turn-prev";
-    render();
+    scrollReaderToPage(0);
     return;
   }
 
@@ -1616,6 +1616,7 @@ async function handleMainClick(event) {
 function handleReaderPointerDown(event) {
   if (!state.readerItem) return;
   state.readerSwipeStarted = false;
+  state.readerScrollTarget = null;
 }
 
 // Update idle-return bookkeeping for any meaningful user input.
@@ -1703,21 +1704,42 @@ function goToNextReaderPage() {
   }
   if (state.readerPage >= pageCount) return;
 
-  state.readerPage += 1;
-  state.readerTurnDirection = "turn-next";
-  if (state.readerPage >= pageCount) {
-    markRecent("davidsStuff.recentRead", state.recentRead, state.readerItem.id);
-  }
-  render();
+  scrollReaderToPage(state.readerPage + 1);
 }
 
 // Move back one reader page and set the page-turn animation direction.
 function goToPreviousReaderPage() {
   if (!state.readerItem || state.readerPage <= 0) return;
 
-  state.readerPage = Math.max(0, state.readerPage - 1);
-  state.readerTurnDirection = "turn-prev";
-  render();
+  scrollReaderToPage(state.readerPage - 1);
+}
+
+// Move the existing reader track so button/tap navigation feels like a swipe.
+function scrollReaderToPage(pageIndex, behavior = "smooth") {
+  if (!state.readerItem) return;
+
+  const track = document.querySelector(".reader-page-track");
+  const pageCount = getReaderPageCount(state.readerItem);
+  const targetPage = clamp(pageIndex, 0, Math.max(0, pageCount - 1));
+  const currentPage = state.readerPage;
+  if (!track) {
+    state.readerPage = targetPage;
+    state.readerTurnDirection =
+      targetPage >= currentPage ? "turn-next" : "turn-prev";
+    render();
+    return;
+  }
+
+  const pageWidth = getReaderPageWidth(track);
+  state.readerPage = targetPage;
+  state.readerScrollTarget = targetPage;
+  state.readerTurnDirection =
+    targetPage >= currentPage ? "turn-next" : "turn-prev";
+  syncReaderControls(targetPage, pageCount);
+  track.scrollTo({
+    left: targetPage * pageWidth,
+    behavior,
+  });
 }
 
 // Close the reader and return to the books shelf.
@@ -1732,6 +1754,7 @@ function finishReading() {
   state.readerItem = null;
   state.readerPage = 0;
   state.readerTurnDirection = "";
+  state.readerScrollTarget = null;
   state.view = "SHELF";
   state.activeShelf = "BOOKS";
   render();
@@ -1745,8 +1768,17 @@ function handleReaderScroll(event) {
   if (!track) return;
 
   markUserInteraction();
-  const pageWidth = track.clientWidth || SHELF_PANEL_WIDTH;
+  const pageWidth = getReaderPageWidth(track);
   const pageCount = getReaderPageCount(state.readerItem);
+  if (state.readerScrollTarget !== null) {
+    const targetScrollLeft = state.readerScrollTarget * pageWidth;
+    if (Math.abs(track.scrollLeft - targetScrollLeft) > 2) {
+      syncReaderControls(state.readerScrollTarget, pageCount);
+      return;
+    }
+    state.readerScrollTarget = null;
+  }
+
   const nextPage = clamp(
     Math.round(track.scrollLeft / pageWidth),
     0,
@@ -1764,11 +1796,16 @@ function restoreReaderScroll() {
   const track = document.querySelector(".reader-page-track");
   if (!track) return;
 
-  const pageWidth = track.clientWidth || SHELF_PANEL_WIDTH;
+  const pageWidth = getReaderPageWidth(track);
   const targetScrollLeft = state.readerPage * pageWidth;
   if (Math.abs(track.scrollLeft - targetScrollLeft) <= 2) return;
   track.scrollLeft = targetScrollLeft;
   syncReaderControls(state.readerPage, getReaderPageCount(state.readerItem));
+}
+
+// Reader page width is the full stage-width track, not the padded page content.
+function getReaderPageWidth(track) {
+  return track.clientWidth || SHELF_PANEL_WIDTH;
 }
 
 // Keep reader footer and prev/next controls aligned with current page.
@@ -1779,10 +1816,15 @@ function syncReaderControls(pageIndex, pageCount) {
   const footer = screen.querySelector(".reader-controls .reader-footer");
   if (footer) footer.textContent = `Page ${pageIndex + 1} of ${pageCount}`;
 
-  const previousButton = screen.querySelector('[data-action="reader-prev"]');
+  const previousButton = screen.querySelector(".reader-control-prev");
   if (previousButton) previousButton.disabled = pageIndex === 0;
+  screen
+    .querySelectorAll(".reader-page-click-prev")
+    .forEach((button) => {
+      button.disabled = pageIndex === 0;
+    });
 
-  const nextButton = screen.querySelector('[data-action="reader-next"]');
+  const nextButton = screen.querySelector(".reader-control-next");
   if (nextButton) {
     nextButton.textContent = pageIndex >= pageCount - 1 ? "Done" : "Next";
   }

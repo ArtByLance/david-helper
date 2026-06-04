@@ -19,6 +19,7 @@ export function renderReaderView({ item, pageIndex }) {
           .map((page, index) => renderReaderPagePanel(item, page, index, pages.length))
           .join("")}
       </div>
+      ${renderReaderPageClickZones(safePageIndex)}
       ${renderReaderControls(safePageIndex, pages.length)}
     </section>
   `;
@@ -91,6 +92,16 @@ function renderChapterEndPagePanel(page, pageIndex, pageCount) {
 // Persistent exit control in the upper reader chrome.
 function renderPutBackButton() {
   return `<button class="reader-exit" type="button" data-action="finish-reading">Put Back</button>`;
+}
+
+// Invisible page-area fallbacks for David: left side goes back, right advances.
+function renderReaderPageClickZones(pageIndex) {
+  return `
+    <div class="reader-page-click-zones" aria-hidden="true">
+      <button class="reader-page-click-zone reader-page-click-prev" type="button" data-action="reader-prev" tabindex="-1" ${pageIndex === 0 ? "disabled" : ""}></button>
+      <button class="reader-page-click-zone reader-page-click-next" type="button" data-action="reader-next" tabindex="-1"></button>
+    </div>
+  `;
 }
 
 // Render page controls with disabled/Done states derived from page index.
