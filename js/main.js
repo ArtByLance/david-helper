@@ -1,3 +1,23 @@
+/*
+ * David's Shelves production shell.
+ *
+ * This file owns the main kiosk-style experience after index.html loads:
+ * 1. Boot/data loading: bootstrap() loads JSON-backed book/show shelves, keeps
+ *    clock/meal timers fresh, then delegates every visual update to render().
+ * 2. View state: the small state object below is the only navigation model for
+ *    HOME, TODAY, SHOWS, BOOKS, selected media, handoff, and reader pages.
+ * 3. Rendering: render() swaps full-screen HTML for the active view. Shelf views
+ *    use fixed-position photographed shelf panels plus SVG-rendered book/DVD
+ *    covers, so many numeric constants are tuned to the background artwork.
+ * 4. Media objects: cover art is clipped into photographed object overlays
+ *    instead of being laid out as normal rectangles; polygon helpers handle that
+ *    geometry and should stay in sync with the PNG masks in assets/objects.
+ * 5. Interaction/timing: home swipes, shelf scroll, meal alerts, idle return,
+ *    video handoff, and reader turns all mutate state first, then call render().
+ *
+ * Keep this file conservative. Most visible behavior is art-aligned and intended
+ * for an always-on family/kiosk display, so small layout changes can be obvious.
+ */
 import { MEALS, TODAY_SPECIALS } from "./app-data.js";
 import {
   refreshDementiaClocks,
@@ -26,7 +46,6 @@ const VIEW_TRANSITION_IN_MS = 180;
 const IDLE_HOME_MS = 5 * 60 * 1000;
 const IDLE_CHECK_MS = 15 * 1000;
 const SHELF_PANEL_WIDTH = 800;
-const SHOWS_SPINE_START_X = 1810;
 const FRONT_SHELF_START_X = 1624;
 const FRONT_SHELF_BASE_Y = 1016;
 // Shelf front-case spacing. Use a negative value if the visible plastic edges
@@ -37,10 +56,6 @@ const FRONT_SHELF_DVD_HEIGHT = 424;
 const FRONT_SHELF_BOOK_HEIGHT = 438;
 const FRONT_SHELF_SCALE = 2.4;
 const FRONT_SHELF_ROTATION_DEGREES = 4;
-const MEDIA_SPINE_TO_SPINE_GAP = 70;
-const SHOWS_GROUP_GAP = 170 * 3;
-const MEDIA_SPINE_BOTTOM = 245;
-const MEDIA_SPINE_HEIGHT = 806;
 const SHELF_EXTENSION_IMAGE = "./assets/shelves/shelf0.jpg";
 const HOME_SCENE_BY_DAY_PART = {
   night: "./assets/scenes/main-1.jpg",
@@ -60,20 +75,6 @@ const SHELF_IMAGE_BY_KIND = {
 };
 const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 6;
 const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 5;
-const dvdSpineSkin = {
-  overlay: "./assets/objects/dvd-spine.png",
-  viewBox: { width: 196, height: 713 },
-  artPolygons: {
-    sideFaceArt: "29,33 102,68 100,681 30,593",
-    spineArt: "103,67 182,67 181,687 101,688",
-  },
-  titlePolygon: "103,67 182,67 181,687 101,688",
-  hotspotPadding: 10,
-};
-const bookSpineSkin = {
-  ...dvdSpineSkin,
-  overlay: "./assets/objects/book-spine.png",
-};
 const dvdFrontSkin = {
   overlay: "./assets/objects/dvd-front.png",
   viewBox: { width: 900, height: 1350 },
@@ -90,31 +91,23 @@ const bookFrontSkin = {
 };
 const mediaSkins = {
   dvd: {
-    spine: dvdSpineSkin,
     front: dvdFrontSkin,
   },
   book: {
-    spine: bookSpineSkin,
     front: bookFrontSkin,
   },
 };
-const MEDIA_SPINE_VIEW_FACE_OPACITY = 0;
-const MEDIA_SPINE_VIEW_FACE_TINT_OPACITY = 0.2;
-const MEDIA_SPINE_VIEW_SIDE_TINT = "#2f66f2";
-const MEDIA_SPINE_VIEW_SPINE_TINT_OPACITY = 0.89;
 const MEDIA_FRONT_VIEW_SPINE_OPACITY = 0.4;
 const MEDIA_FRONT_TITLE_ROTATION_OFFSET = -4.8;
 const MEDIA_FRONT_TITLE_RIGHT_INSET = 92;
 const MEDIA_FRONT_TITLE_LEFT_INSET = 126;
 const MEDIA_FRONT_TITLE_BOTTOM_INSET = 115;
 const MEDIA_DEFAULT_TITLE_TINT = "#fff6df";
-const MEDIA_SPINE_TITLE_X_OFFSET = 7;
-const MEDIA_SPINE_TITLE_Y_OFFSET = 15;
 let booksShelfMedia = [];
 let showsShelfMedia = [];
 
-// When shelf content is built out, keep one extra blank panel past the expected
-// far-right end so overscroll never exposes the stage edge.
+// Single-page view model. It intentionally stays plain so event handlers can
+// mutate state and immediately re-render without hidden framework lifecycle.
 const state = {
   view: "HOME",
   activeShelf: null,
@@ -154,6 +147,7 @@ window.addEventListener("resize", () => {
   render();
 });
 
+// Load active reader books from the JSON catalog used by the production shelf.
 async function loadBooksShelfMedia() {
   try {
     const response = await fetch("./data/reader/readerIndex.json", {
@@ -187,6 +181,7 @@ async function loadBooksShelfMedia() {
   }
 }
 
+// Load the production show list and normalize it into the shared media shape.
 async function loadShowsShelfMedia() {
   try {
     const response = await fetch("./data/shows.json", { cache: "no-store" });
@@ -217,6 +212,7 @@ async function loadShowsShelfMedia() {
   }
 }
 
+// Rotate the show shelf so a configured category can be presented first.
 function orderShowCategories(categories, startCategoryId) {
   if (!startCategoryId) return categories;
 
@@ -232,10 +228,12 @@ function orderShowCategories(categories, startCategoryId) {
   ];
 }
 
+// Convert show ids from data/shows.json into their cover-image filenames.
 function getShowCoverFile(id) {
   return `${String(id).replaceAll("_", "-")}.jpg`;
 }
 
+// Fetch per-book details so the shelf and reader share cover/color/chapter data.
 async function loadReaderBookDetails(id) {
   try {
     const response = await fetch(`./data/reader/books/${id}.json`, {
@@ -249,6 +247,7 @@ async function loadReaderBookDetails(id) {
   }
 }
 
+// Fill in default chapter image paths when a book JSON file omits them.
 function buildReaderBookChapters(bookId, book) {
   return (book.chapters ?? []).map((chapter, index) => ({
     ...chapter,
@@ -258,6 +257,7 @@ function buildReaderBookChapters(bookId, book) {
   }));
 }
 
+// Merge optional kiosk VM/config settings without blocking the app on failure.
 async function loadKioskConfig() {
   try {
     const response = await fetch("./data/config.json", { cache: "no-store" });
@@ -276,6 +276,7 @@ async function loadKioskConfig() {
   }
 }
 
+// Start the app once DOM is ready: route, size, bind, load JSON, then render.
 async function bootstrap() {
   applyInitialShelfRoute();
   fitStageToViewport();
@@ -287,6 +288,7 @@ async function bootstrap() {
   window.setInterval(checkIdleReturnHome, IDLE_CHECK_MS);
 }
 
+// Attach global delegated handlers. The rendered HTML is frequently replaced.
 function bindGlobalControls() {
   document
     .getElementById("app-main")
@@ -332,6 +334,7 @@ function bindGlobalControls() {
   document.addEventListener("keydown", handleReaderKeyDown);
 }
 
+// Repaint the current screen and restore scroll positions after DOM replacement.
 function render() {
   const now = getNow();
   renderMain(now);
@@ -342,12 +345,14 @@ function render() {
   });
 }
 
+// Lightweight timer tick used between full renders.
 function renderMealTimerOnly() {
   const now = getNow();
   renderMealTimer(now);
   renderLiveClockText(now);
 }
 
+// Update live clock text in-place so full shelves do not rebuild every tick.
 function renderLiveClockText(now) {
   document
     .querySelectorAll(".home-today-clock-text, .today-led-clock-text")
@@ -357,6 +362,7 @@ function renderLiveClockText(now) {
   refreshDementiaClocks(now);
 }
 
+// Honor direct shelf links used by local smoke tests and Fire TV shortcuts.
 function applyInitialShelfRoute() {
   const params = new URLSearchParams(window.location.search);
   const shelf =
@@ -372,6 +378,7 @@ function applyInitialShelfRoute() {
   window.history.replaceState({}, "", "./");
 }
 
+// Keep persistent layer containers mounted, swapping only each layer's contents.
 function renderMain(now) {
   const main = document.getElementById("app-main");
   if (!main) return;
@@ -394,6 +401,7 @@ function renderMain(now) {
   renderReaderLayer(readerLayer);
 }
 
+// Lazily create a named app layer under the main stage.
 function ensureAppLayer(main, className) {
   let layer = main.querySelector(`.${className}`);
   if (layer) return layer;
@@ -404,6 +412,7 @@ function ensureAppLayer(main, className) {
   return layer;
 }
 
+// The home layer is stable; refresh only time-sensitive pieces after creation.
 function renderHomeLayer(layer, now) {
   if (!layer.hasChildNodes()) {
     layer.innerHTML = renderHome(now);
@@ -413,6 +422,7 @@ function renderHomeLayer(layer, now) {
   layer.toggleAttribute("aria-hidden", state.view !== "HOME");
 }
 
+// Patch home date, scene, and Today objects without recreating the whole screen.
 function refreshHomeLayer(layer, now) {
   const dateReadout = getHomeDateReadout(now);
   layer
@@ -439,6 +449,7 @@ function refreshHomeLayer(layer, now) {
   }
 }
 
+// Render the active shelf image-strip. The key avoids unnecessary DOM churn.
 function renderShelfLayer(layer, now) {
   const shouldShowShelf = state.view === "SHELF" && Boolean(state.activeShelf);
   layer.hidden = !shouldShowShelf;
@@ -451,6 +462,7 @@ function renderShelfLayer(layer, now) {
   layer.dataset.renderKey = key;
 }
 
+// Show or hide the selected-media pickup overlay without disturbing shelves.
 function renderTakeOffLayerSlot(layer) {
   layer.hidden = !state.selectedItem;
   if (!state.selectedItem) {
@@ -466,6 +478,7 @@ function renderTakeOffLayerSlot(layer) {
   layer.dataset.renderKey = key;
 }
 
+// Render the temporary "starting video" handoff state while playback launches.
 function renderHandoffLayer(layer) {
   layer.hidden = !state.handoffItem;
   if (!state.handoffItem) {
@@ -481,6 +494,7 @@ function renderHandoffLayer(layer) {
   layer.dataset.renderKey = key;
 }
 
+// Mount the reader only when a book is open; otherwise keep the layer empty.
 function renderReaderLayer(layer) {
   layer.hidden = !state.readerItem;
   if (!state.readerItem) {
@@ -496,6 +510,7 @@ function renderReaderLayer(layer) {
   state.readerTurnDirection = "";
 }
 
+// Use boolean data attributes for CSS state without leaking string values.
 function setBooleanDataAttribute(element, name, enabled) {
   if (!element) return;
   if (enabled) {
@@ -505,6 +520,7 @@ function setBooleanDataAttribute(element, name, enabled) {
   }
 }
 
+// Owns the supper/lunch/breakfast alert state and its dismissal window.
 function renderMealTimer(now) {
   const mealState = getMealState(now);
   const mealTimer = document.getElementById("meal-timer");
@@ -535,6 +551,7 @@ function renderMealTimer(now) {
   if (mealMessage) mealMessage.textContent = mealState.message;
 }
 
+// Render the home room background and fixed shelf hotspots.
 function renderHome(now) {
   const dateReadout = getHomeDateReadout(now);
   const homeScene = getHomeScene(now);
@@ -556,6 +573,7 @@ function renderHome(now) {
   `;
 }
 
+// Render clickable Today objects that sit on the home shelf photo.
 function renderHomeTodayObjects(now) {
   const weekdayKey = formatWeekdayKey(now);
   const special = TODAY_SPECIALS[weekdayKey];
@@ -575,6 +593,7 @@ function renderHomeTodayObjects(now) {
   `;
 }
 
+// Render the home-shelf special note card when TODAY_SPECIALS has an entry.
 function renderHomeTodaySpecialCard(special) {
   return `
     <div class="home-today-special-card">
@@ -588,6 +607,7 @@ function renderHomeTodaySpecialCard(special) {
   `;
 }
 
+// Render the compact home meal card; the active meal alert is separate.
 function renderHomeTodayMealCard(mealState) {
   return `
     <div class="home-today-menu-card">
@@ -602,6 +622,7 @@ function renderHomeTodayMealCard(mealState) {
   `;
 }
 
+// Render one row in the home meal card and mark the next scheduled meal.
 function renderHomeTodayMealLine(meal, nextMealId) {
   const isNext = meal.id === nextMealId;
   return `
@@ -613,6 +634,7 @@ function renderHomeTodayMealLine(meal, nextMealId) {
   `;
 }
 
+// Select the room image by day part so the shelf matches the clock.
 function getHomeScene(now) {
   const hour = now.getHours();
   if (hour < 6 || hour >= 20) return HOME_SCENE_BY_DAY_PART.night;
@@ -621,6 +643,7 @@ function getHomeScene(now) {
   return HOME_SCENE_BY_DAY_PART.sunset;
 }
 
+// Compose the large readable date labels shown on the home scene.
 function getHomeDateReadout(now) {
   const weekday = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -642,6 +665,7 @@ function getHomeDateReadout(now) {
   };
 }
 
+// Coarse daypart buckets matched to the available photographed backgrounds.
 function getDayPart(now) {
   const hour = now.getHours();
   if (hour < 6 || hour >= 21) return "Bedtime";
@@ -650,6 +674,7 @@ function getDayPart(now) {
   return "Evening";
 }
 
+// Render the scrollable photographed shelf shell for TODAY, SHOWS, or BOOKS.
 function renderShelfImageShell(kind, now = getNow()) {
   if (kind === "TODAY") {
     return renderTodayImageShell(now);
@@ -670,6 +695,7 @@ function renderShelfImageShell(kind, now = getNow()) {
   `;
 }
 
+// Render the Today shelf: clock/menu/special objects over repeated shelf panels.
 function renderTodayImageShell(now) {
   const extensionPanelCount = getTodayExtensionPanelCount(now);
   const extensionPanels = Array.from(
@@ -695,6 +721,7 @@ function renderTodayImageShell(now) {
   `;
 }
 
+// Position Today shelf objects. Coordinates are tuned to the shelf photograph.
 function renderTodayObjects(now) {
   const weekdayKey = formatWeekdayKey(now);
   const special = TODAY_SPECIALS[weekdayKey];
@@ -726,6 +753,7 @@ function renderTodayObjects(now) {
   `;
 }
 
+// Render the larger Today special card used inside the shelf view.
 function renderTodaySpecialCard(special) {
   return `
     <section class="today-special-card" aria-label="Today only">
@@ -740,6 +768,7 @@ function renderTodaySpecialCard(special) {
   `;
 }
 
+// Render a single meal line for the Today shelf plate.
 function renderTodayMealLine(meal, nextMealId) {
   const isNext = meal.id === nextMealId;
   return `
@@ -751,6 +780,7 @@ function renderTodayMealLine(meal, nextMealId) {
   `;
 }
 
+// Render the books shelf as cover rows on the photographed shelf strip.
 function renderBooksImageStrip() {
   const extensionPanels = Array.from(
     { length: getBooksExtensionPanelCount() },
@@ -775,6 +805,7 @@ function renderBooksImageStrip() {
   `;
 }
 
+// Render the shows shelf as cover rows on the photographed shelf strip.
 function renderShowsImageStrip() {
   const extensionPanels = Array.from(
     { length: getShowsExtensionPanelCount() },
@@ -799,6 +830,7 @@ function renderShowsImageStrip() {
   `;
 }
 
+// Render grouped front-cover rows plus enough blank panel extension for scroll.
 function renderCoverShelfRows(kind, items, recentMap) {
   const layout = buildFrontShelfLayout(kind, items);
 
@@ -814,6 +846,7 @@ function renderCoverShelfRows(kind, items, recentMap) {
   `;
 }
 
+// Convert grouped media data into fixed shelf coordinates.
 function buildFrontShelfLayout(kind, items) {
   let x = FRONT_SHELF_START_X;
   const sections = [];
@@ -839,6 +872,7 @@ function buildFrontShelfLayout(kind, items) {
   return { sections, items: shelfItems, endX: getFrontShelfEndX(shelfItems) };
 }
 
+// Build one positioned media item with row/category metadata for labels.
 function createFrontShelfItem(kind, item, x, itemIndex) {
   const slotHeight =
     kind === "BOOKS" ? FRONT_SHELF_BOOK_HEIGHT : FRONT_SHELF_DVD_HEIGHT;
@@ -858,11 +892,13 @@ function createFrontShelfItem(kind, item, x, itemIndex) {
   };
 }
 
+// Calculate the far-right edge of the cover shelf content.
 function getFrontShelfEndX(items) {
   if (!items.length) return SHELF_PANEL_WIDTH * 2;
   return Math.max(...items.map((item) => item.x + item.width));
 }
 
+// Clamp scroll width based on actual cover layout rather than panel count alone.
 function getFrontShelfMaxScrollLeft(kind) {
   const items = kind === "BOOKS" ? booksShelfMedia : showsShelfMedia;
   return Math.max(
@@ -871,28 +907,34 @@ function getFrontShelfMaxScrollLeft(kind) {
   );
 }
 
+// Extra background panels prevent the shelf strip from ending before content.
 function getFrontShelfExtensionPanelCount(kind) {
   const maxScrollLeft = getFrontShelfMaxScrollLeft(kind);
   const requiredContentWidth = maxScrollLeft + SHELF_PANEL_WIDTH;
   return Math.max(1, Math.ceil(requiredContentWidth / SHELF_PANEL_WIDTH) - 2);
 }
 
+// Number of shelf extension panels needed for the current shows list.
 function getShowsExtensionPanelCount() {
   return getFrontShelfExtensionPanelCount("SHOWS");
 }
 
+// Number of shelf extension panels needed for the current book list.
 function getBooksExtensionPanelCount() {
   return getFrontShelfExtensionPanelCount("BOOKS");
 }
 
+// Maximum horizontal scroll for the shows shelf.
 function getShowsMaxScrollLeft() {
   return getFrontShelfMaxScrollLeft("SHOWS");
 }
 
+// Maximum horizontal scroll for the books shelf.
 function getBooksMaxScrollLeft() {
   return getFrontShelfMaxScrollLeft("BOOKS");
 }
 
+// Render a category plate aligned with the first item in that section.
 function renderFrontShelfSectionPlate(kind, section) {
   const className =
     kind === "BOOKS" ? "books-section-plate" : "shows-section-plate";
@@ -906,6 +948,7 @@ function renderFrontShelfSectionPlate(kind, section) {
   `;
 }
 
+// Render one clickable media object sitting on the photographed shelf.
 function renderFrontShelfItem(kind, item, recentMap) {
   const recent = isRecent(recentMap[item.id]);
   const highlighted = kind === "SHOWS" && state.highlightedShowId === item.id;
@@ -928,46 +971,7 @@ function renderFrontShelfItem(kind, item, recentMap) {
   `;
 }
 
-function renderMediaSpineItems(items, kind, gap = MEDIA_SPINE_TO_SPINE_GAP) {
-  const positionedItems = getShelfMediaGroups(items, gap).flatMap((group) =>
-    positionMediaGroupItems(group.items, group.left, gap),
-  );
-
-  return positionedItems
-    .map((item, index) =>
-      renderMediaSpineItem({
-        ...item,
-        kind,
-        zIndex: positionedItems.length - index + 10,
-      }),
-    )
-    .join("");
-}
-
-function renderMediaSpineItem(item) {
-  const skin = getMediaSkin(item, "spine");
-  const width = getMediaObjectWidth(skin, item.height);
-
-  return `
-    <div
-      class="media-object media-spine media-spine-item media-spine-${item.type}"
-      aria-label="${escapeAttribute(item.title)}"
-      style="--media-x: ${item.x}px; --media-bottom: ${item.bottom}px; --media-width: ${width}px; --media-height: ${item.height}px; --media-z-index: ${item.zIndex};"
-    >
-      ${renderMediaObjectContent({ item, mode: "spine", skin })}
-      <button
-        class="media-spine-hotspot"
-        type="button"
-        data-action="media-spine"
-        data-kind="${escapeAttribute(item.kind)}"
-        data-item-id="${escapeAttribute(item.id)}"
-        data-title="${escapeAttribute(item.title)}"
-        aria-label="${escapeAttribute(item.title)}"
-      ></button>
-    </div>
-  `;
-}
-
+// Render a front-facing book/DVD object; action is optional for overlays.
 function renderMediaFrontItem(item, action = "") {
   const skin = getMediaSkin(item, "front");
   const width = getMediaObjectWidth(skin, item.height);
@@ -987,6 +991,7 @@ function renderMediaFrontItem(item, action = "") {
   `;
 }
 
+// Compose the SVG object layers: clipped art, overlay PNG, and title text.
 function renderMediaObjectContent({ item, mode, skin }) {
   const title = item.displayTitle ?? item.title;
   const svgId = `${slugify(item.svgScope ?? item.id ?? item.title)}-${mode}`;
@@ -998,90 +1003,22 @@ function renderMediaObjectContent({ item, mode, skin }) {
   `;
 }
 
+// Resolve the skin for a media kind and presentation mode.
 function getMediaSkin(item, mode) {
   return mediaSkins[item.type]?.[mode] ?? mediaSkins.dvd[mode];
 }
 
+// Preserve overlay aspect ratio when fitting a media object to shelf height.
 function getMediaObjectWidth(skin, height) {
   return Math.round((height * skin.viewBox.width) / skin.viewBox.height);
 }
 
-function renderMediaArtLayer({ item, mode, skin, svgId }) {
-  return mode === "front"
-    ? renderMediaFrontArtLayer({ item, skin, svgId })
-    : renderMediaSpineArtLayer({ item, skin, svgId });
+// Render all art clipped into the object mask before the overlay PNG is placed.
+function renderMediaArtLayer({ item, skin, svgId }) {
+  return renderMediaFrontArtLayer({ item, skin, svgId });
 }
 
-function renderMediaSpineArtLayer({ item, skin, svgId }) {
-  const baseColor = item.baseColor;
-  const displayColor = baseColor ? enrichMediaColor(baseColor) : "";
-  const artImages = Object.entries(skin.artPolygons)
-    .map(([name]) => {
-      const isSideFace = name === "sideFaceArt";
-      const isSpineFace = name === "spineArt";
-
-      return `
-        <image
-          href="${escapeAttribute(item.masterArt)}"
-          width="${skin.viewBox.width}"
-          height="${skin.viewBox.height}"
-          preserveAspectRatio="xMidYMid slice"
-          opacity="1"
-          clip-path="url(#${svgId}-${name})"
-        />
-        ${
-          baseColor && isSpineFace
-            ? `<rect
-                width="${skin.viewBox.width}"
-                height="${skin.viewBox.height}"
-                fill="${escapeAttribute(displayColor)}"
-                opacity="${MEDIA_SPINE_VIEW_SPINE_TINT_OPACITY}"
-                clip-path="url(#${svgId}-${name})"
-              />`
-            : baseColor && isSideFace
-              ? `<rect
-                width="${skin.viewBox.width}"
-                height="${skin.viewBox.height}"
-                fill="${escapeAttribute(displayColor)}"
-                opacity="${MEDIA_SPINE_VIEW_FACE_TINT_OPACITY}"
-                clip-path="url(#${svgId}-${name})"
-              />`
-              : !baseColor && isSideFace
-                ? `<rect
-                width="${skin.viewBox.width}"
-                height="${skin.viewBox.height}"
-                fill="#000"
-                opacity="${MEDIA_SPINE_VIEW_FACE_OPACITY}"
-                clip-path="url(#${svgId}-${name})"
-              />
-              <rect
-                width="${skin.viewBox.width}"
-                height="${skin.viewBox.height}"
-                fill="${MEDIA_SPINE_VIEW_SIDE_TINT}"
-                opacity="0"
-                clip-path="url(#${svgId}-${name})"
-              />`
-                : ""
-        }
-      `;
-    })
-    .join("");
-
-  return `
-    <svg
-      class="media-svg media-artLayer"
-      viewBox="0 0 ${skin.viewBox.width} ${skin.viewBox.height}"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <defs>
-        ${renderMediaClipPaths(skin.artPolygons, svgId)}
-      </defs>
-      ${artImages}
-    </svg>
-  `;
-}
-
+// Fit cover art into the skewed cover polygon, including side shading.
 function renderMediaFrontArtLayer({ item, skin, svgId }) {
   const frontPlacement = polygonPlacement(skin.artPolygons.frontArt);
   const baseColor = item.baseColor;
@@ -1136,22 +1073,18 @@ function renderMediaFrontArtLayer({ item, skin, svgId }) {
   `;
 }
 
-function renderMediaTitleLayer({ item, title, mode, skin, svgId }) {
+// Render title text inside the cover-art polygon. The handmade width estimate
+// keeps titles from stacking too aggressively without relying on canvas metrics.
+function renderMediaTitleLayer({ item, title, skin, svgId }) {
   const titleBox = polygonBounds(skin.titlePolygon);
   const titleTint = item.titleTint ?? MEDIA_DEFAULT_TITLE_TINT;
-  const text =
-    mode === "spine"
-      ? renderMediaSpineTitle(title, titleBox, svgId, titleTint)
-      : renderMediaFrontTitle(title, titleBox, svgId, titleTint);
+  const text = renderMediaFrontTitle(title, titleBox, svgId, titleTint);
   const filters = isLitePerformanceMode()
     ? ""
     : `
         <filter id="${svgId}-titleShadow" x="-80%" y="-80%" width="260%" height="260%">
           <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".9" />
           <feDropShadow dx="0" dy="0" stdDeviation="39" flood-color="#000" flood-opacity=".92" />
-        </filter>
-        <filter id="${svgId}-spineTitleGlow" x="-80%" y="-80%" width="260%" height="260%">
-          <feDropShadow dx="0" dy="0" stdDeviation="34" flood-color="#000" flood-opacity=".92" />
         </filter>
       `;
 
@@ -1173,33 +1106,7 @@ function renderMediaTitleLayer({ item, title, mode, skin, svgId }) {
   `;
 }
 
-function renderMediaSpineTitle(title, titleBox, svgId, titleTint) {
-  const anchorX = titleBox.centerX + MEDIA_SPINE_TITLE_X_OFFSET;
-  const anchorY = titleBox.maxY - 70 + MEDIA_SPINE_TITLE_Y_OFFSET;
-  const isLite = isLitePerformanceMode();
-  const liteAttrs = isLite
-    ? `stroke="#000" stroke-width="4" paint-order="stroke fill"`
-    : "";
-  const attrs = `
-    class="media-titleText"
-    x="${anchorX}"
-    y="${anchorY}"
-    text-anchor="start"
-    dominant-baseline="middle"
-    font-size="42"
-    style="fill: ${escapeAttribute(titleTint)};"
-    transform="rotate(-90 ${anchorX} ${anchorY})"
-    ${liteAttrs}
-  `;
-
-  if (isLite) return `<text ${attrs}>${escapeHtml(title)}</text>`;
-
-  return `
-    <text ${attrs} filter="url(#${svgId}-spineTitleGlow)">${escapeHtml(title)}</text>
-    <text ${attrs}>${escapeHtml(title)}</text>
-  `;
-}
-
+// Place wrapped title lines near the lower-right of the angled cover polygon.
 function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
   const maxLineWidth =
     (titleBox.maxX - MEDIA_FRONT_TITLE_RIGHT_INSET) -
@@ -1251,6 +1158,7 @@ function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
   `;
 }
 
+// Greedy word wrapping tuned for bold SVG title text on angled media covers.
 function wrapMediaTitleLines(title, maxLineWidth, fontSize) {
   const words = String(title).trim().split(/\s+/).filter(Boolean);
   const lines = [];
@@ -1273,6 +1181,7 @@ function wrapMediaTitleLines(title, maxLineWidth, fontSize) {
   return lines.length ? lines : [String(title)];
 }
 
+// Estimate display width cheaply; enough for kiosk title wrapping consistency.
 function estimateMediaTitleWidth(value, fontSize) {
   return String(value)
     .split("")
@@ -1285,83 +1194,12 @@ function estimateMediaTitleWidth(value, fontSize) {
     }, 0);
 }
 
+// Lite mode drops expensive shadows when the kiosk device struggles with SVG.
 function isLitePerformanceMode() {
   return window.KIOSK_PERF_MODE === "lite";
 }
 
-function renderMediaSectionPlates(
-  items,
-  className,
-  gap = MEDIA_SPINE_TO_SPINE_GAP,
-) {
-  return getShelfMediaGroups(items, gap)
-    .map(
-      (group) => `
-    <div class="${className}" style="left: ${group.left}px" aria-hidden="true">
-      <span>${group.title}</span>
-    </div>
-  `,
-    )
-    .join("");
-}
-
-function getShelfMediaGroups(items, gap = MEDIA_SPINE_TO_SPINE_GAP) {
-  let left = SHOWS_SPINE_START_X;
-  const categories = [];
-
-  items.forEach((item) => {
-    let group = categories.find(
-      (candidate) => candidate.title === item.category,
-    );
-    if (!group) {
-      group = {
-        left,
-        title: item.category,
-        items: [],
-      };
-      categories.push(group);
-    }
-    group.items.push(item);
-  });
-
-  return categories.map((category) => {
-    const positionedGroup = {
-      ...category,
-      left,
-    };
-
-    left += getMediaGroupWidth(category.items, gap) + SHOWS_GROUP_GAP;
-    return positionedGroup;
-  });
-}
-
-function positionMediaGroupItems(items, groupLeft, gap) {
-  let x = groupLeft;
-
-  return items.map((item) => {
-    const positionedItem = {
-      ...item,
-      x,
-      bottom: MEDIA_SPINE_BOTTOM,
-      height: MEDIA_SPINE_HEIGHT,
-    };
-    x += getMediaSpineStep(item, gap);
-    return positionedItem;
-  });
-}
-
-function getMediaGroupWidth(items, gap) {
-  return items.reduce((width, item) => width + getMediaSpineStep(item, gap), 0);
-}
-
-function getMediaSpineStep(item, gap) {
-  const skin = getMediaSkin(item, "spine");
-  const bounds = polygonBounds(skin.artPolygons.spineArt);
-  const objectWidth = getMediaObjectWidth(skin, MEDIA_SPINE_HEIGHT);
-  const spineWidth = (bounds.width / skin.viewBox.width) * objectWidth;
-  return spineWidth + gap;
-}
-
+// Make supplied base colors richer before using them on narrow side facets.
 function enrichMediaColor(hexColor) {
   const rgb = parseHexColor(hexColor);
   if (!rgb) return hexColor;
@@ -1372,6 +1210,7 @@ function enrichMediaColor(hexColor) {
   return hslToHex(hsl.h, saturation, lightness);
 }
 
+// Parse six-digit hex colors used by JSON media metadata.
 function parseHexColor(hexColor) {
   const match = String(hexColor)
     .trim()
@@ -1386,6 +1225,7 @@ function parseHexColor(hexColor) {
   };
 }
 
+// Convert RGB to HSL for lightness/saturation tuning.
 function rgbToHsl(r, g, b) {
   const red = r / 255;
   const green = g / 255;
@@ -1414,6 +1254,7 @@ function rgbToHsl(r, g, b) {
   return { h: hue / 6, s: saturation, l: lightness };
 }
 
+// Convert tuned HSL values back into CSS hex.
 function hslToHex(h, s, l) {
   const hueToRgb = (p, q, t) => {
     let hue = t;
@@ -1436,6 +1277,7 @@ function hslToHex(h, s, l) {
   )}${toHex(hueToRgb(p, q, h - 1 / 3))}`;
 }
 
+// Escape text inserted into template strings as HTML.
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -1445,16 +1287,19 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+// Attribute escaping currently matches HTML escaping for these templates.
 function escapeAttribute(value) {
   return escapeHtml(value);
 }
 
+// Render all named polygon masks for one media object SVG scope.
 function renderMediaClipPaths(polygons, svgId) {
   return Object.entries(polygons)
     .map(([name, polygon]) => renderMediaClipPath(name, polygon, svgId))
     .join("");
 }
 
+// Render one SVG clip path with a per-object id to avoid DOM collisions.
 function renderMediaClipPath(name, polygon, svgId) {
   return `
     <clipPath id="${svgId}-${name}">
@@ -1463,6 +1308,7 @@ function renderMediaClipPath(name, polygon, svgId) {
   `;
 }
 
+// Measure a polygon string and capture its top-edge angle for title rotation.
 function polygonBounds(polygon) {
   const points = parsePolygon(polygon);
   const xs = points.map(([x]) => x);
@@ -1485,6 +1331,7 @@ function polygonBounds(polygon) {
   };
 }
 
+// Expand a polygon's bounds slightly so rotated cover art bleeds past the mask.
 function polygonPlacement(polygon) {
   const bounds = polygonBounds(polygon);
   const bleed = Math.max(bounds.width, bounds.height) * 0.1;
@@ -1500,20 +1347,20 @@ function polygonPlacement(polygon) {
   };
 }
 
+// Compute the angle of the first polygon edge, treated as the visual top edge.
 function polygonTopEdgeAngle(points) {
   const [start, end] = points;
   const radians = Math.atan2(end[1] - start[1], end[0] - start[0]);
   return Number(((radians * 180) / Math.PI).toFixed(3));
 }
 
-function roundPercent(value) {
-  return Number(value.toFixed(3));
-}
-
+// Keep CSS percent values stable and readable.
+// Parse SVG polygon point strings into numeric coordinate pairs.
 function parsePolygon(polygon) {
   return polygon.split(/\s+/).map((point) => point.split(",").map(Number));
 }
 
+// Create id-safe SVG scopes from titles or item ids.
 function slugify(value) {
   return String(value)
     .trim()
@@ -1522,184 +1369,12 @@ function slugify(value) {
     .replace(/(^-|-$)/g, "");
 }
 
+// Small visual hint shown on scrollable shelf strips.
 function renderScrollLabel() {
   return `<div class="shelf-scroll-label" aria-hidden="true">SCROLL &nbsp; &gt;</div>`;
 }
 
-function renderTodayShelfPreview(now, nextMealId, special) {
-  return `
-    <button class="home-shelf today-home-shelf" type="button" data-action="expand-shelf" data-shelf="TODAY">
-      <div class="home-shelf-label">TODAY SHELF</div>
-      <div class="home-shelf-board">
-        <div class="preview-calendar">
-          <span>${formatDayLabel(now)}</span>
-          <strong>${toTitleCase(formatDateLabel(now))}</strong>
-        </div>
-        <div class="preview-clock">${formatClock(now)}</div>
-        <div class="preview-meals">
-          ${MEALS.map(
-            (meal) => `
-            <div data-next="${meal.id === nextMealId}">
-              <span>${meal.displayTime}</span>
-              <strong>${meal.label[0]}${meal.label.slice(1).toLowerCase()}</strong>
-            </div>
-          `,
-          ).join("")}
-        </div>
-        <div class="preview-note" data-has-note="${Boolean(special)}">
-          ${special ? `<span>Today Only</span><strong>${special.title}</strong>` : `<span>Today Only</span><strong>Quiet Day</strong>`}
-        </div>
-      </div>
-    </button>
-  `;
-}
-
-function renderMediaShelfPreview(kind, label, items, recentMap) {
-  return `
-    <button class="home-shelf media-home-shelf" type="button" data-action="expand-shelf" data-shelf="${kind}">
-      <div class="home-shelf-label">${label.toUpperCase()}</div>
-      <div class="home-shelf-board">
-        <div class="preview-covers">
-          ${items.map((item) => renderPreviewItem(kind, item, recentMap)).join("")}
-          <div class="preview-blank-space"></div>
-        </div>
-      </div>
-    </button>
-  `;
-}
-
-function renderPreviewItem(kind, item, recentMap) {
-  const className =
-    kind === "BOOKS" ? "preview-book-cover" : "preview-dvd-cover";
-  return `
-    <div class="preview-cover-item ${className}" data-recent="${isRecent(recentMap[item.id])}">
-      <img src="${escapeAttribute(item.masterArt)}" alt="" aria-hidden="true" draggable="false" />
-      <span>${escapeHtml(item.title)}</span>
-    </div>
-  `;
-}
-
-function renderTodayExpanded(now) {
-  const weekdayKey = formatWeekdayKey(now);
-  const special = TODAY_SPECIALS[weekdayKey];
-  const nextMeal = getMealState(now).nextMealId;
-
-  return `
-    <section class="screen today-screen expanded-screen" aria-label="Today shelf">
-      ${renderBackButton()}
-      <header class="today-header">
-        <div>
-          <div class="screen-kicker">TODAY SHELF</div>
-          <h1>${formatDayLabel(now)}</h1>
-          <div class="today-date">${toTitleCase(formatDateLabel(now))}</div>
-        </div>
-        <div class="tablet-clock" aria-label="Current time">${formatClock(now)}</div>
-      </header>
-
-      <section class="paper-card meals-paper" aria-label="Meals today">
-        <div class="paper-title">Meals Today</div>
-        <div class="meal-list">
-          ${MEALS.map((meal) => renderMealRow(meal, nextMeal)).join("")}
-        </div>
-      </section>
-
-      ${
-        special
-          ? `<section class="today-note" aria-label="Today only">
-              <div class="pin"></div>
-              <div class="note-label">Today Only</div>
-              <h2>${special.title}</h2>
-              <div class="note-time">${special.time}</div>
-              <div class="note-place">${special.place}</div>
-              <p>${special.note}</p>
-            </section>`
-          : `<section class="today-note today-note-empty" aria-label="No special item">
-              <div class="pin"></div>
-              <div class="note-label">Today Only</div>
-              <h2>Nothing Special Today</h2>
-              <p>Just follow the meal times and enjoy a quiet day.</p>
-            </section>`
-      }
-    </section>
-  `;
-}
-
-function renderMealRow(meal, nextMealId) {
-  const isNext = meal.id === nextMealId;
-  return `
-    <div class="meal-row" data-next="${isNext}">
-      <div class="meal-time">${meal.displayTime}</div>
-      <div class="meal-label">${meal.label[0]}${meal.label.slice(1).toLowerCase()}</div>
-      ${isNext ? `<div class="next-flag">NEXT</div>` : ""}
-    </div>
-  `;
-}
-
-function renderExpandedShelf(kind, items, recentMap) {
-  const grouped = groupByCategory(items);
-  const title = kind === "BOOKS" ? "Books Shelf" : "Shows Shelf";
-
-  return `
-    <section class="screen shelf-screen expanded-screen" aria-label="${title}">
-      ${renderBackButton()}
-      <header class="shelf-header">
-        <div>
-          <div class="screen-kicker">${kind}</div>
-          <h1>${title}</h1>
-        </div>
-      </header>
-
-      <div class="shelf-window" data-shelf-kind="${kind}">
-        <div class="shelf-track">
-          ${grouped
-            .map(([category, categoryItems]) =>
-              renderShelfSection(kind, category, categoryItems, recentMap),
-            )
-            .join("")}
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-function renderBackButton() {
-  return `<button class="back-home-button" type="button" data-action="back-home">BACK TO DAVID'S STUFF</button>`;
-}
-
-function renderShelfSection(kind, category, items, recentMap) {
-  return `
-    <section class="shelf-section" aria-label="${category}">
-      <h2>${category}</h2>
-      <div class="shelf-board">
-        ${items.map((item) => renderShelfItem(kind, item, recentMap)).join("")}
-        <div class="blank-shelf-space" aria-hidden="true"></div>
-      </div>
-    </section>
-  `;
-}
-
-function renderShelfItem(kind, item, recentMap) {
-  const recent = isRecent(recentMap[item.id]);
-  const highlighted = kind === "SHOWS" && state.highlightedShowId === item.id;
-  const className =
-    kind === "BOOKS" ? "expanded-book-cover" : "expanded-dvd-cover";
-
-  return `
-    <button
-      class="shelf-item expanded-cover-item ${className}"
-      type="button"
-      data-action="take-off"
-      data-kind="${kind}"
-      data-item-id="${item.id}"
-      data-recent="${recent}"
-      data-highlighted="${highlighted}"
-    >
-      <img src="${escapeAttribute(item.masterArt)}" alt="" aria-hidden="true" draggable="false" />
-      <span class="item-title">${escapeHtml(item.title)}</span>
-    </button>
-  `;
-}
-
+// Render the modal-like object pickup view for a selected book or show.
 function renderTakeOffOverlay() {
   const item = state.selectedItem;
   const isBook = state.selectedKind === "BOOKS";
@@ -1734,6 +1409,7 @@ function renderTakeOffOverlay() {
   `;
 }
 
+// Inline icon used by the pickup overlay read action.
 function renderBookIcon() {
   return `
     <svg class="action-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
@@ -1744,6 +1420,7 @@ function renderBookIcon() {
   `;
 }
 
+// Inline icon used by the pickup overlay watch action.
 function renderRemoteIcon() {
   return `
     <svg class="action-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
@@ -1755,6 +1432,7 @@ function renderRemoteIcon() {
   `;
 }
 
+// Inline icon used by put-back/return actions.
 function renderReturnIcon() {
   return `
     <svg class="action-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
@@ -1764,6 +1442,7 @@ function renderReturnIcon() {
   `;
 }
 
+// Render the handoff overlay shown while a show is launched on the TV.
 function renderHandoff() {
   const debugText = getVideoLaunchDebugText();
 
@@ -1796,6 +1475,7 @@ function renderHandoff() {
   `;
 }
 
+// Surface VoiceMonkey configuration issues only when a launch did not fire.
 function getVideoLaunchDebugText() {
   const launch = state.videoLaunchDebug;
   if (!launch) return "";
@@ -1804,6 +1484,7 @@ function getVideoLaunchDebugText() {
   return `VoiceMonkey URL not configured for ${launch.command || state.handoffItem?.command || state.handoffItem?.title || "this show"}`;
 }
 
+// Enter a shelf view through the shared alert and view-transition timing.
 async function openShelf(shelf) {
   if (!shelf || state.alertTransitioning || state.viewTransitioning) return;
 
@@ -1819,6 +1500,7 @@ async function openShelf(shelf) {
   });
 }
 
+// Delegate all click actions from the frequently re-rendered main layer.
 async function handleMainClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
@@ -1854,19 +1536,6 @@ async function handleMainClick(event) {
       clearSelection();
       render();
     }
-    return;
-  }
-
-  if (action === "media-spine") {
-    const kind = target.dataset.kind;
-    state.selectedKind = kind;
-    state.takeOffExiting = false;
-    state.selectedItem = findShelfMediaItem(
-      kind,
-      target.dataset.itemId,
-      target.dataset.title,
-    );
-    if (state.selectedItem) render();
     return;
   }
 
@@ -1943,15 +1612,18 @@ async function handleMainClick(event) {
   }
 }
 
+// Reset reader swipe state when a pointer starts inside the reader.
 function handleReaderPointerDown(event) {
   if (!state.readerItem) return;
   state.readerSwipeStarted = false;
 }
 
+// Update idle-return bookkeeping for any meaningful user input.
 function markUserInteraction() {
   state.lastInteractionAt = Date.now();
 }
 
+// Capture home-shelf swipe starts from the invisible shelf tap zones.
 function handleHomeShelfPointerDown(event) {
   if (!isHomeView()) return;
   const zone = event.target.closest?.(".home-tap-zone[data-shelf]");
@@ -1965,11 +1637,13 @@ function handleHomeShelfPointerDown(event) {
   state.homeSwipeConsumed = false;
 }
 
+// Clear swipe bookkeeping when the pointer is cancelled outside the zone.
 function cancelHomeShelfSwipe() {
   state.homeSwipeStarted = false;
   state.homeSwipeShelf = null;
 }
 
+// Convert horizontal home swipes into shelf opens while suppressing follow-up taps.
 async function handleHomeShelfPointerUp(event) {
   if (!state.homeSwipeStarted) return;
 
@@ -1992,11 +1666,13 @@ async function handleHomeShelfPointerUp(event) {
   await openShelf(shelf);
 }
 
+// Complete pointer gestures in the reader; scroll handles page selection.
 function handleReaderPointerUp(event) {
   if (!state.readerItem) return;
   state.readerSwipeStarted = false;
 }
 
+// Keyboard support for overlay actions and reader paging.
 function handleReaderKeyDown(event) {
   const activeAction = document.activeElement?.dataset?.action;
   if (
@@ -2015,6 +1691,7 @@ function handleReaderKeyDown(event) {
   if (event.key === "Escape") finishReading();
 }
 
+// Advance the reader and mark a book recent when the final page is passed.
 function goToNextReaderPage() {
   if (!state.readerItem) return;
 
@@ -2034,6 +1711,7 @@ function goToNextReaderPage() {
   render();
 }
 
+// Move back one reader page and set the page-turn animation direction.
 function goToPreviousReaderPage() {
   if (!state.readerItem || state.readerPage <= 0) return;
 
@@ -2042,6 +1720,7 @@ function goToPreviousReaderPage() {
   render();
 }
 
+// Close the reader and return to the books shelf.
 function finishReading() {
   if (
     state.readerItem &&
@@ -2058,6 +1737,7 @@ function finishReading() {
   render();
 }
 
+// Sync reader state from horizontal page-track scroll.
 function handleReaderScroll(event) {
   if (!state.readerItem) return;
 
@@ -2077,6 +1757,7 @@ function handleReaderScroll(event) {
   syncReaderControls(nextPage, pageCount);
 }
 
+// Restore reader page position after a render rebuilds the page track.
 function restoreReaderScroll() {
   if (!state.readerItem) return;
 
@@ -2090,6 +1771,7 @@ function restoreReaderScroll() {
   syncReaderControls(state.readerPage, getReaderPageCount(state.readerItem));
 }
 
+// Keep reader footer and prev/next controls aligned with current page.
 function syncReaderControls(pageIndex, pageCount) {
   const screen = document.querySelector(".reader-screen");
   if (!screen) return;
@@ -2106,6 +1788,7 @@ function syncReaderControls(pageIndex, pageCount) {
   }
 }
 
+// Persist and clamp horizontal shelf scroll for the active shelf strip.
 function handleShelfScroll(event) {
   const shelf = event.target.closest?.("[data-shelf-kind]");
   if (!shelf) return;
@@ -2135,6 +1818,7 @@ function handleShelfScroll(event) {
   }
 }
 
+// Restore shelf scroll positions after DOM replacement.
 function restoreShelfScroll() {
   const booksShelf = document.querySelector('[data-shelf-kind="BOOKS"]');
   const showsShelf = document.querySelector('[data-shelf-kind="SHOWS"]');
@@ -2147,18 +1831,22 @@ function restoreShelfScroll() {
     todayShelf.scrollLeft = clampTodayScroll(state.todayScrollLeft);
 }
 
+// Keep shows scroll inside the photographed strip's usable range.
 function clampShowsScroll(scrollLeft) {
   return clamp(scrollLeft, SHELF_PANEL_WIDTH, getShowsMaxScrollLeft());
 }
 
+// Keep books scroll inside the photographed strip's usable range.
 function clampBooksScroll(scrollLeft) {
   return clamp(scrollLeft, SHELF_PANEL_WIDTH, getBooksMaxScrollLeft());
 }
 
+// Keep Today scroll inside the photographed strip's usable range.
 function clampTodayScroll(scrollLeft) {
   return clamp(scrollLeft, SHELF_PANEL_WIDTH, getTodayMaxScrollLeft());
 }
 
+// Periodically return idle shelf views to the home scene.
 async function checkIdleReturnHome() {
   if (!shouldIdleReturnHome()) return;
 
@@ -2177,6 +1865,7 @@ async function checkIdleReturnHome() {
   }
 }
 
+// Guard idle-return so it never interrupts active overlays/readers/transitions.
 function shouldIdleReturnHome() {
   if (state.idleReturnRunning) return false;
   if (Date.now() - state.lastInteractionAt < IDLE_HOME_MS) return false;
@@ -2191,6 +1880,7 @@ function shouldIdleReturnHome() {
   return true;
 }
 
+// Apply CSS transition classes around a state update and render.
 async function transitionView(direction, updateView) {
   if (state.viewTransitioning) return;
   state.viewTransitioning = true;
@@ -2220,6 +1910,7 @@ async function transitionView(direction, updateView) {
   }
 }
 
+// Hide the meal alert before shelf navigation so it does not cover the shelf.
 async function animateAlertExitToShelf() {
   if (state.alertTransitioning) return;
   state.alertTransitioning = true;
@@ -2245,6 +1936,7 @@ async function animateAlertExitToShelf() {
   }
 }
 
+// Reintroduce the meal alert on home after the shelf transition settles.
 async function animateAlertEnterHome() {
   if (state.alertTransitioning) return;
   state.alertTransitioning = true;
@@ -2271,18 +1963,22 @@ async function animateAlertEnterHome() {
   }
 }
 
+// True only when no modal/reader/handoff layer is masking the home view.
 function isHomeView() {
   return !state.readerItem && !state.handoffItem && state.view === "HOME";
 }
 
+// True only when the photographed shelf strip is the active visible view.
 function isShelfImageView() {
   return !state.readerItem && !state.handoffItem && state.view === "SHELF";
 }
 
+// Promise wrapper used by transition timing code.
 function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+// Support simple /today, /shows, and /books redirect-style routes.
 function routeToShelf(pathname) {
   const route = pathname.replace(/\/+$/, "").split("/").pop()?.toLowerCase();
   if (route === "today") return "TODAY";
@@ -2291,11 +1987,13 @@ function routeToShelf(pathname) {
   return null;
 }
 
+// Auto-close the video handoff overlay after the TV launch grace period.
 function startHandoffTimer() {
   window.clearTimeout(state.handoffTimer);
   state.handoffTimer = window.setTimeout(finishHandoff, HANDOFF_MS);
 }
 
+// Clear handoff state and return to the shows shelf.
 function finishHandoff() {
   window.clearTimeout(state.handoffTimer);
   state.handoffTimer = null;
@@ -2306,33 +2004,20 @@ function finishHandoff() {
   render();
 }
 
+// Clear the selected pickup object and any exit animation state.
 function clearSelection() {
   state.selectedItem = null;
   state.selectedKind = null;
   state.takeOffExiting = false;
 }
 
+// Resolve a selected item from the loaded production shelf arrays.
 function findItem(kind, id) {
   const source = kind === "BOOKS" ? booksShelfMedia : showsShelfMedia;
   return source.find((item) => item.id === id) ?? null;
 }
 
-function findShelfMediaItem(kind, id, title) {
-  const source = kind === "BOOKS" ? booksShelfMedia : showsShelfMedia;
-  const shelfItem =
-    source.find((item) => item.id === id) ??
-    source.find((item) => item.title === title) ??
-    null;
-  const catalogItem = findItem(kind, id);
-
-  if (!shelfItem) return catalogItem;
-  return {
-    ...catalogItem,
-    ...shelfItem,
-    category: shelfItem.category ?? catalogItem?.category,
-  };
-}
-
+// Calculate whether the meal alert should be hidden, counting down, or active.
 function getMealState(now) {
   const nowMinutes =
     now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
@@ -2408,6 +2093,7 @@ function getMealState(now) {
   };
 }
 
+// Format meal countdown copy in the large alert card.
 function formatMealTimeLeft(minutesRemaining) {
   const rounded = Math.max(1, Math.ceil(minutesRemaining));
   if (rounded < 60) {
@@ -2419,6 +2105,7 @@ function formatMealTimeLeft(minutesRemaining) {
   return `${hours} ${pluralize("hour", hours)}, ${minutes} ${pluralize("minute", minutes)}`;
 }
 
+// Preserve source order while grouping shelf items by category.
 function groupByCategory(items) {
   const groups = new Map();
   for (const item of items) {
@@ -2428,11 +2115,13 @@ function groupByCategory(items) {
   return [...groups.entries()];
 }
 
+// Persist recently watched/read markers in localStorage.
 function markRecent(storageKey, recentMap, id) {
   recentMap[id] = Date.now();
   localStorage.setItem(storageKey, JSON.stringify(recentMap));
 }
 
+// Load recent markers defensively so corrupt storage cannot break startup.
 function loadRecent(storageKey) {
   try {
     return JSON.parse(localStorage.getItem(storageKey) ?? "{}");
@@ -2441,17 +2130,20 @@ function loadRecent(storageKey) {
   }
 }
 
+// Treat recent markers as short-lived visual badges.
 function isRecent(timestamp) {
   if (!timestamp) return false;
   return Date.now() - Number(timestamp) < RECENT_DAYS * 24 * 60 * 60 * 1000;
 }
 
+// Humanize all-caps meal and shelf labels for card copy.
 function toTitleCase(value) {
   return String(value)
     .toLowerCase()
     .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
 }
 
+// Format 24-hour meal config values as compact shelf labels.
 function formatShelfMealTime(time) {
   const minutes = parseTimeToMinutes(time);
   const hour24 = Math.floor(minutes / 60);
@@ -2460,20 +2152,24 @@ function formatShelfMealTime(time) {
   return `${hour} ${suffix}`;
 }
 
+// Today needs more blank shelf panels when a special card is visible.
 function getTodayExtensionPanelCount(now = getNow()) {
   return getTodaySpecial(now)
     ? TODAY_EXTENSION_PANELS_WITH_SPECIAL
     : TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL;
 }
 
+// Maximum horizontal scroll for the Today shelf strip.
 function getTodayMaxScrollLeft(now = getNow()) {
   return SHELF_PANEL_WIDTH * getTodayExtensionPanelCount(now);
 }
 
+// Lookup the special Today card by current weekday.
 function getTodaySpecial(now) {
   return TODAY_SPECIALS[formatWeekdayKey(now)];
 }
 
+// Clamp numeric UI state before writing it back into scroll/page positions.
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }

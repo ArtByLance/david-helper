@@ -1,3 +1,12 @@
+/*
+ * Reader view renderer.
+ *
+ * main.js owns navigation and state; this module stays pure and returns HTML
+ * for the currently selected book. Book data is JSON-driven, with a generated
+ * title page followed by chapter pages that may choose image/text ordering.
+ */
+
+// Render the horizontally scrollable reader screen for the active book.
 export function renderReaderView({ item, pageIndex }) {
   const pages = buildReaderPages(item);
   const safePageIndex = clamp(pageIndex, 0, Math.max(0, pages.length - 1));
@@ -15,10 +24,12 @@ export function renderReaderView({ item, pageIndex }) {
   `;
 }
 
+// Report page count to main.js without duplicating page-building logic there.
 export function getReaderPageCount(item) {
   return buildReaderPages(item).length;
 }
 
+// Dispatch each normalized page to the matching visual template.
 function renderReaderPagePanel(item, page, pageIndex, pageCount) {
   if (page.type === "title") {
     return renderTitlePagePanel(item, page, pageIndex, pageCount);
@@ -40,6 +51,7 @@ function renderReaderPagePanel(item, page, pageIndex, pageCount) {
   `;
 }
 
+// Render the generated title page from book cover/title metadata.
 function renderTitlePagePanel(item, page, pageIndex, pageCount) {
   return `
     <article class="reader-page title-page" aria-label="${escapeHtml(item.title)}">
@@ -49,6 +61,7 @@ function renderTitlePagePanel(item, page, pageIndex, pageCount) {
   `;
 }
 
+// Render a chapter page with image first and text beside it.
 function renderChapterPagePanel(page, pageIndex, pageCount) {
   return `
     <article class="reader-page chapter-screen" aria-label="${escapeHtml(page.chapterTitle)}">
@@ -62,6 +75,7 @@ function renderChapterPagePanel(page, pageIndex, pageCount) {
   `;
 }
 
+// Render a chapter page with text first and supporting image beside it.
 function renderChapterEndPagePanel(page, pageIndex, pageCount) {
   return `
     <article class="reader-page chapter-end-screen" aria-label="${escapeHtml(page.chapterTitle)}">
@@ -74,10 +88,12 @@ function renderChapterEndPagePanel(page, pageIndex, pageCount) {
   `;
 }
 
+// Persistent exit control in the upper reader chrome.
 function renderPutBackButton() {
   return `<button class="reader-exit" type="button" data-action="finish-reading">Put Back</button>`;
 }
 
+// Render page controls with disabled/Done states derived from page index.
 function renderReaderControls(pageIndex, pageCount) {
   const isLastPage = pageIndex >= pageCount - 1;
   return `
@@ -89,10 +105,12 @@ function renderReaderControls(pageIndex, pageCount) {
   `;
 }
 
+// Render human-readable page position.
 function renderFooter(pageIndex, pageCount) {
   return `<div class="reader-footer">Page ${pageIndex + 1} of ${pageCount}</div>`;
 }
 
+// Normalize book JSON into the flat page list consumed by the renderer.
 function buildReaderPages(item) {
   const chapters = Array.isArray(item.chapters) ? item.chapters : [];
   const chapterPages = chapters.flatMap((chapter, chapterIndex) =>
@@ -120,10 +138,12 @@ function buildReaderPages(item) {
   }));
 }
 
+// Default image convention for chapters that do not specify a custom image.
 function getChapterImage(item, chapterIndex) {
   return `./assets/media/books/chapters/${item.id}-${chapterIndex + 1}.jpg`;
 }
 
+// Accept either paragraph arrays or double-newline separated text.
 function normalizeParagraphs(text) {
   if (Array.isArray(text)) return text.filter(Boolean);
   if (!text) return [];
@@ -133,16 +153,19 @@ function normalizeParagraphs(text) {
     .filter(Boolean);
 }
 
+// Render escaped paragraphs into the reader body.
 function renderParagraphs(paragraphs) {
   return paragraphs
     .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
     .join("");
 }
 
+// Clamp requested page indexes into the available range.
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+// Escape text inserted into reader template strings as HTML.
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -152,6 +175,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+// Attribute escaping currently matches HTML escaping for reader templates.
 function escapeAttribute(value) {
   return escapeHtml(value);
 }
