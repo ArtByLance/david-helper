@@ -7,7 +7,7 @@
     {
       "id": "chapter-1",
       "title": "Too Small to Join",
-      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-5.jpg",
+      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-chapter-5.jpg",
       "pages": [
         {
           "id": "page-1",
@@ -43,7 +43,7 @@
     {
       "id": "chapter-2",
       "title": "The Young Soldier",
-      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-1.jpg",
+      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-chapter-1.jpg",
       "pages": [
         {
           "id": "page-1",
@@ -79,7 +79,7 @@
     {
       "id": "chapter-3",
       "title": "The Attack",
-      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-2.jpg",
+      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-chapter-2.jpg",
       "pages": [
         {
           "id": "page-1",
@@ -115,7 +115,7 @@
     {
       "id": "chapter-4",
       "title": "Holding the Line",
-      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-3.jpg",
+      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-chapter-3.jpg",
       "pages": [
         {
           "id": "page-1",
@@ -151,7 +151,7 @@
     {
       "id": "chapter-5",
       "title": "He Comes Back",
-      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-4.jpg",
+      "image": "./assets/media/books/true-heroes-audie-murphy/true-heroes-audie-murphy-chapter-4.jpg",
       "pages": [
         {
           "id": "page-1",

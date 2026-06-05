@@ -6,11 +6,16 @@ book media moved to one folder per book.
 Current production book media lives at:
 
 ```text
-assets/media/books/<book-id>/<book-id>-0.jpg
-assets/media/books/<book-id>/<book-id>-1.jpg
-assets/media/books/<book-id>/<book-id>-2.jpg
+assets/media/books/<book-id>/<book-id>-book-cover.jpg
+assets/media/books/<book-id>/<book-id>-book-opener.jpg
+assets/media/books/<book-id>/<book-id>-chapter-1.jpg
+assets/media/books/<book-id>/<book-id>-chapter-2.jpg
 ```
 
-The `-0.jpg` file is the editable cover image shown on the shelf and title page.
-It was initially duplicated from the current `-1.jpg` chapter image so new cover
+The `-book-cover.jpg` file is the editable cover image shown on the shelf.
+It was initially duplicated from the current `-chapter-1.jpg` image so new cover
 art can be pasted over it without disturbing chapter images.
+
+The `-book-opener.jpg` file restores the original cover art as the reader's
+opening image. Chapter images use `-chapter-N.jpg` so they stay aligned with
+their chapters.

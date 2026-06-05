@@ -167,8 +167,9 @@ async function loadBooksShelfMedia() {
           displayTitle: book.displayTitle,
           type: "book",
           category: section.title,
-          masterArt: `./assets/media/books/${item.id}/${item.id}-0.jpg`,
-          cover: `./assets/media/books/${item.id}/${item.id}-0.jpg`,
+          masterArt: `./assets/media/books/${item.id}/${item.id}-book-cover.jpg`,
+          cover: `./assets/media/books/${item.id}/${item.id}-book-cover.jpg`,
+          openingImage: `./assets/media/books/${item.id}/${item.id}-book-opener.jpg`,
           baseColor: book.baseColor,
           titleTint: book.titleTint,
           chapters: buildReaderBookChapters(item.id, book),
@@ -254,7 +255,7 @@ function buildReaderBookChapters(bookId, book) {
     ...chapter,
     image:
       chapter.image ??
-      `./assets/media/books/${bookId}/${bookId}-${index + 1}.jpg`,
+      `./assets/media/books/${bookId}/${bookId}-chapter-${index + 1}.jpg`,
   }));
 }
 
@@ -1110,7 +1111,8 @@ function renderMediaTitleLayer({ item, title, skin, svgId }) {
 // Place wrapped title lines near the lower-right of the angled cover polygon.
 function renderMediaFrontTitle(title, titleBox, svgId, titleTint) {
   const maxLineWidth =
-    (titleBox.maxX - MEDIA_FRONT_TITLE_RIGHT_INSET) -
+    titleBox.maxX -
+    MEDIA_FRONT_TITLE_RIGHT_INSET -
     (titleBox.minX + MEDIA_FRONT_TITLE_LEFT_INSET);
   const words = wrapMediaTitleLines(title, maxLineWidth, 76);
   const lineHeight = 72;
@@ -1818,11 +1820,9 @@ function syncReaderControls(pageIndex, pageCount) {
 
   const previousButton = screen.querySelector(".reader-control-prev");
   if (previousButton) previousButton.disabled = pageIndex === 0;
-  screen
-    .querySelectorAll(".reader-page-click-prev")
-    .forEach((button) => {
-      button.disabled = pageIndex === 0;
-    });
+  screen.querySelectorAll(".reader-page-click-prev").forEach((button) => {
+    button.disabled = pageIndex === 0;
+  });
 
   const nextButton = screen.querySelector(".reader-control-next");
   if (nextButton) {

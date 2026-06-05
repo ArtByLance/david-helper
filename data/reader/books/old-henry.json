@@ -1,6 +1,6 @@
 {
-  "id": "old-henry-unmasked",
-  "title": "Old Henry Unmasked",
+  "id": "old-henry",
+  "title": "Old Henry",
   "baseColor": "#4A2B18",
   "titleTint": "#FFD166",
   "chapters": [
@@ -111,7 +111,7 @@
     },
     {
       "id": "chapter-4",
-      "title": "The Name Comes Back",
+      "title": "That's Billy the Kid!",
       "pages": [
         {
           "id": "page-1",

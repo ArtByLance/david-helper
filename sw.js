@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260604-3";
+const CACHE_VERSION = "davids-shelves-20260604-5";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -125,13 +125,14 @@ async function warmReaderBooks(cache) {
     return (book.chapters ?? []).map((chapter, chapterIndex) =>
       normalizeCacheUrl(
         chapter.image ??
-          `/assets/media/books/${bookId}/${bookId}-${chapterIndex + 1}.jpg`,
+          `/assets/media/books/${bookId}/${bookId}-chapter-${chapterIndex + 1}.jpg`,
       ),
     );
   });
   const urls = [
     ...bookUrls,
-    ...ids.map((id) => `/assets/media/books/${id}/${id}-0.jpg`),
+    ...ids.map((id) => `/assets/media/books/${id}/${id}-book-cover.jpg`),
+    ...ids.map((id) => `/assets/media/books/${id}/${id}-book-opener.jpg`),
     ...chapterImageUrls,
   ];
   await addExisting(cache, urls);

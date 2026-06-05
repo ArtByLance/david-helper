@@ -138,7 +138,7 @@ function buildReaderPages(item) {
     {
       type: "title",
       title: item.title,
-      cover: item.cover ?? item.masterArt,
+      cover: item.openingImage ?? item.cover ?? item.masterArt,
     },
     ...chapterPages,
   ];
@@ -151,7 +151,7 @@ function buildReaderPages(item) {
 
 // Default image convention for chapters that do not specify a custom image.
 function getChapterImage(item, chapterIndex) {
-  return `./assets/media/books/${item.id}/${item.id}-${chapterIndex + 1}.jpg`;
+  return `./assets/media/books/${item.id}/${item.id}-chapter-${chapterIndex + 1}.jpg`;
 }
 
 // Accept either paragraph arrays or double-newline separated text.
