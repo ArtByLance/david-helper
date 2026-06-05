@@ -601,7 +601,7 @@ function renderHomeTodaySpecialCard(special) {
     <div class="home-today-special-card">
       <img src="${TODAY_SPECIAL_IMAGE}" alt="" draggable="false" />
       <div class="home-today-special-content">
-        <h2>Today Only</h2>
+        <h2>Today</h2>
         <strong>${escapeHtml(special.title)}</strong>
         <span>${escapeHtml(special.time)}</span>
       </div>
@@ -758,10 +758,10 @@ function renderTodayObjects(now) {
 // Render the larger Today special card used inside the shelf view.
 function renderTodaySpecialCard(special) {
   return `
-    <section class="today-special-card" aria-label="Today only">
+    <section class="today-special-card" aria-label="Today">
       <img src="${TODAY_SPECIAL_IMAGE}" alt="" aria-hidden="true" draggable="false" />
       <div class="today-card-content">
-        <h2>Today Only</h2>
+        <h2>Today</h2>
         <strong>${special.title}</strong>
         <span>${special.time}</span>
         <p>${special.place}</p>

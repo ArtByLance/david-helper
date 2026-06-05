@@ -19,10 +19,10 @@ export const TODAY_SPECIALS = {
     note: "Bible Study is today in the Gathering Room.",
   },
   friday: {
-    title: "Laundry and Cleaning",
+    title: "Laundry & Cleaning",
     time: "Today",
     place: "Your room",
-    note: "Laundry Day and Room Cleaning Day are today.",
+    note: "Laundry Day & Room Cleaning Day are today.",
   },
   sunday: {
     title: "Church Service",
