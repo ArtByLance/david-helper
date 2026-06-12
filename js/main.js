@@ -43,7 +43,7 @@ const ALERT_TRANSITION_MS = 260;
 const ALERT_HOME_ENTRY_DELAY_MS = 750;
 const VIEW_TRANSITION_OUT_MS = 120;
 const VIEW_TRANSITION_IN_MS = 180;
-const IDLE_HOME_MS = 5 * 60 * 1000;
+const IDLE_HOME_MS = 10 * 60 * 1000;
 const IDLE_CHECK_MS = 15 * 1000;
 const SHELF_PANEL_WIDTH = 800;
 const FRONT_SHELF_START_X = 1624;
@@ -114,18 +114,22 @@ const state = {
   booksScrollLeft: 0,
   showsScrollLeft: 0,
   todayScrollLeft: 0,
+  shelfScrollRestoring: false,
   selectedItem: null,
   selectedKind: null,
   takeOffExiting: false,
   readerItem: null,
   readerPage: 0,
   readerTurnDirection: "",
-  readerScrollTarget: null,
   readerSwipeStartX: 0,
   readerSwipeStartY: 0,
   readerSwipeStartPage: 0,
+  readerSwipeStartTime: 0,
+  readerSwipeLastX: 0,
+  readerSwipeLastTime: 0,
+  readerSwipeVelocity: 0,
   readerSwipeStarted: false,
-  readerSwipeConsumed: false,
+  readerSwipeDragging: false,
   homeSwipeShelf: null,
   homeSwipeStartX: 0,
   homeSwipeStartY: 0,
@@ -317,13 +321,10 @@ function bindGlobalControls() {
     });
   document
     .getElementById("app-main")
-    ?.addEventListener("scroll", handleReaderScroll, {
-      capture: true,
-      passive: true,
-    });
+    ?.addEventListener("pointerdown", handleReaderPointerDown);
   document
     .getElementById("app-main")
-    ?.addEventListener("pointerdown", handleReaderPointerDown);
+    ?.addEventListener("pointermove", handleReaderPointerMove);
   document
     .getElementById("app-main")
     ?.addEventListener("pointerup", handleReaderPointerUp);
@@ -346,7 +347,7 @@ function render() {
   renderMealTimer(now);
   requestAnimationFrame(() => {
     restoreShelfScroll();
-    restoreReaderScroll();
+    restoreReaderPosition();
   });
 }
 
@@ -1495,15 +1496,13 @@ async function openShelf(shelf) {
   if (!shelf || state.alertTransitioning || state.viewTransitioning) return;
 
   clearSelection();
-  if (shelf === "SHOWS") state.showsScrollLeft = SHELF_PANEL_WIDTH;
-  if (shelf === "BOOKS") state.booksScrollLeft = SHELF_PANEL_WIDTH;
-  if (shelf === "TODAY") state.todayScrollLeft = SHELF_PANEL_WIDTH;
   animateAlertExitToShelf();
   await transitionView("to-shelf", () => {
     state.view = "SHELF";
     state.activeShelf = shelf;
     render();
   });
+  restoreShelfScroll();
 }
 
 // Delegate all click actions from the frequently re-rendered main layer.
@@ -1512,13 +1511,6 @@ async function handleMainClick(event) {
   if (!target) return;
 
   const action = target.dataset.action;
-  if (
-    state.readerSwipeConsumed &&
-    (action === "reader-prev" || action === "reader-next")
-  ) {
-    state.readerSwipeConsumed = false;
-    return;
-  }
   if (action === "expand-shelf" && state.homeSwipeConsumed) {
     state.homeSwipeConsumed = false;
     return;
@@ -1574,7 +1566,6 @@ async function handleMainClick(event) {
     state.readerItem = state.selectedItem;
     state.readerPage = 0;
     state.readerTurnDirection = "";
-    state.readerScrollTarget = null;
     clearSelection();
     render();
     return;
@@ -1624,26 +1615,54 @@ async function handleMainClick(event) {
   }
 }
 
-// Capture reader swipes while leaving the visible controls as simple buttons.
+// Start one unified reader gesture for live dragging or left/right tap fallback.
 function handleReaderPointerDown(event) {
   if (!state.readerItem) return;
-  const readerPageArea = event.target.closest?.(
-    ".reader-page-track, .reader-page-click-zone",
-  );
-  if (!readerPageArea) return;
+  const surface = event.target.closest?.(".reader-gesture-surface");
+  if (!surface) return;
 
-  readerPageArea.setPointerCapture?.(event.pointerId);
+  surface.setPointerCapture?.(event.pointerId);
   state.readerSwipeStartX = event.clientX;
   state.readerSwipeStartY = event.clientY;
   state.readerSwipeStartPage = state.readerPage;
+  state.readerSwipeStartTime = event.timeStamp;
+  state.readerSwipeLastX = event.clientX;
+  state.readerSwipeLastTime = event.timeStamp;
+  state.readerSwipeVelocity = 0;
   state.readerSwipeStarted = true;
-  state.readerSwipeConsumed = false;
-  state.readerScrollTarget = null;
+  state.readerSwipeDragging = false;
 }
 
-// Clear reader swipe bookkeeping if the browser takes over the gesture.
+// Move the page track with the finger once the gesture is clearly horizontal.
+function handleReaderPointerMove(event) {
+  if (!state.readerItem || !state.readerSwipeStarted) return;
+
+  const deltaX = event.clientX - state.readerSwipeStartX;
+  const deltaY = event.clientY - state.readerSwipeStartY;
+  if (
+    !state.readerSwipeDragging &&
+    Math.abs(deltaX) >= 8 &&
+    Math.abs(deltaX) > Math.abs(deltaY)
+  ) {
+    state.readerSwipeDragging = true;
+  }
+  if (!state.readerSwipeDragging) return;
+
+  event.preventDefault();
+  const elapsed = Math.max(1, event.timeStamp - state.readerSwipeLastTime);
+  state.readerSwipeVelocity = (event.clientX - state.readerSwipeLastX) / elapsed;
+  state.readerSwipeLastX = event.clientX;
+  state.readerSwipeLastTime = event.timeStamp;
+  dragReaderTrack(deltaX);
+}
+
+// Return to the settled page if the browser cancels an active reader gesture.
 function cancelReaderSwipe() {
+  if (state.readerSwipeDragging) {
+    positionReaderTrack(state.readerPage, true);
+  }
   state.readerSwipeStarted = false;
+  state.readerSwipeDragging = false;
 }
 
 // Update idle-return bookkeeping for any meaningful user input.
@@ -1694,25 +1713,65 @@ async function handleHomeShelfPointerUp(event) {
   await openShelf(shelf);
 }
 
-// Turn a deliberate horizontal swipe into exactly one reader page change.
+// Snap a drag to a page, or treat a stationary gesture as a left/right tap.
 function handleReaderPointerUp(event) {
   if (!state.readerItem || !state.readerSwipeStarted) return;
   state.readerSwipeStarted = false;
 
   const deltaX = event.clientX - state.readerSwipeStartX;
   const deltaY = event.clientY - state.readerSwipeStartY;
-  const horizontalSwipe =
-    Math.abs(deltaX) >= 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
-  if (!horizontalSwipe) return;
+  if (!state.readerSwipeDragging) {
+    if (Math.abs(deltaX) <= 12 && Math.abs(deltaY) <= 12) {
+      handleReaderPageTap(event);
+    }
+    return;
+  }
 
+  state.readerSwipeDragging = false;
   event.preventDefault();
-  state.readerSwipeConsumed = true;
-  window.setTimeout(() => {
-    state.readerSwipeConsumed = false;
-  }, 500);
-
-  const direction = deltaX < 0 ? 1 : -1;
+  const track = document.querySelector(".reader-page-track");
+  const pageWidth = getReaderPageWidth(track);
+  const velocity =
+    event.timeStamp - state.readerSwipeLastTime <= 80
+      ? state.readerSwipeVelocity
+      : 0;
+  const turnPage =
+    Math.abs(deltaX) >= pageWidth * 0.18 || Math.abs(velocity) >= 0.45;
+  const direction = turnPage ? (deltaX < 0 ? 1 : -1) : 0;
   scrollReaderToPage(state.readerSwipeStartPage + direction);
+}
+
+// Use the same page-area gesture surface as a simple tap fallback.
+function handleReaderPageTap(event) {
+  const surface = event.target.closest?.(".reader-gesture-surface");
+  if (!surface) return;
+
+  const bounds = surface.getBoundingClientRect();
+  if (event.clientX < bounds.left + bounds.width / 2) {
+    goToPreviousReaderPage();
+  } else {
+    goToNextReaderPage();
+  }
+}
+
+// Apply live drag movement with light resistance at the first and last pages.
+function dragReaderTrack(deltaX) {
+  const track = document.querySelector(".reader-page-track");
+  if (!track || !state.readerItem) return;
+
+  const pageWidth = getReaderPageWidth(track);
+  const pageCount = getReaderPageCount(state.readerItem);
+  const draggingPastStart = state.readerSwipeStartPage === 0 && deltaX > 0;
+  const draggingPastEnd =
+    state.readerSwipeStartPage >= pageCount - 1 && deltaX < 0;
+  const resistedDelta =
+    draggingPastStart || draggingPastEnd ? deltaX * 0.22 : deltaX;
+
+  setReaderTrackTransform(
+    track,
+    -(state.readerSwipeStartPage * pageWidth) + resistedDelta,
+    false,
+  );
 }
 
 // Keyboard support for overlay actions and reader paging.
@@ -1756,7 +1815,7 @@ function goToPreviousReaderPage() {
   scrollReaderToPage(state.readerPage - 1);
 }
 
-// Move the existing reader track so button/tap navigation feels like a swipe.
+// Snap the reader track to a page after a drag, button press, or tap.
 function scrollReaderToPage(pageIndex, behavior = "smooth") {
   if (!state.readerItem) return;
 
@@ -1774,14 +1833,14 @@ function scrollReaderToPage(pageIndex, behavior = "smooth") {
 
   const pageWidth = getReaderPageWidth(track);
   state.readerPage = targetPage;
-  state.readerScrollTarget = targetPage;
   state.readerTurnDirection =
     targetPage >= currentPage ? "turn-next" : "turn-prev";
   syncReaderControls(targetPage, pageCount);
-  track.scrollTo({
-    left: targetPage * pageWidth,
-    behavior,
-  });
+  setReaderTrackTransform(
+    track,
+    -(targetPage * pageWidth),
+    behavior === "smooth",
+  );
 }
 
 // Close the reader and return to the books shelf.
@@ -1796,58 +1855,42 @@ function finishReading() {
   state.readerItem = null;
   state.readerPage = 0;
   state.readerTurnDirection = "";
-  state.readerScrollTarget = null;
   state.view = "SHELF";
   state.activeShelf = "BOOKS";
   render();
 }
 
-// Sync reader state from horizontal page-track scroll.
-function handleReaderScroll(event) {
-  if (!state.readerItem) return;
-
-  const track = event.target.closest?.(".reader-page-track");
-  if (!track) return;
-
-  markUserInteraction();
-  const pageWidth = getReaderPageWidth(track);
-  const pageCount = getReaderPageCount(state.readerItem);
-  if (state.readerScrollTarget !== null) {
-    const targetScrollLeft = state.readerScrollTarget * pageWidth;
-    if (Math.abs(track.scrollLeft - targetScrollLeft) > 2) {
-      syncReaderControls(state.readerScrollTarget, pageCount);
-      return;
-    }
-    state.readerScrollTarget = null;
-  }
-
-  const nextPage = clamp(
-    Math.round(track.scrollLeft / pageWidth),
-    0,
-    Math.max(0, pageCount - 1),
-  );
-  state.readerPage = nextPage;
-  state.readerTurnDirection = "";
-  syncReaderControls(nextPage, pageCount);
-}
-
 // Restore reader page position after a render rebuilds the page track.
-function restoreReaderScroll() {
+function restoreReaderPosition() {
   if (!state.readerItem) return;
 
-  const track = document.querySelector(".reader-page-track");
-  if (!track) return;
-
-  const pageWidth = getReaderPageWidth(track);
-  const targetScrollLeft = state.readerPage * pageWidth;
-  if (Math.abs(track.scrollLeft - targetScrollLeft) <= 2) return;
-  track.scrollLeft = targetScrollLeft;
+  positionReaderTrack(state.readerPage, false);
   syncReaderControls(state.readerPage, getReaderPageCount(state.readerItem));
 }
 
-// Reader page width is the full stage-width track, not the padded page content.
+// Position the reader track at a page with optional snap animation.
+function positionReaderTrack(pageIndex, animate) {
+  const track = document.querySelector(".reader-page-track");
+  if (!track) return;
+
+  setReaderTrackTransform(
+    track,
+    -(pageIndex * getReaderPageWidth(track)),
+    animate,
+  );
+}
+
+// Write only transform/transition during gesture movement for smooth tablet use.
+function setReaderTrackTransform(track, x, animate) {
+  track.style.transition = animate
+    ? "transform 240ms cubic-bezier(0.22, 0.72, 0.2, 1)"
+    : "none";
+  track.style.transform = `translate3d(${x}px, 0, 0)`;
+}
+
+// Reader page width is the clipped viewport width, not the full page strip.
 function getReaderPageWidth(track) {
-  return track.clientWidth || SHELF_PANEL_WIDTH;
+  return track?.parentElement?.clientWidth || SHELF_PANEL_WIDTH;
 }
 
 // Keep reader footer and prev/next controls aligned with current page.
@@ -1860,10 +1903,6 @@ function syncReaderControls(pageIndex, pageCount) {
 
   const previousButton = screen.querySelector(".reader-control-prev");
   if (previousButton) previousButton.disabled = pageIndex === 0;
-  screen.querySelectorAll(".reader-page-click-prev").forEach((button) => {
-    button.disabled = pageIndex === 0;
-  });
-
   const nextButton = screen.querySelector(".reader-control-next");
   if (nextButton) {
     nextButton.textContent = pageIndex >= pageCount - 1 ? "Done" : "Next";
@@ -1874,6 +1913,14 @@ function syncReaderControls(pageIndex, pageCount) {
 function handleShelfScroll(event) {
   const shelf = event.target.closest?.("[data-shelf-kind]");
   if (!shelf) return;
+  if (
+    state.shelfScrollRestoring ||
+    state.idleReturnRunning ||
+    state.view !== "SHELF" ||
+    shelf.dataset.shelfKind !== state.activeShelf
+  )
+    return;
+
   markUserInteraction();
   if (shelf.dataset.shelfKind === "BOOKS") {
     if (shelf.scrollLeft < SHELF_PANEL_WIDTH) {
@@ -1902,15 +1949,24 @@ function handleShelfScroll(event) {
 
 // Restore shelf scroll positions after DOM replacement.
 function restoreShelfScroll() {
-  const booksShelf = document.querySelector('[data-shelf-kind="BOOKS"]');
-  const showsShelf = document.querySelector('[data-shelf-kind="SHOWS"]');
-  const todayShelf = document.querySelector('[data-shelf-kind="TODAY"]');
-  if (booksShelf)
-    booksShelf.scrollLeft = clampBooksScroll(state.booksScrollLeft);
-  if (showsShelf)
-    showsShelf.scrollLeft = clampShowsScroll(state.showsScrollLeft);
-  if (todayShelf)
-    todayShelf.scrollLeft = clampTodayScroll(state.todayScrollLeft);
+  if (state.view !== "SHELF" || !state.activeShelf) return;
+
+  const shelf = document.querySelector(
+    `[data-shelf-kind="${state.activeShelf}"]`,
+  );
+  if (!shelf) return;
+
+  state.shelfScrollRestoring = true;
+  if (state.activeShelf === "BOOKS") {
+    shelf.scrollLeft = clampBooksScroll(state.booksScrollLeft);
+  } else if (state.activeShelf === "SHOWS") {
+    shelf.scrollLeft = clampShowsScroll(state.showsScrollLeft);
+  } else if (state.activeShelf === "TODAY") {
+    shelf.scrollLeft = clampTodayScroll(state.todayScrollLeft);
+  }
+  requestAnimationFrame(() => {
+    state.shelfScrollRestoring = false;
+  });
 }
 
 // Keep shows scroll inside the photographed strip's usable range.
@@ -1928,31 +1984,77 @@ function clampTodayScroll(scrollLeft) {
   return clamp(scrollLeft, SHELF_PANEL_WIDTH, getTodayMaxScrollLeft());
 }
 
-// Periodically return idle shelf views to the home scene.
+// Periodically return every idle non-home state to a clean home scene.
 async function checkIdleReturnHome() {
   if (!shouldIdleReturnHome()) return;
 
   state.idleReturnRunning = true;
   state.lastInteractionAt = Date.now();
   try {
-    clearSelection();
+    captureActiveShelfScroll();
     await transitionView("to-home", () => {
-      state.view = "HOME";
-      state.activeShelf = null;
+      resetIdleStateToHome();
       render();
     });
-    animateAlertEnterHome();
+    await animateAlertEnterHome();
   } finally {
     state.idleReturnRunning = false;
   }
 }
 
-// Guard idle-return so it never interrupts active overlays/readers/transitions.
+// Clear all temporary navigation state without marking an idle book as read.
+function resetIdleStateToHome() {
+  window.clearTimeout(state.handoffTimer);
+  state.handoffTimer = null;
+  state.handoffItem = null;
+  state.videoLaunchDebug = null;
+
+  clearSelection();
+  resetReaderState();
+
+  state.view = "HOME";
+  state.activeShelf = null;
+}
+
+// Snapshot the visible shelf before hiding it during an idle return.
+function captureActiveShelfScroll() {
+  if (state.view !== "SHELF" || !state.activeShelf) return;
+
+  const shelf = document.querySelector(
+    `[data-shelf-kind="${state.activeShelf}"]`,
+  );
+  if (!shelf) return;
+
+  if (state.activeShelf === "BOOKS") {
+    state.booksScrollLeft = clampBooksScroll(shelf.scrollLeft);
+  } else if (state.activeShelf === "SHOWS") {
+    state.showsScrollLeft = clampShowsScroll(shelf.scrollLeft);
+  } else if (state.activeShelf === "TODAY") {
+    state.todayScrollLeft = clampTodayScroll(shelf.scrollLeft);
+  }
+}
+
+// Reset reader navigation and gesture bookkeeping without recent-read effects.
+function resetReaderState() {
+  state.readerItem = null;
+  state.readerPage = 0;
+  state.readerTurnDirection = "";
+  state.readerSwipeStartX = 0;
+  state.readerSwipeStartY = 0;
+  state.readerSwipeStartPage = 0;
+  state.readerSwipeStartTime = 0;
+  state.readerSwipeLastX = 0;
+  state.readerSwipeLastTime = 0;
+  state.readerSwipeVelocity = 0;
+  state.readerSwipeStarted = false;
+  state.readerSwipeDragging = false;
+}
+
+// Guard idle-return so it never interrupts active UI transitions.
 function shouldIdleReturnHome() {
   if (state.idleReturnRunning) return false;
   if (Date.now() - state.lastInteractionAt < IDLE_HOME_MS) return false;
-  if (state.view !== "SHELF") return false;
-  if (state.readerItem || state.selectedItem || state.handoffItem) return false;
+  if (isHomeView()) return false;
   if (
     state.alertTransitioning ||
     state.viewTransitioning ||

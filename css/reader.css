@@ -32,24 +32,22 @@
   color: var(--reader-ink);
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
     "Times New Roman", serif;
-  touch-action: pan-x;
+  touch-action: none;
   user-select: none;
 }
 
-.reader-page-track {
+.reader-page-viewport {
   flex: 1;
   min-height: 0;
-  display: flex;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
-.reader-page-track::-webkit-scrollbar {
-  display: none;
+.reader-page-track {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  touch-action: none;
+  will-change: transform;
 }
 
 .reader-page {
@@ -57,8 +55,6 @@
   flex: 0 0 100%;
   min-width: 100%;
   min-height: 0;
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
   display: flex;
   flex-direction: column;
   padding: 44px 64px 20px;
@@ -285,33 +281,15 @@
   font-family: Arial, sans-serif;
 }
 
-.reader-page-click-zones {
+.reader-gesture-surface {
   position: absolute;
   left: 0;
   right: 0;
   top: 84px;
   bottom: 128px;
   z-index: 3;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  pointer-events: none;
-}
-
-.reader-page-click-zone {
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  appearance: none;
-  -webkit-appearance: none;
-  pointer-events: auto;
   touch-action: none;
-}
-
-.reader-page-click-zone:disabled {
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .reader-control {

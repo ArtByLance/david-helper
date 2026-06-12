@@ -6,7 +6,7 @@
  * title page followed by chapter pages that may choose image/text ordering.
  */
 
-// Render the horizontally scrollable reader screen for the active book.
+// Render the reader screen with one gesture surface over the page viewport.
 export function renderReaderView({ item, pageIndex }) {
   const pages = buildReaderPages(item);
   const safePageIndex = clamp(pageIndex, 0, Math.max(0, pages.length - 1));
@@ -14,12 +14,14 @@ export function renderReaderView({ item, pageIndex }) {
   return `
     <section class="screen reader-screen reader-slider-screen" aria-label="${escapeHtml(item.title)}">
       ${renderPutBackButton()}
-      <div class="reader-page-track" data-reader-current-page="${safePageIndex}" data-reader-page-count="${pages.length}">
-        ${pages
-          .map((page, index) => renderReaderPagePanel(item, page, index, pages.length))
-          .join("")}
+      <div class="reader-page-viewport">
+        <div class="reader-page-track" data-reader-current-page="${safePageIndex}" data-reader-page-count="${pages.length}">
+          ${pages
+            .map((page, index) => renderReaderPagePanel(item, page, index, pages.length))
+            .join("")}
+        </div>
       </div>
-      ${renderReaderPageClickZones(safePageIndex)}
+      <div class="reader-gesture-surface" aria-hidden="true"></div>
       ${renderReaderControls(safePageIndex, pages.length)}
     </section>
   `;
@@ -92,16 +94,6 @@ function renderChapterEndPagePanel(page, pageIndex, pageCount) {
 // Persistent exit control in the upper reader chrome.
 function renderPutBackButton() {
   return `<button class="reader-exit" type="button" data-action="finish-reading">Put Back</button>`;
-}
-
-// Invisible page-area fallbacks for David: left side goes back, right advances.
-function renderReaderPageClickZones(pageIndex) {
-  return `
-    <div class="reader-page-click-zones" aria-hidden="true">
-      <button class="reader-page-click-zone reader-page-click-prev" type="button" data-action="reader-prev" tabindex="-1" ${pageIndex === 0 ? "disabled" : ""}></button>
-      <button class="reader-page-click-zone reader-page-click-next" type="button" data-action="reader-next" tabindex="-1"></button>
-    </div>
-  `;
 }
 
 // Render page controls with disabled/Done states derived from page index.
