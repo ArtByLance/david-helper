@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260605-1";
+const CACHE_VERSION = "davids-shelves-20260612-1";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

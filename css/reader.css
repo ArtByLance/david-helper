@@ -101,9 +101,13 @@
   justify-content: center;
   gap: 8px;
   padding: 0 18px;
+  border: 3px solid #b42318;
   border-radius: 8px;
-  background: #e7e2d8;
-  color: rgba(59, 39, 24, 0.72);
+  background: #fff8f0;
+  color: #a61b16;
+  box-shadow:
+    0 5px 0 rgba(112, 24, 18, 0.28),
+    0 9px 16px rgba(59, 39, 24, 0.2);
   font-family: Arial, sans-serif;
   font-size: 15px;
   font-weight: 900;
@@ -303,7 +307,7 @@
   appearance: none;
   -webkit-appearance: none;
   pointer-events: auto;
-  touch-action: pan-x;
+  touch-action: none;
 }
 
 .reader-page-click-zone:disabled {

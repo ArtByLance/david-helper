@@ -123,7 +123,9 @@ const state = {
   readerScrollTarget: null,
   readerSwipeStartX: 0,
   readerSwipeStartY: 0,
+  readerSwipeStartPage: 0,
   readerSwipeStarted: false,
+  readerSwipeConsumed: false,
   homeSwipeShelf: null,
   homeSwipeStartX: 0,
   homeSwipeStartY: 0,
@@ -325,6 +327,7 @@ function bindGlobalControls() {
   document
     .getElementById("app-main")
     ?.addEventListener("pointerup", handleReaderPointerUp);
+  document.addEventListener("pointercancel", cancelReaderSwipe);
   document
     .getElementById("app-main")
     ?.addEventListener("pointerdown", handleHomeShelfPointerDown);
@@ -1509,6 +1512,13 @@ async function handleMainClick(event) {
   if (!target) return;
 
   const action = target.dataset.action;
+  if (
+    state.readerSwipeConsumed &&
+    (action === "reader-prev" || action === "reader-next")
+  ) {
+    state.readerSwipeConsumed = false;
+    return;
+  }
   if (action === "expand-shelf" && state.homeSwipeConsumed) {
     state.homeSwipeConsumed = false;
     return;
@@ -1614,11 +1624,26 @@ async function handleMainClick(event) {
   }
 }
 
-// Reset reader swipe state when a pointer starts inside the reader.
+// Capture reader swipes while leaving the visible controls as simple buttons.
 function handleReaderPointerDown(event) {
   if (!state.readerItem) return;
-  state.readerSwipeStarted = false;
+  const readerPageArea = event.target.closest?.(
+    ".reader-page-track, .reader-page-click-zone",
+  );
+  if (!readerPageArea) return;
+
+  readerPageArea.setPointerCapture?.(event.pointerId);
+  state.readerSwipeStartX = event.clientX;
+  state.readerSwipeStartY = event.clientY;
+  state.readerSwipeStartPage = state.readerPage;
+  state.readerSwipeStarted = true;
+  state.readerSwipeConsumed = false;
   state.readerScrollTarget = null;
+}
+
+// Clear reader swipe bookkeeping if the browser takes over the gesture.
+function cancelReaderSwipe() {
+  state.readerSwipeStarted = false;
 }
 
 // Update idle-return bookkeeping for any meaningful user input.
@@ -1669,10 +1694,25 @@ async function handleHomeShelfPointerUp(event) {
   await openShelf(shelf);
 }
 
-// Complete pointer gestures in the reader; scroll handles page selection.
+// Turn a deliberate horizontal swipe into exactly one reader page change.
 function handleReaderPointerUp(event) {
-  if (!state.readerItem) return;
+  if (!state.readerItem || !state.readerSwipeStarted) return;
   state.readerSwipeStarted = false;
+
+  const deltaX = event.clientX - state.readerSwipeStartX;
+  const deltaY = event.clientY - state.readerSwipeStartY;
+  const horizontalSwipe =
+    Math.abs(deltaX) >= 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+  if (!horizontalSwipe) return;
+
+  event.preventDefault();
+  state.readerSwipeConsumed = true;
+  window.setTimeout(() => {
+    state.readerSwipeConsumed = false;
+  }, 500);
+
+  const direction = deltaX < 0 ? 1 : -1;
+  scrollReaderToPage(state.readerSwipeStartPage + direction);
 }
 
 // Keyboard support for overlay actions and reader paging.
