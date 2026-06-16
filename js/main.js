@@ -23,6 +23,7 @@ import {
   getMealEvents,
   loadConfig,
   loadDailySchedule,
+  loadHelperActivities,
   loadMonthlyEvents,
   loadWeeklySchedule,
 } from "./data.js";
@@ -43,7 +44,7 @@ import {
 } from "./utils.js";
 import { getNow } from "./time.js";
 import { isDoorHelperRoute, startDoorHelper } from "./helper-door.js";
-import { isLauncherRoute, startLauncher } from "./launcher.js";
+import { isChairRoute, isLauncherRoute, startLauncher } from "./launcher.js";
 
 const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
@@ -52,7 +53,25 @@ const ALERT_HOME_ENTRY_DELAY_MS = 750;
 const VIEW_TRANSITION_OUT_MS = 120;
 const VIEW_TRANSITION_IN_MS = 180;
 const IDLE_HOME_MS = 10 * 60 * 1000;
+const CHAIR_IDLE_HOME_MS = 3 * 60 * 1000;
 const IDLE_CHECK_MS = 15 * 1000;
+const CHAIR_ACTIVITY_DONE_MS = 12 * 1000;
+const CHAIR_EVENT_SOON_MINUTES = 15;
+const CHAIR_TITLE_COLORS = [
+  "#205b9d",
+  "#6f3fb5",
+  "#2f7d4b",
+  "#a34b2b",
+  "#0f766e",
+  "#8a5a12",
+];
+const CHAIR_BOOK_CATEGORY_TITLE_COLORS = {
+  "True War Heroes": "#205b9d",
+  Westerns: "#8a5a12",
+  "Jack Reacher": "#6f3fb5",
+  "Bible Heroes": "#2f7d4b",
+  "Faith & Courage": "#0f766e",
+};
 const SHELF_PANEL_WIDTH = 800;
 const FRONT_SHELF_START_X = 1624;
 const FRONT_SHELF_BASE_Y = 1016;
@@ -88,10 +107,10 @@ const dvdFrontSkin = {
   overlay: "./assets/objects/dvd-front.png",
   viewBox: { width: 900, height: 1350 },
   artPolygons: {
-    frontArt: "147,254 750,232 820,1122 229,1209",
-    spineArt: "102,273 141,253 224,1208 179,1188",
+    frontArt: "147,246 760,231 823,1132 220,1210",
+    spineArt: "102,263 141,245 224,1208 179,1190",
   },
-  titlePolygon: "147,254 750,232 820,1122 229,1209",
+  titlePolygon: "147,246 760,231 823,1132 220,1210",
   hotspotPadding: 10,
 };
 const bookFrontSkin = {
@@ -114,12 +133,18 @@ const MEDIA_FRONT_TITLE_BOTTOM_INSET = 115;
 const MEDIA_DEFAULT_TITLE_TINT = "#fff6df";
 let booksShelfMedia = [];
 let showsShelfMedia = [];
+let helperActivities = [];
+let chairModeActive = false;
 
 // Single-page view model. It intentionally stays plain so event handlers can
 // mutate state and immediately re-render without hidden framework lifecycle.
 const state = {
   view: "HOME",
   activeShelf: null,
+  chairCategory: null,
+  chairDoneMessage: "",
+  chairDoneTimer: null,
+  chairDismissedAlertKey: "",
   booksScrollLeft: 0,
   showsScrollLeft: 0,
   todayScrollLeft: 0,
@@ -178,10 +203,12 @@ async function loadBooksShelfMedia() {
 
         return {
           id: item.id,
-          title: book.title ?? item.title,
+          title: item.title ?? book.title,
           displayTitle: book.displayTitle,
+          summary: item.summary ?? book.summary ?? "",
           type: "book",
           category: section.title,
+          chairTitleColor: CHAIR_BOOK_CATEGORY_TITLE_COLORS[section.title],
           masterArt: `./assets/media/books/${item.id}/${item.id}-book-cover.jpg`,
           cover: `./assets/media/books/${item.id}/${item.id}-book-cover.jpg`,
           openingImage: `./assets/media/books/${item.id}/${item.id}-book-opener.jpg`,
@@ -214,6 +241,7 @@ async function loadShowsShelfMedia() {
       (category.items ?? []).map((item) => ({
         id: item.id,
         title: item.title,
+        summary: item.summary ?? "",
         command: item.command,
         active: item.active,
         type: "dvd",
@@ -305,13 +333,27 @@ async function bootstrap() {
     return;
   }
 
-  applyInitialShelfRoute();
+  chairModeActive = isChairRoute();
+  document.documentElement.classList.toggle("chair-mode", chairModeActive);
+  document
+    .getElementById("tv-stage")
+    ?.setAttribute("data-chair", String(chairModeActive));
+  if (chairModeActive) {
+    state.view = "CHAIR_HOME";
+    state.activeShelf = null;
+    state.alertHidden = true;
+  } else {
+    applyInitialShelfRoute();
+  }
   bindGlobalControls();
   await Promise.all([
     loadKioskConfig(),
     loadScheduleSources(),
     loadBooksShelfMedia(),
     loadShowsShelfMedia(),
+    loadHelperActivities().then((activities) => {
+      helperActivities = activities;
+    }),
   ]);
   render();
   window.setInterval(renderMealTimerOnly, 20 * 1000);
@@ -401,6 +443,10 @@ function render() {
 // Lightweight timer tick used between full renders.
 function renderMealTimerOnly() {
   const now = getNow();
+  if (chairModeActive) {
+    renderMain(now);
+    return;
+  }
   renderMealTimer(now);
   renderLiveClockText(now);
 }
@@ -437,9 +483,23 @@ function renderMain(now) {
   if (!main) return;
 
   const stage = document.getElementById("tv-stage");
+  setBooleanDataAttribute(stage, "data-chair", chairModeActive);
   setBooleanDataAttribute(stage, "data-home", isHomeView());
   setBooleanDataAttribute(stage, "data-image-shell", isShelfImageView());
   setBooleanDataAttribute(stage, "data-reader", Boolean(state.readerItem));
+
+  if (chairModeActive) {
+    const chairLayer = ensureAppLayer(main, "chair-layer");
+    const takeOffLayer = ensureAppLayer(main, "take-off-layer-slot");
+    const handoffLayer = ensureAppLayer(main, "handoff-layer");
+    const readerLayer = ensureAppLayer(main, "reader-layer");
+
+    renderChairLayer(chairLayer, now);
+    renderTakeOffLayerSlot(takeOffLayer);
+    renderHandoffLayer(handoffLayer);
+    renderReaderLayer(readerLayer);
+    return;
+  }
 
   const homeLayer = ensureAppLayer(main, "home-layer");
   const shelfLayer = ensureAppLayer(main, "shelf-layer");
@@ -524,7 +584,9 @@ function renderTakeOffLayerSlot(layer) {
     return;
   }
 
-  const key = `${state.selectedKind}:${state.selectedItem.id}:${state.takeOffExiting}`;
+  const key = chairModeActive
+    ? `${state.selectedKind}:${state.selectedItem.id}:${state.takeOffExiting}:${state.chairDismissedAlertKey}:${getChairAlertKey(getNow())}`
+    : `${state.selectedKind}:${state.selectedItem.id}:${state.takeOffExiting}`;
   if (layer.dataset.renderKey === key) return;
 
   layer.innerHTML = renderTakeOffOverlay();
@@ -563,6 +625,391 @@ function renderReaderLayer(layer) {
   state.readerTurnDirection = "";
 }
 
+function renderChairLayer(layer, now) {
+  layer.hidden = Boolean(state.readerItem);
+  if (state.readerItem) return;
+
+  const key = [
+    state.view,
+    state.chairCategory,
+    state.chairDoneMessage,
+    getChairAlertKey(now),
+    state.chairDismissedAlertKey,
+    Math.floor(now.getTime() / 60000),
+  ].join(":");
+  if (layer.dataset.renderKey === key) return;
+
+  layer.innerHTML = renderChair(now);
+  layer.dataset.renderKey = key;
+}
+
+function renderChair(now) {
+  if (state.view === "CHAIR_PICKER") return renderChairPicker(now);
+  if (state.view === "CHAIR_DONE") return renderChairDone(now);
+  return renderChairHome(now);
+}
+
+function renderChairHome(now) {
+  return `
+    <section class="screen chair-screen chair-home-screen" aria-label="Chair tablet home">
+      ${renderChairTopBar(now, "WHAT CAN I DO NOW?")}
+      ${renderChairAlert(now)}
+      <div class="chair-main">
+        <div class="chair-home-options">
+          ${renderChairHomeOption("books", "READ\nA BOOK", "./assets/objects/things-to-do-books.jpg")}
+          ${renderChairHomeOption("shows", "WATCH\nA SHOW", "./assets/objects/things-to-do-tv.jpg")}
+          ${renderChairHomeOption("activities", "SOMETHING\nELSE", "./assets/objects/things-to-do-walk.jpg")}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderChairHomeOption(category, title, image) {
+  return `
+    <button class="chair-home-option chair-home-${category}" type="button" data-action="chair-open-category" data-category="${category}">
+      ${
+        image
+          ? `<span class="chair-home-image">
+              <img src="${escapeAttribute(image)}" alt="" draggable="false" />
+            </span>`
+          : ""
+      }
+      <strong>${escapeHtml(title)}</strong>
+    </button>
+  `;
+}
+
+function renderChairPicker(now) {
+  const category = getChairCategory();
+  const items = getChairItems(category.id, now);
+
+  return `
+    <section class="screen chair-screen chair-picker-screen chair-picker-${escapeAttribute(category.id)}" aria-label="${escapeAttribute(category.pickerTitle)}">
+      ${renderChairTopBar(now, category.pickerTitle)}
+      ${renderChairAlert(now)}
+      <div class="chair-picker-header">
+        <button class="chair-back-button" type="button" data-action="chair-back-main">&lt;&lt; BACK</button>
+        <div class="chair-more-prompt" aria-hidden="true">SWIPE FOR MORE &gt;&gt;</div>
+      </div>
+      <div class="chair-grid" role="list">
+        ${items.map((item) => renderChairGridItem(category.id, item)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderChairGridItem(category, item) {
+  const titleColor = getChairGridTitleColor(category, item);
+  const tileStyle =
+    category === "shows"
+      ? ` style="--chair-tile-bg:${escapeAttribute(getDarkChairTileColor(item.baseColor || item.titleTint || titleColor))}"`
+      : "";
+  return `
+    <button class="chair-grid-item" type="button" role="listitem" data-action="take-off" data-kind="${escapeAttribute(category)}" data-item-id="${escapeAttribute(item.id)}"${tileStyle}>
+      <span class="chair-grid-image">
+        <img src="${escapeAttribute(getChairItemImage(item))}" alt="" draggable="false" />
+      </span>
+      <strong style="color:${escapeAttribute(titleColor)}">${escapeHtml(item.title)}</strong>
+    </button>
+  `;
+}
+
+function getChairGridTitleColor(category, item) {
+  if (category === "books") {
+    return (
+      item.chairTitleColor || item.titleTint || getStableChairTitleColor(item)
+    );
+  }
+  if (category === "shows") {
+    return item.titleTint || getStableChairTitleColor(item);
+  }
+  return getStableChairTitleColor(item);
+}
+
+function getStableChairTitleColor(item) {
+  const value = String(item?.id || item?.title || "");
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return CHAIR_TITLE_COLORS[hash % CHAIR_TITLE_COLORS.length];
+}
+
+function renderChairDone(now) {
+  const reminder = getChairDoneMealReminder(now);
+  return `
+    <section class="screen chair-screen chair-done-screen" aria-label="Activity selected">
+      ${renderChairTopBar(now, "SOMETHING ELSE")}
+      ${renderChairAlert(now)}
+      <div class="chair-done-card">
+        <h1>${escapeHtml(state.chairDoneMessage || "Have fun!")}</h1>
+        ${reminder ? `<p>${escapeHtml(reminder)}</p>` : ""}
+        <button class="chair-done-ok" type="button" data-action="chair-done-ok">OK</button>
+      </div>
+    </section>
+  `;
+}
+
+function getChairDoneMealReminder(now) {
+  const mealState = getMealState(now, getMealsForDate(now));
+  if (mealState.hiddenForDay || mealState.firstServingHour) return "";
+  return `Remember,\n${String(mealState.label).toUpperCase()} is in \n${mealState.timeLeft}.`;
+}
+
+function renderChairTopBar(now, title = "WHAT CAN I DO NOW?") {
+  const context = getChairEventContext(now);
+  return `
+    <header class="chair-context">
+      <div class="helper-context-band">
+        <div class="helper-context-title">${escapeHtml(title)}</div>
+      </div>
+      <div class="helper-context-details chair-context-details">
+        <strong>${escapeHtml(formatClock(now))}</strong>
+        <span>${escapeHtml(getChairWeekday(now))}</span>
+        <span>${escapeHtml(getChairDayPart(now))}</span>
+        <div class="chair-status-track" aria-hidden="true">
+          <div class="chair-status-fill" style="width:${context.progressPercent}%"></div>
+        </div>
+      </div>
+      <div class="chair-context-message">${escapeHtml(context.detail)}</div>
+    </header>
+  `;
+}
+
+function renderChairAlert(now) {
+  const alert = getChairAlert(now);
+  if (!alert || state.chairDismissedAlertKey === alert.key) return "";
+
+  return `
+    <div class="chair-alert-card" role="status">
+      <p>${escapeHtml(alert.message)}</p>
+      <button type="button" data-action="chair-dismiss-alert" data-alert-key="${escapeAttribute(alert.key)}">OK</button>
+    </div>
+  `;
+}
+
+function getChairCategory() {
+  const id = state.chairCategory || "books";
+  if (id === "shows") {
+    return { id, pickerTitle: "CHOOSE A SHOW" };
+  }
+  if (id === "activities") {
+    return { id, pickerTitle: "HERE'S WHAT YOU CAN DO" };
+  }
+  return { id: "books", pickerTitle: "CHOOSE A BOOK" };
+}
+
+function getChairItems(category, now = getNow()) {
+  if (category === "shows")
+    return showsShelfMedia.filter((item) => item.active);
+  if (category === "activities") return getChairActivities(now);
+  return booksShelfMedia;
+}
+
+function getChairActivities(now) {
+  const context = buildChairActivityContext(now);
+  return (helperActivities ?? [])
+    .filter((activity) => activity.id !== "chair")
+    .filter((activity) => activity.id !== "read-book")
+    .filter((activity) => activity.id !== "watch-tv")
+    .filter((activity) => isChairActivityAvailable(activity, context))
+    .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
+}
+
+function buildChairActivityContext(now) {
+  const nowMinutes =
+    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const meals = getMealsForDate(now);
+  const nextMeal = meals.find((meal) => meal.timeMinutes > nowMinutes);
+  return {
+    nowMinutes,
+    mealState: getMealState(now, meals),
+    minutesUntilMeal: nextMeal
+      ? Math.max(0, nextMeal.timeMinutes - nowMinutes)
+      : Number.POSITIVE_INFINITY,
+  };
+}
+
+function isChairActivityAvailable(activity, context) {
+  const availability = activity.availability ?? {};
+  if (!isChairInAnyTimeRange(context.nowMinutes, availability.timeRanges)) {
+    return false;
+  }
+  if (availability.excludeDuringMealServing && context.mealState.serving) {
+    return false;
+  }
+  if (
+    availability.excludeBeforeMealsMinutes &&
+    context.minutesUntilMeal <= availability.excludeBeforeMealsMinutes
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function isChairInAnyTimeRange(nowMinutes, ranges) {
+  if (!Array.isArray(ranges) || ranges.length === 0) return true;
+  return ranges.some((range) => {
+    const start = parseChairActivityTime(range.start);
+    const end = parseChairActivityTime(range.end);
+    return start <= end
+      ? nowMinutes >= start && nowMinutes < end
+      : nowMinutes >= start || nowMinutes < end;
+  });
+}
+
+function parseChairActivityTime(time) {
+  if (time === "24:00") return 24 * 60;
+  return parseTimeToMinutes(time);
+}
+
+function getChairItemImage(item) {
+  return item.image || item.masterArt || item.cover || "";
+}
+
+function getChairEventContext(now) {
+  const meals = getMealsForDate(now);
+  const mealState = getMealState(now, meals);
+  if (!mealState.hiddenForDay) {
+    return {
+      label: mealState.firstServingHour ? "Meal now" : "Next meal",
+      detail: formatChairMealDetail(mealState),
+      progressPercent: mealState.firstServingHour ? 100 : mealState.nowPercent,
+    };
+  }
+
+  const event = getNextScheduleEvent(now);
+  if (event) {
+    return {
+      label: "Next",
+      detail: `${toTitleCase(event.label)} at ${formatShelfMealTime(event.time)}`,
+      progressPercent: getChairEventProgress(now, event),
+    };
+  }
+
+  return {
+    label: "Today",
+    detail: "Nothing else scheduled.",
+    progressPercent: 0,
+  };
+}
+
+function formatChairMealDetail(mealState) {
+  if (mealState.firstServingHour) {
+    const serving = toTitleCase(
+      mealState.servingMeal?.label || mealState.label,
+    );
+    const following = toTitleCase(
+      mealState.followingMeal?.label || "Breakfast",
+    );
+    return `They're serving ${serving} now. ${following} is next.`;
+  }
+  return `${String(mealState.label).toUpperCase()} is in ${mealState.timeLeft}.`;
+}
+
+function getChairWeekday(now) {
+  return formatDayLabel(now).toUpperCase();
+}
+
+function getChairDayPart(now) {
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  if (minutes < 5 * 60) return "MIDDLE OF THE NIGHT";
+  if (minutes < 7 * 60) return "EARLY MORNING";
+  if (minutes < 11 * 60 + 30) return "MORNING";
+  if (minutes < 12 * 60 + 30) return "LUNCHTIME";
+  if (minutes < 17 * 60) return "AFTERNOON";
+  if (minutes < 21 * 60) return "EVENING";
+  return "NIGHT";
+}
+
+function getChairEventProgress(now, event) {
+  const nowMinutes =
+    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  if (nowMinutes >= event.timeMinutes) return 100;
+
+  const previous = [...getScheduleForDate(now).events]
+    .reverse()
+    .find((candidate) => candidate.timeMinutes <= nowMinutes);
+  const start = previous?.timeMinutes ?? 0;
+  const span = Math.max(1, event.timeMinutes - start);
+  return clamp(((nowMinutes - start) / span) * 100, 0, 100);
+}
+
+function getChairAlert(now) {
+  const context = getChairAlertContext(now);
+  if (!context) return null;
+  return context;
+}
+
+function getChairAlertKey(now) {
+  return getChairAlert(now)?.key ?? "";
+}
+
+function getChairAlertContext(now) {
+  if (state.readerItem || state.handoffItem) return null;
+  const meals = getMealsForDate(now);
+  const mealState = getMealState(now, meals);
+  if (mealState.firstServingHour) {
+    return {
+      key: `meal:${mealState.servingMeal.id}:${getDateKey(now)}`,
+      message: mealState.message,
+    };
+  }
+
+  const event = getNextScheduleEvent(now);
+  if (!event || isMealEvent(event)) return null;
+  const minutes = getMinutesUntilScheduleEvent(now, event);
+  if (minutes <= 0) {
+    return {
+      key: `event-now:${event.id}:${getDateKey(now)}`,
+      message: `${toTitleCase(event.label)} is happening now.`,
+    };
+  }
+  if (minutes <= CHAIR_EVENT_SOON_MINUTES) {
+    return {
+      key: `event-soon:${event.id}:${getDateKey(now)}`,
+      message: `${toTitleCase(event.label)} starts soon.`,
+    };
+  }
+  return null;
+}
+
+function getNextScheduleEvent(now) {
+  const nowMinutes =
+    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const events = getScheduleForDate(now).events;
+  return (
+    [...events]
+      .reverse()
+      .find(
+        (event) =>
+          nowMinutes >= event.timeMinutes &&
+          nowMinutes < event.timeMinutes + event.holdMinutes,
+      ) ??
+    events.find((event) => event.timeMinutes > nowMinutes) ??
+    null
+  );
+}
+
+function getMinutesUntilScheduleEvent(now, event) {
+  const nowMinutes =
+    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  return Math.max(0, event.timeMinutes - nowMinutes);
+}
+
+function getDateKey(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function isMealEvent(event) {
+  return /\b(breakfast|lunch|supper|dinner)\b/i.test(event?.label ?? "");
+}
+
 // Use boolean data attributes for CSS state without leaking string values.
 function setBooleanDataAttribute(element, name, enabled) {
   if (!element) return;
@@ -577,6 +1024,11 @@ function setBooleanDataAttribute(element, name, enabled) {
 function renderMealTimer(now) {
   const mealState = getMealState(now, getMealsForDate(now));
   const mealTimer = document.getElementById("meal-timer");
+  if (chairModeActive) {
+    mealTimer?.setAttribute("aria-hidden", "true");
+    mealTimer?.classList.add("alert-card-hidden");
+    return;
+  }
   const mealName = document.getElementById("meal-name");
   const mealFill = document.getElementById("meal-bar-fill");
   const mealTarget = document.getElementById("meal-target-label");
@@ -1081,6 +1533,16 @@ function renderMediaArtLayer({ item, skin, svgId }) {
 // Fit cover art into the skewed cover polygon, including side shading.
 function renderMediaFrontArtLayer({ item, skin, svgId }) {
   const frontPlacement = polygonPlacement(skin.artPolygons.frontArt);
+  const frontArtScale = item.frontArtScale ?? 1;
+  const frontArtWidth = frontPlacement.width * frontArtScale;
+  const frontArtHeight = frontPlacement.height * frontArtScale;
+  const frontArtX =
+    frontPlacement.x - (frontArtWidth - frontPlacement.width) / 2;
+  const frontArtOffsetY = item.frontArtOffsetY ?? 0;
+  const frontArtY =
+    frontPlacement.y -
+    (frontArtHeight - frontPlacement.height) / 2 +
+    frontArtOffsetY;
   const baseColor = item.baseColor;
   const displayColor = baseColor ? enrichMediaColor(baseColor) : "";
 
@@ -1096,12 +1558,12 @@ function renderMediaFrontArtLayer({ item, skin, svgId }) {
       </defs>
       <image
         href="${escapeAttribute(item.masterArt)}"
-        x="${frontPlacement.x}"
-        y="${frontPlacement.y}"
-        width="${frontPlacement.width}"
-        height="${frontPlacement.height}"
+        x="${frontArtX}"
+        y="${frontArtY}"
+        width="${frontArtWidth}"
+        height="${frontArtHeight}"
         transform="rotate(${frontPlacement.angle} ${frontPlacement.centerX} ${frontPlacement.centerY})"
-        preserveAspectRatio="none"
+        preserveAspectRatio="${escapeAttribute(item.frontArtFit ?? "xMidYMid slice")}"
         clip-path="url(#${svgId}-frontArt)"
       />
       ${
@@ -1271,6 +1733,14 @@ function enrichMediaColor(hexColor) {
   return hslToHex(hsl.h, saturation, lightness);
 }
 
+function getDarkChairTileColor(hexColor) {
+  const rgb = parseHexColor(hexColor);
+  if (!rgb) return "#172433";
+
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  return hslToHex(hsl.h, Math.min(0.72, Math.max(0.36, hsl.s * 1.25)), 0.16);
+}
+
 // Parse six-digit hex colors used by JSON media metadata.
 function parseHexColor(hexColor) {
   const match = String(hexColor)
@@ -1437,6 +1907,8 @@ function renderScrollLabel() {
 
 // Render the modal-like object pickup view for a selected book or show.
 function renderTakeOffOverlay() {
+  if (chairModeActive) return renderChairTakeOffOverlay();
+
   const item = state.selectedItem;
   const isBook = state.selectedKind === "BOOKS";
   const actionWord = isBook ? "READ" : "WATCH";
@@ -1468,6 +1940,83 @@ function renderTakeOffOverlay() {
       </div>
     </div>
   `;
+}
+
+function renderChairTakeOffOverlay() {
+  const item = state.selectedItem;
+  const category = state.selectedKind;
+  if (category === "books" || category === "shows") {
+    return renderChairMediaTakeOffOverlay(item, category);
+  }
+
+  const image = getChairItemImage(item);
+  const summary = item.summary || item.message || "";
+
+  return `
+    <div class="chair-detail-layer${state.takeOffExiting ? " take-off-exiting" : ""}" role="dialog" aria-label="${escapeAttribute(item.title)}">
+      <div class="chair-detail-dim"></div>
+      ${renderChairAlert(getNow())}
+      <div class="chair-detail-card">
+        <div class="chair-detail-image">
+          <img src="${escapeAttribute(image)}" alt="" draggable="false" />
+        </div>
+        <div class="chair-detail-copy">
+          <h1>${escapeHtml(item.title)}</h1>
+          ${summary ? `<p>${renderChairSummary(summary)}</p>` : ""}
+        </div>
+        <div class="chair-detail-actions">
+          <button class="chair-primary-action" type="button" data-action="do-activity">DO THIS NOW</button>
+          <button class="chair-secondary-action" type="button" data-action="put-back">MAYBE LATER</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderChairMediaTakeOffOverlay(item, category) {
+  const isBook = category === "books";
+  const actionWord = isBook ? "READ NOW" : "WATCH NOW";
+  const action = isBook ? "read-book" : "watch-item";
+  const coverItem = {
+    ...item,
+    type: "dvd",
+    svgScope: `chair-take-off-${item.id}`,
+    x: 0,
+    y: 0,
+    height: 1183,
+    frontArtFit: "xMidYMid meet",
+    frontArtOffsetY: 14,
+    rotationDegrees: isBook ? -2 : 2,
+  };
+
+  return `
+    <div class="take-off-layer chair-media-detail-layer${state.takeOffExiting ? " take-off-exiting" : ""}" role="dialog" aria-label="${escapeAttribute(item.title)}">
+      <div class="shelf-dim chair-detail-dim"></div>
+      ${renderChairAlert(getNow())}
+      <div class="take-off-media-shell chair-media-detail-shell">
+        ${renderMediaFrontItem(coverItem, action)}
+        <div class="take-off-actions chair-media-detail-actions">
+          <button class="primary-action icon-action" type="button" data-action="${action}">
+            ${isBook ? renderBookIcon() : renderRemoteIcon()}
+            <span>${actionWord}</span>
+          </button>
+          <button class="secondary-action icon-action" type="button" data-action="put-back">
+            ${renderReturnIcon()}
+            <span>PUT BACK</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderChairSummary(summary) {
+  return escapeHtml(summary)
+    .replaceAll("\n", "<br>")
+    .replace(
+      /\b(tablet\s+beside your chair)\b/gi,
+      '<span class="chair-key-place">$1</span>',
+    );
 }
 
 // Inline icon used by the pickup overlay read action.
@@ -1575,6 +2124,33 @@ async function handleMainClick(event) {
   )
     return;
 
+  if (action === "chair-open-category") {
+    state.view = "CHAIR_PICKER";
+    state.chairCategory = target.dataset.category || "books";
+    state.chairDismissedAlertKey = "";
+    clearSelection();
+    render();
+    return;
+  }
+
+  if (action === "chair-back-main") {
+    resetChairToHome();
+    render();
+    return;
+  }
+
+  if (action === "chair-dismiss-alert") {
+    state.chairDismissedAlertKey = target.dataset.alertKey || "";
+    render();
+    return;
+  }
+
+  if (action === "chair-done-ok") {
+    returnChairToActivities();
+    render();
+    return;
+  }
+
   if (action === "expand-shelf") {
     await openShelf(target.dataset.shelf);
     return;
@@ -1621,6 +2197,20 @@ async function handleMainClick(event) {
     state.readerPage = 0;
     state.readerTurnDirection = "";
     clearSelection();
+    render();
+    return;
+  }
+
+  if (action === "do-activity" && state.selectedItem) {
+    clearSelection();
+    state.view = "CHAIR_DONE";
+    state.chairCategory = "activities";
+    state.chairDoneMessage = "Have fun!";
+    window.clearTimeout(state.chairDoneTimer);
+    state.chairDoneTimer = window.setTimeout(() => {
+      returnChairToActivities();
+      render();
+    }, CHAIR_ACTIVITY_DONE_MS);
     render();
     return;
   }
@@ -1704,7 +2294,8 @@ function handleReaderPointerMove(event) {
 
   event.preventDefault();
   const elapsed = Math.max(1, event.timeStamp - state.readerSwipeLastTime);
-  state.readerSwipeVelocity = (event.clientX - state.readerSwipeLastX) / elapsed;
+  state.readerSwipeVelocity =
+    (event.clientX - state.readerSwipeLastX) / elapsed;
   state.readerSwipeLastX = event.clientX;
   state.readerSwipeLastTime = event.timeStamp;
   dragReaderTrack(deltaX);
@@ -1909,6 +2500,11 @@ function finishReading() {
   state.readerItem = null;
   state.readerPage = 0;
   state.readerTurnDirection = "";
+  if (chairModeActive) {
+    resetChairToHome();
+    render();
+    return;
+  }
   state.view = "SHELF";
   state.activeShelf = "BOOKS";
   render();
@@ -2045,6 +2641,11 @@ async function checkIdleReturnHome() {
   state.idleReturnRunning = true;
   state.lastInteractionAt = Date.now();
   try {
+    if (chairModeActive) {
+      resetChairToHome();
+      render();
+      return;
+    }
     captureActiveShelfScroll();
     await transitionView("to-home", () => {
       resetIdleStateToHome();
@@ -2068,6 +2669,29 @@ function resetIdleStateToHome() {
 
   state.view = "HOME";
   state.activeShelf = null;
+}
+
+function resetChairToHome() {
+  window.clearTimeout(state.handoffTimer);
+  window.clearTimeout(state.chairDoneTimer);
+  state.handoffTimer = null;
+  state.chairDoneTimer = null;
+  state.handoffItem = null;
+  state.videoLaunchDebug = null;
+
+  clearSelection();
+  state.view = "CHAIR_HOME";
+  state.activeShelf = null;
+  state.chairCategory = null;
+  state.chairDoneMessage = "";
+}
+
+function returnChairToActivities() {
+  window.clearTimeout(state.chairDoneTimer);
+  state.chairDoneTimer = null;
+  state.view = "CHAIR_PICKER";
+  state.chairCategory = "activities";
+  state.chairDoneMessage = "";
 }
 
 // Snapshot the visible shelf before hiding it during an idle return.
@@ -2107,6 +2731,17 @@ function resetReaderState() {
 // Guard idle-return so it never interrupts active UI transitions.
 function shouldIdleReturnHome() {
   if (state.idleReturnRunning) return false;
+  if (chairModeActive) {
+    if (state.readerItem) return false;
+    if (Date.now() - state.lastInteractionAt < CHAIR_IDLE_HOME_MS) return false;
+    if (
+      state.view === "CHAIR_HOME" &&
+      !state.selectedItem &&
+      !state.handoffItem
+    )
+      return false;
+    return !state.viewTransitioning && !state.takeOffExiting;
+  }
   if (Date.now() - state.lastInteractionAt < IDLE_HOME_MS) return false;
   if (isHomeView()) return false;
   if (
@@ -2237,6 +2872,11 @@ function finishHandoff() {
   state.handoffTimer = null;
   state.handoffItem = null;
   state.videoLaunchDebug = null;
+  if (chairModeActive) {
+    resetChairToHome();
+    render();
+    return;
+  }
   state.view = "SHELF";
   state.activeShelf = "SHOWS";
   render();
@@ -2251,7 +2891,14 @@ function clearSelection() {
 
 // Resolve a selected item from the loaded production shelf arrays.
 function findItem(kind, id) {
-  const source = kind === "BOOKS" ? booksShelfMedia : showsShelfMedia;
+  let source = showsShelfMedia;
+  if (kind === "BOOKS" || kind === "books") {
+    source = booksShelfMedia;
+  } else if (kind === "shows") {
+    source = showsShelfMedia.filter((item) => item.active);
+  } else if (kind === "activities") {
+    source = getChairItems("activities");
+  }
   return source.find((item) => item.id === id) ?? null;
 }
 

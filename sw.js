@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260616-1";
+const CACHE_VERSION = "davids-shelves-20260616-2";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -11,6 +11,7 @@ const CORE_ASSETS = [
   "/css/reader.css",
   "/css/launcher.css",
   "/css/helper-door.css",
+  "/css/chair.css",
   "/js/main.js",
   "/js/launcher.js",
   "/js/helper-door.js",

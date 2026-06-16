@@ -31,13 +31,14 @@ export async function startDoorHelper() {
   document.documentElement.classList.add("helper-door-mode");
   document.getElementById("tv-stage")?.setAttribute("data-helper-door", "true");
 
-  const [config, dailyData, weeklyData, monthlyData, activities] = await Promise.all([
-    loadConfig(),
-    loadDailySchedule(),
-    loadWeeklySchedule(),
-    loadMonthlyEvents(),
-    loadHelperActivities(),
-  ]);
+  const [config, dailyData, weeklyData, monthlyData, activities] =
+    await Promise.all([
+      loadConfig(),
+      loadDailySchedule(),
+      loadWeeklySchedule(),
+      loadMonthlyEvents(),
+      loadHelperActivities(),
+    ]);
   helperData = { config, dailyData, weeklyData, monthlyData, activities };
 
   document.getElementById("app-main")?.addEventListener("click", advanceHelper);
@@ -97,7 +98,11 @@ function renderHelperCard() {
 function buildHelperDeck(now) {
   const context = buildRightNowContext(now);
   const cards = [buildRightNowCard(context)];
-  cards.push(...getAvailableActivities(context).map((activity) => buildActivityCard(activity, context)));
+  cards.push(
+    ...getAvailableActivities(context).map((activity) =>
+      buildActivityCard(activity, context),
+    ),
+  );
   cards.push(buildHelpCard(context));
   return cards;
 }
@@ -349,7 +354,7 @@ function buildHelpCard(context) {
     ariaLabel: "Help button instructions",
     dateLabel: "",
     html: `
-      ${renderContextBand("I NEED SOMETHING", context)}
+      ${renderContextBand("I NEED SOMETHING!", context)}
       <div class="helper-help-layout">
         <div class="helper-help-questions">
           <p>Too hot?</p>

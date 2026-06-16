@@ -31,7 +31,7 @@
       },
       {
         "id": "raylan-time-for-a-showdown",
-        "title": "Raylan: Time for a Showdown"
+        "title": "Raylan: Showdown"
       },
       {
         "id": "boyd-fire-in-the-hole",
@@ -45,7 +45,7 @@
     "items": [
       {
         "id": "reacher-arrested-diner",
-        "title": "Reacher: Arrested at the Diner"
+        "title": "Reacher: Arrested"
       },
       {
         "id": "reacher-brother-in-arms",
@@ -53,11 +53,11 @@
       },
       {
         "id": "reacher-eliminate-the-duncans",
-        "title": "Reacher: Eliminate the Duncans"
+        "title": "Reacher: Elimination"
       },
       {
         "id": "reacher-locate-the-team",
-        "title": "Reacher: Locate the Team"
+        "title": "Reacher: Team Lost"
       }
     ]
   },
@@ -71,11 +71,11 @@
       },
       {
         "id": "jesus-sets-him-free",
-        "title": "Jesus Sets Him Free"
+        "title": "Jesus vs Demons"
       },
       {
         "id": "elijah-and-the-fire",
-        "title": "Elijah and the Fire"
+        "title": "Fire from Heaven"
       }
     ]
   },
@@ -85,15 +85,15 @@
     "items": [
       {
         "id": "psalm-23",
-        "title": "Psalm 23"
+        "title": "God My Shepherd"
       },
       {
         "id": "an-old-timer-saves-the-day",
-        "title": "An Old Timer Saves the Day"
+        "title": "Old Timer"
       },
       {
         "id": "help-comes-at-the-right-time",
-        "title": "Help Comes at the Right Time"
+        "title": "Just In Time"
       }
     ]
   }

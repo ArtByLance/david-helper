@@ -61,13 +61,13 @@
           "id": "hurt_locker",
           "title": "Hurt Locker",
           "command": "hurtlockerbutton",
-          "active": false
+          "active": true
         },
         {
           "id": "nobody",
           "title": "Nobody",
           "command": "nobodybutton",
-          "active": false
+          "active": true
         },
         {
           "id": "peppermint",
@@ -79,13 +79,13 @@
           "id": "wind_river",
           "title": "Wind River",
           "command": "windriverbutton",
-          "active": false
+          "active": true
         },
         {
           "id": "fury",
           "title": "Fury",
           "command": "furybutton",
-          "active": false
+          "active": true
         },
         {
           "id": "sisu",
@@ -97,25 +97,25 @@
           "id": "sisu_2",
           "title": "Sisu #2",
           "command": "sisu2button",
-          "active": false
+          "active": true
         },
         {
           "id": "the_outpost",
           "title": "The Outpost",
           "command": "outpostbutton",
-          "active": false
+          "active": true
         },
         {
           "id": "hyena_road",
           "title": "Hyena Road",
           "command": "hyenaroadbutton",
-          "active": false
+          "active": true
         },
         {
           "id": "outlaw_josey_wales",
           "title": "Outlaw Josey Wales",
           "command": "outlawjoseywalesbutton",
-          "active": false
+          "active": true
         }
       ]
     },
@@ -147,7 +147,7 @@
           "id": "secretariat",
           "title": "Secretariat",
           "command": "secretariatbutton",
-          "active": false
+          "active": true
         }
       ]
     }

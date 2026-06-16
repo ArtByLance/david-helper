@@ -81,7 +81,7 @@
   },
   {
     "id": "snack-here",
-    "title": "HAVE A SNACK HERE",
+    "title": "HAVE A SNACK FROM YOUR KITCHEN",
     "message": "If you’re hungry,\nthere are plenty of snacks\nin your kitchen.",
     "image": "./assets/objects/snacks.jpg",
     "priority": 70,
@@ -117,7 +117,7 @@
   {
     "id": "front-desk",
     "title": "TALK TO THE LADY \nAT THE FRONT DESK",
-    "message": "If you have a question,\nor just want to chat,\nyou can talk to the lady\nat the front desk.",
+    "message": "If you have a question,\nor just want to chat,\nthere's usually a lady\nat the front desk.",
     "image": "./assets/objects/things-to-do-front-desk.jpg",
     "priority": 30,
     "availability": {
