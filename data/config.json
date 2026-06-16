@@ -5,6 +5,34 @@
   "dayEndHour": 21,
   "defaultHoldMinutes": 15,
   "topPrompt": "FOR TV SAY  “ <b>COMPUTER HOME</b> ”",
+  "helper": {
+    "quietHours": {
+      "start": "21:00",
+      "end": "06:00"
+    },
+    "movementHours": {
+      "start": "06:00",
+      "end": "20:00"
+    },
+    "porchHours": {
+      "start": "08:00",
+      "end": "19:00"
+    },
+    "snackHours": {
+      "start": "09:00",
+      "end": "21:00"
+    },
+    "helpButton": {
+      "image": "./assets/objects/help-button.jpeg",
+      "instruction": "Press the button until the light comes on.",
+      "arrival": "Someone will come see you\nin a few minutes."
+    },
+    "snacks": {
+      "fridge": ["Pudding", "Muffins", "Cokes"],
+      "shelf": ["Chips", "Cookies", "Crackers"],
+      "freezer": ["Ice cream bars"]
+    }
+  },
   "kiosk": {
     "commsMode": "LIVE",
     "vm": {

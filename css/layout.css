@@ -1253,10 +1253,6 @@ button:disabled {
   isolation: isolate;
 }
 
-#meal-timer[data-urgent="true"] {
-  --meal-status-color: #ff1f18;
-}
-
 #meal-timer::before {
   content: "";
   position: absolute;
@@ -1286,16 +1282,6 @@ button:disabled {
   mix-blend-mode: screen;
   pointer-events: none;
   animation: urgentPinGlow 1.4s ease-in-out infinite;
-}
-
-#meal-timer[data-urgent="true"]::after {
-  background: radial-gradient(
-    circle,
-    rgba(255, 50, 38, 1) 0%,
-    rgba(231, 12, 0, 0.82) 42%,
-    rgba(231, 12, 0, 0) 76%
-  );
-  animation: urgentPinRedFlash 0.8s ease-in-out infinite;
 }
 
 #meal-timer.alert-card-exiting {
@@ -1390,7 +1376,7 @@ button:disabled {
   display: none;
 }
 
-#meal-timer[data-eating="true"] #meal-bar-track {
+#meal-timer[data-first-serving-hour="true"] #meal-bar-track {
   display: none;
 }
 
@@ -1508,20 +1494,6 @@ button:disabled {
     opacity: 0.92;
     transform: scale(1.28);
     filter: blur(2px);
-  }
-}
-
-@keyframes urgentPinRedFlash {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(0.88);
-    filter: blur(1px) drop-shadow(0 0 2px rgba(255, 0, 0, 0.55));
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.42);
-    filter: blur(2px) drop-shadow(0 0 10px rgba(255, 0, 0, 0.92));
   }
 }
 

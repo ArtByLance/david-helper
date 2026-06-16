@@ -1,0 +1,51 @@
+{
+  "sunday": {
+    "add": [
+      {
+        "time": "10:15",
+        "label": "Church",
+        "location": "Chapel",
+        "todayCard": true,
+        "help1": "CHURCH STARTS AT 10:15.",
+        "help2": "PRESS YOUR WATCH BUTTON IF YOU WANT TO GO."
+      }
+    ]
+  },
+  "monday": {
+    "add": []
+  },
+  "tuesday": {
+    "add": []
+  },
+  "wednesday": {
+    "add": []
+  },
+  "thursday": {
+    "add": [
+      {
+        "time": "10:30",
+        "label": "Bible Study",
+        "location": "Gathering Room",
+        "todayCard": true,
+        "help1": "BIBLE STUDY STARTS AT 10:30.",
+        "help2": "BIBLE STUDY IS IN THE GATHERING ROOM."
+      }
+    ]
+  },
+  "friday": {
+    "add": [
+      {
+        "time": "00:00",
+        "label": "Laundry & Cleaning",
+        "location": "Your room",
+        "allDay": true,
+        "todayCard": true,
+        "displayTime": "Today",
+        "note": "Laundry Day & Room Cleaning Day are today."
+      }
+    ]
+  },
+  "saturday": {
+    "add": []
+  }
+}

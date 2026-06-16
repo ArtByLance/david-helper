@@ -1,0 +1,174 @@
+:root {
+  --launcher-paper: #fff8e8;
+  --launcher-ink: #241d17;
+  --launcher-blue: #275f88;
+  --launcher-green: #39754a;
+}
+
+html.launcher-mode body {
+  background: #17344c;
+}
+
+html.launcher-mode #meal-timer {
+  display: none;
+}
+
+#tv-stage[data-launcher="true"] {
+  background: linear-gradient(180deg, #234b67, #132a3d);
+}
+
+#tv-stage[data-launcher="true"]::before {
+  content: none;
+}
+
+.launcher-screen {
+  padding: 54px;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.16), transparent 30%),
+    linear-gradient(180deg, #2e6389, #17344c);
+  color: var(--launcher-ink);
+}
+
+.launcher-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 48px;
+  border-radius: 34px;
+  background: var(--launcher-paper);
+  box-shadow: 0 18px 36px rgba(5, 18, 30, 0.34);
+}
+
+.launcher-kicker {
+  margin: 0;
+  color: #6b5b4b;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.launcher-card h1 {
+  margin: 0;
+  color: var(--launcher-blue);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 43px;
+  line-height: 1.16;
+  font-weight: 900;
+  letter-spacing: -0.6px;
+}
+
+.launcher-options {
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 30px;
+}
+
+.launcher-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 12px 28px;
+  align-items: center;
+  overflow: hidden;
+  padding: 30px;
+  border: 5px solid rgba(39, 95, 136, 0.18);
+  border-radius: 28px;
+  background: #fff;
+  color: var(--launcher-ink);
+  text-align: left;
+  box-shadow: 0 8px 18px rgba(38, 56, 68, 0.12);
+  touch-action: manipulation;
+}
+
+.launcher-option-door {
+  border-color: rgba(39, 95, 136, 0.32);
+}
+
+.launcher-option-chair {
+  border-color: rgba(57, 117, 74, 0.32);
+}
+
+.launcher-option strong {
+  color: var(--launcher-blue);
+  font-size: 62px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+}
+
+.launcher-option-chair strong {
+  color: var(--launcher-green);
+}
+
+.launcher-option > span:not(.launcher-icon) {
+  color: #4b4239;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  line-height: 1.18;
+  font-weight: 700;
+}
+
+.launcher-icon {
+  grid-row: 1 / 3;
+  width: 150px;
+  height: 150px;
+  display: grid;
+  place-items: center;
+  border-radius: 30px;
+  background: rgba(39, 95, 136, 0.1);
+}
+
+.launcher-icon::before {
+  display: block;
+  font-size: 86px;
+  line-height: 1;
+}
+
+.launcher-icon-door::before {
+  content: "DOOR";
+  color: var(--launcher-blue);
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.launcher-icon-chair::before {
+  content: "CHAIR";
+  color: var(--launcher-green);
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.launcher-hold-progress {
+  position: absolute;
+  inset: auto 0 0;
+  height: 12px;
+  background: var(--launcher-green);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.launcher-option.is-holding .launcher-hold-progress {
+  animation: launcherHold 1000ms linear forwards;
+}
+
+.launcher-instruction {
+  margin: 0;
+  color: #6b5b4b;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 1.6px;
+  text-align: center;
+}
+
+@keyframes launcherHold {
+  to {
+    transform: scaleX(1);
+  }
+}

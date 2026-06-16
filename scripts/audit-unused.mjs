@@ -15,7 +15,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
-const trackedFiles = gitTrackedFiles();
+const trackedFiles = gitTrackedFiles().filter((file) =>
+  fs.existsSync(path.join(root, file)),
+);
 const trackedSet = new Set(trackedFiles);
 const used = new Map();
 const archiveOrLab = new Set();
@@ -39,7 +41,11 @@ const CORE_ENTRYPOINTS = [
   "css/text.css",
   "css/reader.css",
   "js/main.js",
-  "js/app-data.js",
+  "js/data.js",
+  "js/meal-state.js",
+  "data/schedule/01-daily.json",
+  "data/schedule/02-weekly.json",
+  "data/schedule/03-monthly.json",
   "js/dementia-clock.js",
   "js/layout.js",
   "js/layout/fit-stage.js",
@@ -64,7 +70,6 @@ const ARCHIVE_OR_LAB_FILES = new Set([
   "media-object-lab.html",
   "reader-lab.html",
   "reader-test.html",
-  "js/data.js",
   "js/encouragement-note.js",
   "js/exit-prompt.js",
   "js/render.js",

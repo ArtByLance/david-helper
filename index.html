@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#2a1710" />
+    <base href="/" />
     <title>David's Things</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <script>
@@ -49,9 +50,11 @@
         http://localhost:8000/?debugNow=2026-03-04T10:20:00
     -->
 
-    <link rel="stylesheet" href="./css/layout.css?v=assets-20260605-1" />
+    <link rel="stylesheet" href="./css/layout.css?v=assets-20260614-8" />
     <link rel="stylesheet" href="./css/text.css?v=assets-20260605-1" />
     <link rel="stylesheet" href="./css/reader.css?v=assets-20260612-2" />
+    <link rel="stylesheet" href="./css/launcher.css?v=assets-20260615-3" />
+    <link rel="stylesheet" href="./css/helper-door.css?v=assets-20260616-1" />
     <script>
       window.KIOSK = window.KIOSK || {};
       window.KIOSK.commsMode = "OFFSITE";
@@ -66,10 +69,10 @@
         <main id="app-main" aria-live="polite"></main>
 
         <aside id="meal-timer" aria-label="Next meal">
-          <div id="meal-message">Lunch is next.</div>
+          <div id="meal-message">Loading today’s meals.</div>
           <div id="meal-progress-group">
-            <div id="meal-name">LUNCH</div>
-            <div id="meal-target-label">12 pm</div>
+            <div id="meal-name"></div>
+            <div id="meal-target-label"></div>
             <div id="meal-bar-track">
               <div id="meal-bar-fill"></div>
               <div id="meal-now-marker" aria-hidden="true">
@@ -82,7 +85,7 @@
       </div>
     </div>
 
-    <script type="module" src="./js/main.js?v=assets-20260612-2"></script>
+    <script type="module" src="./js/main.js?v=assets-20260616-1"></script>
     <script>
       if (
         "serviceWorker" in navigator &&

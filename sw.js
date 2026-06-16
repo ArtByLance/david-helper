@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260612-2";
+const CACHE_VERSION = "davids-shelves-20260616-1";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -9,10 +9,15 @@ const CORE_ASSETS = [
   "/css/layout.css",
   "/css/text.css",
   "/css/reader.css",
+  "/css/launcher.css",
+  "/css/helper-door.css",
   "/js/main.js",
+  "/js/launcher.js",
+  "/js/helper-door.js",
+  "/js/meal-state.js",
+  "/js/data.js",
   "/js/playback.js",
   "/js/reader.js",
-  "/js/app-data.js",
   "/js/dementia-clock.js",
   "/js/layout.js",
   "/js/time.js",
@@ -40,9 +45,10 @@ const CORE_ASSETS = [
   "/assets/fonts/DSEG7ClassicMini-Bold.ttf",
   "/assets/fonts/Oswald-VariableFont_wght.ttf",
   "/data/config.json",
-  "/data/daily.json",
-  "/data/monthly.json",
-  "/data/weekly.json",
+  "/data/schedule/01-daily.json",
+  "/data/schedule/02-weekly.json",
+  "/data/schedule/03-monthly.json",
+  "/data/helper/activities.json",
   "/data/shows.json",
   "/data/reader/readerIndex.json",
 ];
@@ -99,6 +105,24 @@ async function warmMediaCache(cache) {
   await Promise.allSettled([
     warmShowCovers(cache),
     warmReaderBooks(cache),
+    addExisting(cache, ["/assets/objects/help-button.jpeg"]),
+    addExisting(cache, ["/assets/objects/stop-sign.png"]),
+    addExisting(cache, [
+      "/assets/objects/snacks.jpg",
+      "/assets/objects/tap-for-more.png",
+      "/assets/objects/things-to-do-books.jpg",
+      "/assets/objects/things-to-do-button.jpg",
+      "/assets/objects/things-to-do-chair.jpg",
+      "/assets/objects/things-to-do-bed.jpg",
+      "/assets/objects/things-to-do-coffee.jpg",
+      "/assets/objects/things-to-do-courtyard.jpg",
+      "/assets/objects/things-to-do-dining.jpg",
+      "/assets/objects/things-to-do-front-desk.jpg",
+      "/assets/objects/things-to-do-gym.jpg",
+      "/assets/objects/things-to-do-porch.jpg",
+      "/assets/objects/things-to-do-tv.jpg",
+      "/assets/objects/things-to-do-walk.jpg",
+    ]),
   ]);
 }
 

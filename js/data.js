@@ -7,9 +7,9 @@
  * Data sources
  * ------------
  * - /data/config.json   -> app-wide settings
- * - /data/daily.json    -> fixed every-day anchors
- * - /data/weekly.json   -> recurring weekly overrides by weekday
- * - /data/monthly.json  -> date-specific overrides
+ * - /data/schedule/01-daily.json   -> fixed every-day anchors
+ * - /data/schedule/02-weekly.json  -> recurring weekly overrides by weekday
+ * - /data/schedule/03-monthly.json -> date-specific overrides
  *
  * Merge strategy
  * --------------
@@ -39,15 +39,19 @@ export async function loadConfig() {
 }
 
 export async function loadDailySchedule() {
-  return loadJson('./data/daily.json');
+  return loadJson('./data/schedule/01-daily.json');
 }
 
 export async function loadWeeklySchedule() {
-  return loadJson('./data/weekly.json');
+  return loadJson('./data/schedule/02-weekly.json');
 }
 
 export async function loadMonthlyEvents() {
-  return loadJson('./data/monthly.json');
+  return loadJson('./data/schedule/03-monthly.json');
+}
+
+export async function loadHelperActivities() {
+  return loadJson('./data/helper/activities.json');
 }
 
 /**
@@ -71,7 +75,13 @@ export function buildTodaySchedule(date, dailyData, weeklyData, monthlyData, con
   events = applyOverrides(events, weeklyPlan, config, "weekly");
   events = applyOverrides(events, monthlyPlan, config, "monthly");
 
-  return { dateKey, weekdayKey, events: sortEvents(events) };
+  const specials = events.filter((event) => event.todayCard);
+  return {
+    dateKey,
+    weekdayKey,
+    events: sortEvents(events.filter((event) => !event.allDay)),
+    specials: sortEvents(specials),
+  };
 }
 
 /**
@@ -84,11 +94,32 @@ export function buildTodaySchedule(date, dailyData, weeklyData, monthlyData, con
  */
 function normalizeEvent(event, config, source = 'daily') {
   const label = typeof event.label === 'string' ? event.label : '';
+  const meal =
+    typeof event.meal === 'boolean'
+      ? event.meal
+      : /\b(breakfast|lunch|luncheon|supper|dinner)\b/i.test(label);
+  const timeMinutes = parseTimeToMinutes(event.time);
+  const servingEnd =
+    typeof event.servingEnd === 'string'
+      ? event.servingEnd
+      : meal
+        ? minutesToTime(timeMinutes + 120)
+        : '';
   return {
+    id: typeof event.id === 'string' ? event.id : slugifyLabel(label),
     time: event.time,
     label,
+    meal,
+    servingEnd,
+    servingEndMinutes: servingEnd ? parseTimeToMinutes(servingEnd) : null,
+    allDay: Boolean(event.allDay),
+    todayCard: Boolean(event.todayCard),
+    displayTime: typeof event.displayTime === 'string' ? event.displayTime : '',
+    note: typeof event.note === 'string' ? event.note : '',
     help1: typeof event.help1 === 'string' ? event.help1 : '',
     help2: typeof event.help2 === 'string' ? event.help2 : '',
+    location: typeof event.location === 'string' ? event.location : '',
+    direction: typeof event.direction === 'string' ? event.direction : '',
     source,
     highlight:
       typeof event.highlight === 'boolean'
@@ -98,8 +129,26 @@ function normalizeEvent(event, config, source = 'daily') {
       typeof event.holdMinutes === 'number'
         ? event.holdMinutes
         : config.defaultHoldMinutes,
-    timeMinutes: parseTimeToMinutes(event.time)
+    timeMinutes
   };
+}
+
+function minutesToTime(minutes) {
+  const normalized = ((minutes % (24 * 60)) + 24 * 60) % (24 * 60);
+  const hour = String(Math.floor(normalized / 60)).padStart(2, '0');
+  const minute = String(normalized % 60).padStart(2, '0');
+  return `${hour}:${minute}`;
+}
+
+function slugifyLabel(label) {
+  return String(label)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function getMealEvents(events) {
+  return (events ?? []).filter((event) => event.meal);
 }
 
 /**

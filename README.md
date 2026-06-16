@@ -24,11 +24,26 @@ Then open:
 http://localhost:8000
 ```
 
+The production door-helper route is:
+
+```text
+https://davidsshelves.netlify.app/helper/door
+```
+
+Python's basic local server does not provide Netlify's route fallback. Use this
+equivalent local preview URL:
+
+```text
+http://localhost:8000/?helper=door
+```
+
 ### Test a fake point in time
 
 ```text
 http://localhost:8000/?debugNow=2026-03-04T10:20:00
 ```
+
+Combine `helper=door` and `debugNow` to test helper messages at a specific time.
 
 ## Netlify Deployment
 
@@ -76,7 +91,7 @@ https://davidsshelves.netlify.app/?perf=full
 
 - `index.html` provides the kiosk-safe portrait stage and compact meal timer.
 - `js/main.js` owns app state, shelf expansion, reader flow, watch handoff, and meal timing.
-- `js/app-data.js` contains sample meals, today-only notes, books, and shows.
+- `data/schedule/01-daily.json`, `02-weekly.json`, and `03-monthly.json` are the only schedule sources for meals, helper events, and Today cards.
 - `js/playback.js` contains the playback abstraction and current VoiceMonkey adapter.
 - `css/layout.css` and `css/text.css` define the physical shelf, paper, and card styling.
 - `data/shows.json` owns the show shelf categories, art ids, and VoiceMonkey commands.
@@ -84,11 +99,12 @@ https://davidsshelves.netlify.app/?perf=full
 
 ## Meal Timer
 
-The persistent meal timer shows only the next meal:
+The persistent meal timer shows the next event marked as a meal in the merged
+daily, weekly, and monthly JSON schedule.
 
-- Breakfast: 7:00 AM
-- Lunch: 12:00 PM
-- Supper: 5:00 PM
+Meals use two-hour serving windows. During the first hour the timer says the
+current meal is being served and names the following meal. During the second
+hour it returns to the normal next-meal countdown.
 
 After supper it shows `REST WHEN READY`.
 

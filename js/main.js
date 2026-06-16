@@ -18,7 +18,14 @@
  * Keep this file conservative. Most visible behavior is art-aligned and intended
  * for an always-on family/kiosk display, so small layout changes can be obvious.
  */
-import { MEALS, TODAY_SPECIALS } from "./app-data.js";
+import {
+  buildTodaySchedule,
+  getMealEvents,
+  loadConfig,
+  loadDailySchedule,
+  loadMonthlyEvents,
+  loadWeeklySchedule,
+} from "./data.js";
 import {
   refreshDementiaClocks,
   renderDementiaClock,
@@ -26,19 +33,20 @@ import {
 import { fitStageToViewport } from "./layout.js";
 import { launchVideoItem } from "./playback.js";
 import { getReaderPageCount, renderReaderView } from "./reader.js";
+import { getMealState } from "./meal-state.js";
 import {
   formatClock,
   formatDateLabel,
   formatDayLabel,
   formatWeekdayKey,
   parseTimeToMinutes,
-  pluralize,
 } from "./utils.js";
 import { getNow } from "./time.js";
+import { isDoorHelperRoute, startDoorHelper } from "./helper-door.js";
+import { isLauncherRoute, startLauncher } from "./launcher.js";
 
 const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
-const MEAL_ACTIVE_MINUTES = 30;
 const ALERT_TRANSITION_MS = 260;
 const ALERT_HOME_ENTRY_DELAY_MS = 750;
 const VIEW_TRANSITION_OUT_MS = 120;
@@ -75,6 +83,7 @@ const SHELF_IMAGE_BY_KIND = {
 };
 const TODAY_EXTENSION_PANELS_WITH_SPECIAL = 6;
 const TODAY_EXTENSION_PANELS_WITHOUT_SPECIAL = 5;
+let scheduleSources = null;
 const dvdFrontSkin = {
   overlay: "./assets/objects/dvd-front.png",
   viewBox: { width: 900, height: 1350 },
@@ -286,14 +295,52 @@ async function loadKioskConfig() {
 
 // Start the app once DOM is ready: route, size, bind, load JSON, then render.
 async function bootstrap() {
-  applyInitialShelfRoute();
   fitStageToViewport();
+  if (isDoorHelperRoute()) {
+    await startDoorHelper();
+    return;
+  }
+  if (isLauncherRoute()) {
+    startLauncher();
+    return;
+  }
+
+  applyInitialShelfRoute();
   bindGlobalControls();
-  await loadKioskConfig();
-  await Promise.all([loadBooksShelfMedia(), loadShowsShelfMedia()]);
+  await Promise.all([
+    loadKioskConfig(),
+    loadScheduleSources(),
+    loadBooksShelfMedia(),
+    loadShowsShelfMedia(),
+  ]);
   render();
   window.setInterval(renderMealTimerOnly, 20 * 1000);
   window.setInterval(checkIdleReturnHome, IDLE_CHECK_MS);
+}
+
+async function loadScheduleSources() {
+  const [config, daily, weekly, monthly] = await Promise.all([
+    loadConfig(),
+    loadDailySchedule(),
+    loadWeeklySchedule(),
+    loadMonthlyEvents(),
+  ]);
+  scheduleSources = { config, daily, weekly, monthly };
+}
+
+function getScheduleForDate(date) {
+  if (!scheduleSources) return { events: [], specials: [] };
+  return buildTodaySchedule(
+    date,
+    scheduleSources.daily,
+    scheduleSources.weekly,
+    scheduleSources.monthly,
+    scheduleSources.config,
+  );
+}
+
+function getMealsForDate(date) {
+  return getMealEvents(getScheduleForDate(date).events);
 }
 
 // Attach global delegated handlers. The rendered HTML is frequently replaced.
@@ -381,7 +428,7 @@ function applyInitialShelfRoute() {
   if (shelf === "TODAY") state.todayScrollLeft = SHELF_PANEL_WIDTH;
   if (shelf === "SHOWS") state.showsScrollLeft = SHELF_PANEL_WIDTH;
   if (shelf === "BOOKS") state.booksScrollLeft = SHELF_PANEL_WIDTH;
-  window.history.replaceState({}, "", "./");
+  window.history.replaceState({}, "", "/chair");
 }
 
 // Keep persistent layer containers mounted, swapping only each layer's contents.
@@ -528,7 +575,7 @@ function setBooleanDataAttribute(element, name, enabled) {
 
 // Owns the supper/lunch/breakfast alert state and its dismissal window.
 function renderMealTimer(now) {
-  const mealState = getMealState(now);
+  const mealState = getMealState(now, getMealsForDate(now));
   const mealTimer = document.getElementById("meal-timer");
   const mealName = document.getElementById("meal-name");
   const mealFill = document.getElementById("meal-bar-fill");
@@ -542,8 +589,10 @@ function renderMealTimer(now) {
     mealState.hiddenForDay;
 
   mealTimer?.setAttribute("data-rest", String(mealState.resting));
-  mealTimer?.setAttribute("data-eating", String(mealState.eating));
-  mealTimer?.setAttribute("data-urgent", String(mealState.urgent));
+  mealTimer?.setAttribute(
+    "data-first-serving-hour",
+    String(mealState.firstServingHour),
+  );
   mealTimer?.setAttribute("aria-hidden", String(shouldHideCard));
   mealTimer?.classList.toggle("alert-card-hidden", shouldHideCard);
   mealTimer?.style.setProperty(
@@ -553,7 +602,12 @@ function renderMealTimer(now) {
   if (mealName) mealName.textContent = mealState.label;
   if (mealFill) mealFill.style.width = `${mealState.fillPercent}%`;
   if (mealTarget) mealTarget.textContent = mealState.targetLabel;
-  if (mealMarker) mealMarker.toggleAttribute("hidden", mealState.resting);
+  if (mealMarker) {
+    mealMarker.toggleAttribute(
+      "hidden",
+      mealState.resting || mealState.firstServingHour,
+    );
+  }
   if (mealMessage) mealMessage.textContent = mealState.message;
 }
 
@@ -581,9 +635,9 @@ function renderHome(now) {
 
 // Render clickable Today objects that sit on the home shelf photo.
 function renderHomeTodayObjects(now) {
-  const weekdayKey = formatWeekdayKey(now);
-  const special = TODAY_SPECIALS[weekdayKey];
-  const mealState = getMealState(now);
+  const special = getTodaySpecial(now);
+  const meals = getMealsForDate(now);
+  const mealState = getMealState(now, meals);
 
   return `
     <div class="home-today-object-layer" data-has-special="${Boolean(special)}" aria-hidden="true">
@@ -594,12 +648,12 @@ function renderHomeTodayObjects(now) {
         </div>
       </div>
       ${special ? renderHomeTodaySpecialCard(special) : ""}
-      ${renderHomeTodayMealCard(mealState)}
+      ${renderHomeTodayMealCard(mealState, meals)}
     </div>
   `;
 }
 
-// Render the home-shelf special note card when TODAY_SPECIALS has an entry.
+// Render the home-shelf special note card from the merged JSON schedule.
 function renderHomeTodaySpecialCard(special) {
   return `
     <div class="home-today-special-card">
@@ -614,14 +668,14 @@ function renderHomeTodaySpecialCard(special) {
 }
 
 // Render the compact home meal card; the active meal alert is separate.
-function renderHomeTodayMealCard(mealState) {
+function renderHomeTodayMealCard(mealState, meals) {
   return `
     <div class="home-today-menu-card">
       <img src="${TODAY_MENU_IMAGE}" alt="" draggable="false" />
       <div class="home-today-menu-content">
         <h2>Meals Today</h2>
         <div class="home-today-meal-list">
-          ${MEALS.map((meal) => renderHomeTodayMealLine(meal, mealState.nextMealId)).join("")}
+          ${meals.map((meal) => renderHomeTodayMealLine(meal, mealState.nextMealId)).join("")}
         </div>
       </div>
     </div>
@@ -729,9 +783,9 @@ function renderTodayImageShell(now) {
 
 // Position Today shelf objects. Coordinates are tuned to the shelf photograph.
 function renderTodayObjects(now) {
-  const weekdayKey = formatWeekdayKey(now);
-  const special = TODAY_SPECIALS[weekdayKey];
-  const mealState = getMealState(now);
+  const special = getTodaySpecial(now);
+  const meals = getMealsForDate(now);
+  const mealState = getMealState(now, meals);
 
   return `
     <div class="today-object-layer" data-has-special="${Boolean(special)}">
@@ -740,7 +794,7 @@ function renderTodayObjects(now) {
         <div class="today-card-content">
           <h2>Meals Today</h2>
           <div class="today-meal-list">
-            ${MEALS.map((meal) => renderTodayMealLine(meal, mealState.nextMealId)).join("")}
+            ${meals.map((meal) => renderTodayMealLine(meal, mealState.nextMealId)).join("")}
           </div>
         </div>
       </section>
@@ -2101,7 +2155,7 @@ async function animateAlertExitToShelf() {
   const mealTimer = document.getElementById("meal-timer");
 
   try {
-    if (getMealState(getNow()).hiddenForDay) {
+    if (getMealState(getNow(), getMealsForDate(getNow())).hiddenForDay) {
       state.alertHidden = true;
       mealTimer?.classList.add("alert-card-hidden");
       return;
@@ -2131,7 +2185,7 @@ async function animateAlertEnterHome() {
     mealTimer?.classList.add("alert-card-hidden");
     await wait(ALERT_HOME_ENTRY_DELAY_MS);
 
-    if (getMealState(getNow()).hiddenForDay) {
+    if (getMealState(getNow(), getMealsForDate(getNow())).hiddenForDay) {
       state.alertHidden = false;
       mealTimer?.classList.add("alert-card-hidden");
       return;
@@ -2201,94 +2255,6 @@ function findItem(kind, id) {
   return source.find((item) => item.id === id) ?? null;
 }
 
-// Calculate whether the meal alert should be hidden, counting down, or active.
-function getMealState(now) {
-  const nowMinutes =
-    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
-  const mealsWithMinutes = MEALS.map((meal) => ({
-    ...meal,
-    minutes: parseTimeToMinutes(meal.time),
-  }));
-  const currentMeal = [...mealsWithMinutes]
-    .reverse()
-    .find(
-      (meal) =>
-        nowMinutes >= meal.minutes &&
-        nowMinutes < meal.minutes + MEAL_ACTIVE_MINUTES,
-    );
-
-  if (currentMeal) {
-    return {
-      resting: false,
-      hiddenForDay: false,
-      eating: true,
-      urgent: nowMinutes <= currentMeal.minutes + 10,
-      nextMealId: currentMeal.id,
-      label: currentMeal.label,
-      fillPercent: 0,
-      nowPercent: 100,
-      timeLeft: "",
-      targetLabel: formatShelfMealTime(currentMeal.time),
-      message: "It's time to eat.",
-    };
-  }
-
-  const nextMeal = mealsWithMinutes.find((meal) => nowMinutes < meal.minutes);
-
-  if (!nextMeal) {
-    return {
-      resting: true,
-      hiddenForDay: true,
-      eating: false,
-      urgent: false,
-      nextMealId: null,
-      label: "REST WHEN READY",
-      fillPercent: 100,
-      nowPercent: 100,
-      timeLeft: "",
-      targetLabel: "REST",
-      message: "Rest whenever you feel ready.",
-    };
-  }
-
-  const previousMeal = [...mealsWithMinutes]
-    .reverse()
-    .find((meal) => meal.minutes <= nowMinutes);
-  const start = previousMeal?.minutes ?? 0;
-  const span = Math.max(1, nextMeal.minutes - start);
-  const elapsed = Math.max(0, nowMinutes - start);
-  const remaining = Math.max(0, nextMeal.minutes - nowMinutes);
-  const fillPercent = clamp((remaining / span) * 100, 0, 100);
-  const nowPercent = clamp((elapsed / span) * 100, 0, 100);
-  const timeLeft = formatMealTimeLeft(remaining);
-
-  return {
-    resting: false,
-    hiddenForDay: false,
-    eating: false,
-    urgent: remaining <= 10,
-    nextMealId: nextMeal.id,
-    label: nextMeal.label,
-    fillPercent,
-    nowPercent,
-    timeLeft,
-    targetLabel: formatShelfMealTime(nextMeal.time),
-    message: `We eat in\n${timeLeft}.`,
-  };
-}
-
-// Format meal countdown copy in the large alert card.
-function formatMealTimeLeft(minutesRemaining) {
-  const rounded = Math.max(1, Math.ceil(minutesRemaining));
-  if (rounded < 60) {
-    return `${rounded} ${pluralize("minute", rounded)}`;
-  }
-  const hours = Math.floor(rounded / 60);
-  const minutes = rounded % 60;
-  if (!minutes) return `${hours} ${pluralize("hour", hours)}`;
-  return `${hours} ${pluralize("hour", hours)}, ${minutes} ${pluralize("minute", minutes)}`;
-}
-
 // Preserve source order while grouping shelf items by category.
 function groupByCategory(items) {
   const groups = new Map();
@@ -2348,9 +2314,16 @@ function getTodayMaxScrollLeft(now = getNow()) {
   return SHELF_PANEL_WIDTH * getTodayExtensionPanelCount(now);
 }
 
-// Lookup the special Today card by current weekday.
+// Lookup the first Today-card event from the merged JSON schedule.
 function getTodaySpecial(now) {
-  return TODAY_SPECIALS[formatWeekdayKey(now)];
+  const special = getScheduleForDate(now).specials[0];
+  if (!special) return null;
+  return {
+    title: special.label,
+    time: special.displayTime || formatShelfMealTime(special.time),
+    place: special.location,
+    note: special.note,
+  };
 }
 
 // Clamp numeric UI state before writing it back into scroll/page positions.
