@@ -373,6 +373,7 @@ html.helper-door-mode #meal-timer {
   font-weight: 900;
   letter-spacing: 1px;
   text-align: center;
+  white-space: pre-line;
   -webkit-text-stroke: 0.35px currentColor;
 }
 
