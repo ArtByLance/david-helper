@@ -14,7 +14,7 @@
     "title": "RELAX IN YOUR CHAIR",
     "message": "You can kick back and rest\nwith your feet up.",
     "image": "./assets/objects/things-to-do-chair.jpg",
-    "priority": 110,
+    "priority": 121,
     "availability": {
       "timeRanges": [{ "start": "00:00", "end": "24:00" }]
     }

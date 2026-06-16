@@ -810,7 +810,6 @@ function getChairItems(category, now = getNow()) {
 function getChairActivities(now) {
   const context = buildChairActivityContext(now);
   return (helperActivities ?? [])
-    .filter((activity) => activity.id !== "chair")
     .filter((activity) => activity.id !== "read-book")
     .filter((activity) => activity.id !== "watch-tv")
     .filter((activity) => isChairActivityAvailable(activity, context))
@@ -875,7 +874,7 @@ function getChairEventContext(now) {
     return {
       label: mealState.firstServingHour ? "Meal now" : "Next meal",
       detail: formatChairMealDetail(mealState),
-      progressPercent: mealState.firstServingHour ? 100 : mealState.nowPercent,
+      progressPercent: mealState.firstServingHour ? 100 : mealState.fillPercent,
     };
   }
 
@@ -905,7 +904,7 @@ function formatChairMealDetail(mealState) {
     );
     return `They're serving ${serving} now. ${following} is next.`;
   }
-  return `${String(mealState.label).toUpperCase()} is in ${mealState.timeLeft}.`;
+  return `${String(mealState.label).toUpperCase()} is in ${mealState.timeLeft}`;
 }
 
 function getChairWeekday(now) {
@@ -933,7 +932,7 @@ function getChairEventProgress(now, event) {
     .find((candidate) => candidate.timeMinutes <= nowMinutes);
   const start = previous?.timeMinutes ?? 0;
   const span = Math.max(1, event.timeMinutes - start);
-  return clamp(((nowMinutes - start) / span) * 100, 0, 100);
+  return clamp(((event.timeMinutes - nowMinutes) / span) * 100, 0, 100);
 }
 
 function getChairAlert(now) {

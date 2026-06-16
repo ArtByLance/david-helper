@@ -185,7 +185,7 @@ html.chair-mode #meal-timer {
   row-gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 24px 42px 58px;
+  padding: 39px 42px 58px;
   scrollbar-color: var(--chair-purple) rgba(111, 63, 181, 0.22);
   scrollbar-width: auto;
   scroll-snap-type: x proximity;
@@ -403,7 +403,7 @@ html.chair-mode #meal-timer {
   color: var(--chair-ink);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 34px;
-  line-height: 1.25;
+  line-height: 1.62;
   font-weight: 700;
 }
 
@@ -498,11 +498,11 @@ html.chair-mode #meal-timer {
 }
 
 .chair-done-card p {
-  margin-top: 53px;
+  margin-top: 73px;
   color: var(--chair-ink);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 40px;
-  line-height: 1.2;
+  line-height: 1.62;
   font-weight: 800;
   text-align: center;
   white-space: pre-line;
@@ -511,7 +511,7 @@ html.chair-mode #meal-timer {
 .chair-done-ok {
   min-width: 220px;
   min-height: 86px;
-  margin-top: 68px;
+  margin-top: 88px;
   border-radius: 24px;
   background: var(--chair-blue);
   color: #fff;
