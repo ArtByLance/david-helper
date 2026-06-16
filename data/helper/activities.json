@@ -54,7 +54,7 @@
     "title": "GO FOR A WALK",
     "message": "You can take a short walk\ndown the hall to see \nwhat everyone is doing.",
     "image": "./assets/objects/things-to-do-walk.jpg",
-    "priority": 30,
+    "priority": 10,
     "availability": {
       "timeRanges": [{ "start": "06:00", "end": "20:00" }]
     }
@@ -119,7 +119,7 @@
     "title": "TALK TO THE FRONT DESK",
     "message": "If you have a question,\nor just want to chat,\nyou can talk to the lady\nat the front desk.",
     "image": "./assets/objects/things-to-do-front-desk.jpg",
-    "priority": 10,
+    "priority": 30,
     "availability": {
       "timeRanges": [{ "start": "08:00", "end": "19:00" }]
     }

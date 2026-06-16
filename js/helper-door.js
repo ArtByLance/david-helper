@@ -304,7 +304,7 @@ function buildActivityCard(activity, context) {
       ${renderContextBand("WHAT CAN I DO NOW?", context)}
       ${renderIdeaVisual(activity)}
       <div class="helper-idea-title">${escapeHtml(activity.title)}</div>
-      <div class="helper-idea-message">${escapeHtml(activity.message)}</div>
+      <div class="helper-idea-message">${renderActivityMessage(activity.message)}</div>
     `,
   };
 }
@@ -333,7 +333,7 @@ function buildSnackCard(activity, context) {
         <img src="${escapeAttribute(activity.image)}" alt="" draggable="false" />
       </div>
       <div class="helper-idea-title">${escapeHtml(activity.title)}</div>
-      <div class="helper-idea-message helper-snack-message">${escapeHtml(activity.message)}</div>
+      <div class="helper-idea-message helper-snack-message">${renderActivityMessage(activity.message)}</div>
       <div class="helper-snack-list">${lines}</div>
     `,
   };
@@ -498,6 +498,13 @@ function highlightSentence(sentence, allowBreaks = false) {
       /\b(nothing you need to do|a good time to be in bed)\b/gi,
       '<span class="helper-key-calm">$1</span>',
     );
+}
+
+function renderActivityMessage(message) {
+  return escapeHtml(message).replace(
+    /\b(tablet\s+beside your chair)\b/gi,
+    '<span class="helper-key-place">$1</span>',
+  );
 }
 
 function renderContextBand(title, context, includeTime = true) {

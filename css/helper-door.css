@@ -130,6 +130,10 @@ html.helper-door-mode #meal-timer {
   color: var(--helper-green);
 }
 
+.helper-key-place {
+  color: var(--helper-blue);
+}
+
 .helper-date {
   min-height: 28px;
   margin-top: 22px;
