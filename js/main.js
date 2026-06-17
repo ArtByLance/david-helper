@@ -57,6 +57,7 @@ const CHAIR_IDLE_HOME_MS = 3 * 60 * 1000;
 const IDLE_CHECK_MS = 15 * 1000;
 const CHAIR_ACTIVITY_DONE_MS = 12 * 1000;
 const CHAIR_EVENT_SOON_MINUTES = 15;
+const LEGACY_SHELF_ENABLED = false;
 const CHAIR_TITLE_COLORS = [
   "#205b9d",
   "#6f3fb5",
@@ -334,6 +335,10 @@ async function bootstrap() {
   }
 
   chairModeActive = isChairRoute();
+  if (!chairModeActive && !LEGACY_SHELF_ENABLED) {
+    startLauncher();
+    return;
+  }
   document.documentElement.classList.toggle("chair-mode", chairModeActive);
   document
     .getElementById("tv-stage")
@@ -463,6 +468,8 @@ function renderLiveClockText(now) {
 
 // Honor direct shelf links used by local smoke tests and Fire TV shortcuts.
 function applyInitialShelfRoute() {
+  if (!LEGACY_SHELF_ENABLED) return;
+
   const params = new URLSearchParams(window.location.search);
   const shelf =
     params.get("openShelf") ?? routeToShelf(window.location.pathname);
@@ -2074,15 +2081,22 @@ function renderReturnIcon() {
 // Render the handoff overlay shown while a show is launched on the TV.
 function renderHandoff() {
   const debugText = getVideoLaunchDebugText();
+  const chairClass = chairModeActive ? " chair-handoff-screen" : "";
+  const backdrop = chairModeActive
+    ? ""
+    : `<div class="handoff-shelf-backdrop" aria-hidden="true">
+        ${renderShowsImageStrip()}
+      </div>`;
+  const noteImage = chairModeActive
+    ? ""
+    : `<img class="handoff-post-it" src="${POST_IT_IMAGE}" alt="" aria-hidden="true" draggable="false" />`;
 
   return `
-    <section class="screen handoff-screen" aria-label="TV handoff">
-      <div class="handoff-shelf-backdrop" aria-hidden="true">
-        ${renderShowsImageStrip()}
-      </div>
+    <section class="screen handoff-screen${chairClass}" aria-label="TV handoff">
+      ${backdrop}
       <div class="handoff-card">
         <div class="handoff-note">
-          <img class="handoff-post-it" src="${POST_IT_IMAGE}" alt="" aria-hidden="true" draggable="false" />
+          ${noteImage}
           <div class="handoff-content">
             <h1>
               <span>Starting</span>
@@ -2115,6 +2129,7 @@ function getVideoLaunchDebugText() {
 
 // Enter a shelf view through the shared alert and view-transition timing.
 async function openShelf(shelf) {
+  if (!LEGACY_SHELF_ENABLED) return;
   if (!shelf || state.alertTransitioning || state.viewTransitioning) return;
 
   clearSelection();
