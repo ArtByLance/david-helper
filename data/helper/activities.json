@@ -127,8 +127,8 @@
   },
   {
     "id": "front-desk",
-    "title": "TALK TO THE LADY \nAT THE FRONT DESK",
-    "message": "If you have a question,\nor just want to chat,\nthere's usually a lady\nat the front desk.",
+    "title": "VISIT THE FRONT DESK",
+    "message": "If you have a question,\nor just want to chat,\nthere's usually a lady\nthere to talk with.",
     "image": "./assets/objects/things-to-do-front-desk.jpg",
     "priority": 30,
     "availability": {

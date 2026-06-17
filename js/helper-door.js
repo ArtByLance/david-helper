@@ -233,16 +233,20 @@ function getMinutesUntilEvent(nowMinutes, event, isTomorrow, activeEvent) {
 
 function buildRightNowCard(context) {
   const event = context.nextEvent;
+  const dayDone = isDayDone(context) && !context.isNight;
+  const dialState = getRightNowDialState(context, event, dayDone);
   const sentences = [
-    `It’s ${formatNaturalClock(context.now)}<br>${getConversationalPeriod(context.now)}.`,
+    `It’s ${formatNaturalClock(context.now)} ${getConversationalPeriod(context.now)}.`,
   ];
+  let rightNowDetail = "";
 
-  if (context.isNight) {
+  if (dayDone) {
+    sentences.push("No other activity today;<br>relax and sleep.");
+  } else if (context.isNight) {
     sentences.push("Everyone is in bed.", "It’s a good time to be in bed.");
   } else if (context.mealState.firstServingHour) {
     sentences.push(
       `They’re serving ${toNaturalLabel(context.mealState.servingMeal.label)} now.`,
-      `Next meal is ${toNaturalLabel(context.mealState.followingMeal.label)}.`,
     );
   } else if (context.activeEvent) {
     sentences.push(formatActiveEventSentence(event));
@@ -250,13 +254,7 @@ function buildRightNowCard(context) {
       sentences.push(formatLocationSentence(event));
     }
   } else if (event) {
-    if (isMeal(event) && !context.mealState.hiddenForDay) {
-      const mealTiming =
-        context.remainingMinutes < 60 && !context.nextIsTomorrow
-          ? "soon"
-          : "next";
-      sentences.push(`${toNaturalLabel(event.label)} is ${mealTiming}.`);
-    } else {
+    if (!isMeal(event) || context.mealState.hiddenForDay) {
       const timing = context.nextIsTomorrow
         ? `tomorrow at ${formatEventTime(event.time)}`
         : `in ${formatApproximateDuration(context.remainingMinutes)}`;
@@ -270,19 +268,56 @@ function buildRightNowCard(context) {
     sentences.push("There’s nothing you need to do<br>right now.");
   }
 
+  if (!dayDone && shouldShowMealDial(context, event)) {
+    rightNowDetail =
+      context.mealState.firstServingHour ||
+      (isMeal(event) && !context.mealState.hiddenForDay)
+        ? renderHelperMealDial(context)
+        : renderNextEventStrip(context);
+  } else if (!dayDone && !context.isNight) {
+    rightNowDetail = renderNextEventStrip(context);
+  }
+
   return {
-    kind: context.isNight ? "right-now helper-night" : "right-now",
+    kind: [
+      "right-now",
+      context.isNight ? "helper-night" : "",
+      dayDone ? "helper-day-done" : "",
+      dialState ? `helper-dial-time-${dialState}` : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
     ariaLabel: "Right now",
     dateLabel: "",
     html: `
       ${renderContextBand("WHAT'S HAPPENING NOW?", context, false)}
-      ${context.isNight ? renderStopSign() : ""}
+      ${context.isNight && !dayDone ? renderStopSign() : ""}
       <div class="helper-message">
         ${sentences.map((sentence) => `<p>${highlightSentence(sentence, true)}</p>`).join("")}
       </div>
-      ${context.mealState.firstServingHour || (isMeal(event) && !context.mealState.hiddenForDay) ? renderHelperMealCard(context) : renderNextEventStrip(context)}
+      ${rightNowDetail}
     `,
   };
+}
+
+function isDayDone(context) {
+  return context.mealState.hiddenForDay && !context.mealState.serving;
+}
+
+function getRightNowDialState(context, event, dayDone) {
+  if (dayDone) return "";
+  return shouldShowMealDial(context, event)
+    ? getMealDialDisplay(context).state
+    : "";
+}
+
+function shouldShowMealDial(context, event) {
+  if (context.isNight) return false;
+  if (context.nowMinutes < 6 * 60) return false;
+  return (
+    context.mealState.firstServingHour ||
+    (isMeal(event) && !context.mealState.hiddenForDay)
+  );
 }
 
 function formatActiveEventSentence(event) {
@@ -391,22 +426,103 @@ function getHelperSettings() {
   };
 }
 
-function renderHelperMealCard(context) {
+function renderHelperMealDial(context) {
   const meal = context.mealState;
+  const display = getMealDialDisplay(context);
 
   return `
-    <div class="helper-meal-card" data-first-serving-hour="${meal.firstServingHour}">
-      <div class="helper-meal-message">${escapeHtml(meal.message)}</div>
-      <div class="helper-meal-details">
-        <div class="helper-meal-card-title">${escapeHtml(meal.label)}</div>
-        <div class="helper-meal-card-status">${escapeHtml(meal.targetLabel)}</div>
-        <div class="helper-meal-progress">
-          <div class="helper-meal-progress-fill" style="width:${meal.fillPercent}%"></div>
-          <div class="helper-meal-now" style="left:${meal.nowPercent}%">NOW</div>
+    <div
+      class="helper-meal-dial helper-meal-dial-${escapeAttribute(display.state)}"
+      style="--helper-dial-progress: ${display.progress}%;"
+    >
+      <div class="helper-meal-dial-face" aria-hidden="true">
+        <div class="helper-meal-dial-center">
+          <span class="helper-meal-dial-number">${renderMealDialCenter(display.center)}</span>
         </div>
       </div>
+      ${display.detail ? `<div class="helper-meal-dial-detail">${escapeHtml(display.detail)}</div>` : ""}
+      ${display.target ? `<div class="helper-meal-dial-target">${escapeHtml(display.target)}</div>` : ""}
+      ${display.message ? `<div class="helper-meal-dial-message">${escapeHtml(display.message)}</div>` : ""}
     </div>
   `;
+}
+
+function getMealDialDisplay(context) {
+  const meal = context.mealState;
+  const label = toNaturalLabel(meal.label);
+
+  if (meal.firstServingHour) {
+    return {
+      state: "serving",
+      progress: 100,
+      center: "NOW",
+      detail: "",
+      target: meal.targetLabel,
+      message: "",
+    };
+  }
+
+  const minutes = Math.max(1, Math.ceil(context.remainingMinutes));
+  const progress =
+    minutes < 60
+      ? clamp((minutes / 60) * 100, 2, 100)
+      : clamp(Number(meal.fillPercent || 0), 2, 100);
+  const state = getMealDialState(minutes);
+  const hourDisplay = formatDialHours(minutes);
+  const target = `UNTIL ${label.toUpperCase()} AT ${meal.targetLabel}`;
+  const message =
+    minutes < 10 ? "It’s ok to walk down \nto the dining room now." : "";
+
+  if (minutes < 60) {
+    return {
+      state,
+      progress,
+      center: String(minutes),
+      detail: minutes === 1 ? "MINUTE" : "MINUTES",
+      target,
+      message,
+    };
+  }
+
+  return {
+    state,
+    progress,
+    center: hourDisplay.value,
+    detail: hourDisplay.unit,
+    target,
+    message,
+  };
+}
+
+function formatDialHours(minutes) {
+  const halfHours = Math.max(1, Math.round(minutes / 30));
+  const wholeHours = Math.floor(halfHours / 2);
+  const hasHalf = halfHours % 2 === 1;
+  const value =
+    wholeHours > 0
+      ? `${wholeHours}${hasHalf ? " ½" : ""}`
+      : hasHalf
+        ? "½"
+        : "1";
+  return {
+    value,
+    unit: value === "1" ? "HOUR" : "HOURS",
+  };
+}
+
+function getMealDialState(minutes) {
+  if (minutes < 10) return "green";
+  if (minutes < 20) return "gold";
+  if (minutes < 30) return "orange";
+  if (minutes < 60) return "red";
+  return "blue";
+}
+
+function renderMealDialCenter(value) {
+  const text = String(value);
+  if (!text.includes("½")) return escapeHtml(text);
+  const whole = text.replace("½", "").trim();
+  return `${whole ? `<span>${escapeHtml(whole)}</span>` : ""}<span class="helper-meal-dial-half" aria-label="one half"><span>1</span><i></i><span>2</span></span>`;
 }
 
 function renderNextEventStrip(context) {
@@ -478,6 +594,10 @@ function isWithinMinutes(minutes, start, end) {
   return start <= end
     ? minutes >= start && minutes < end
     : minutes >= start || minutes < end;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function isMeal(event) {

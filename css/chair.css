@@ -16,37 +16,6 @@ html.chair-mode #meal-timer {
   display: none;
 }
 
-html.chair-mode .chair-handoff-screen {
-  background: var(--chair-paper);
-}
-
-html.chair-mode .chair-handoff-screen .handoff-card {
-  left: 68px;
-  top: 322px;
-  width: 664px;
-  height: auto;
-}
-
-html.chair-mode .chair-handoff-screen .handoff-note {
-  height: auto;
-  min-height: 430px;
-  transform: none;
-  border: 4px solid rgba(32, 91, 157, 0.24);
-  border-radius: 34px;
-  background: #fff;
-  filter: drop-shadow(0 18px 28px rgba(24, 69, 107, 0.16));
-}
-
-html.chair-mode .chair-handoff-screen .handoff-content {
-  padding: 62px 68px 130px;
-}
-
-html.chair-mode .chair-handoff-screen .handoff-put-back {
-  top: auto;
-  right: 58px;
-  bottom: 48px;
-}
-
 #tv-stage[data-chair="true"] {
   background: var(--chair-paper);
 }
@@ -77,9 +46,7 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 }
 
 .chair-context .helper-context-band {
-  width: calc(100% + 16px);
-  margin: 0 -16px 0 0;
-  padding-right: 62px;
+  margin: 0;
 }
 
 .chair-context-details.helper-context-details {
@@ -88,7 +55,6 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 }
 
 .chair-status-track {
-  position: relative;
   flex: 1;
   height: 18px;
   margin-left: 14px;
@@ -99,10 +65,7 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 }
 
 .chair-status-fill {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  height: 100%;
   border-radius: inherit;
   background: var(--chair-green);
 }
@@ -116,16 +79,15 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
   line-height: 1.12;
   font-weight: 800;
   text-align: right;
-  white-space: pre-line;
 }
 
 .chair-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 0;
-  padding: 26px;
+  justify-content: center;
+  gap: 28px;
+  padding: 26px 26px 22px;
 }
 
 .chair-picker-header h1 {
@@ -139,29 +101,61 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 }
 
 .chair-home-options {
+  width: 70%;
+  align-self: center;
   display: grid;
-  grid-template-rows: repeat(3, 288px);
-  gap: 26px;
+  grid-template-rows: repeat(3, 212px);
+  gap: 22px;
+}
+
+.chair-home-instruction {
+  align-self: center;
+  display: grid;
+  justify-items: center;
+  min-width: 456px;
+  padding: 28px 46px 30px;
+  border-radius: 30px;
+  background: #a42a9b;
+  color: #fff;
+  text-align: center;
+}
+
+.chair-home-instruction strong {
+  display: block;
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: 1.5px;
+}
+
+.chair-home-instruction span {
+  display: block;
+  margin-top: 20px;
+  font-size: 36px;
+  line-height: 1;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.5px;
 }
 
 .chair-home-option {
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 30px;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
   align-items: center;
   min-height: 0;
-  padding: 14px 24px 14px 20px;
+  padding: 12px 24px 12px 20px;
   border: 4px solid var(--chair-blue);
   border-radius: 24px;
   background: #fff;
   color: var(--chair-blue);
-  text-align: left;
+  text-align: center;
   box-shadow: none;
 }
 
 .chair-home-image {
   display: block;
-  width: 360px;
+  width: 100%;
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -178,8 +172,10 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 
 .chair-home-option strong {
   display: block;
-  font-size: 49px;
-  line-height: 1.38;
+  align-self: center;
+  justify-self: center;
+  font-size: 62px;
+  line-height: 1;
   font-weight: 1000;
   letter-spacing: 1.2px;
   white-space: pre-line;
@@ -190,7 +186,7 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 }
 
 .chair-home-activities strong {
-  font-size: 49px;
+  font-size: 62px;
 }
 
 .chair-picker-header {
@@ -223,7 +219,7 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
   row-gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 39px 42px 58px;
+  padding: 14px 42px 58px;
   scrollbar-color: var(--chair-purple) rgba(111, 63, 181, 0.22);
   scrollbar-width: auto;
   scroll-snap-type: x proximity;
@@ -277,22 +273,29 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
   object-fit: contain;
 }
 
-.chair-picker-shows .chair-grid-item {
-  background: var(--chair-tile-bg, #172433);
+.chair-picker-activities .chair-grid {
+  grid-auto-columns: calc(((100% - 28px) / 2) * 1.008);
+  padding-top: 52px;
+  row-gap: 28px;
 }
 
-.chair-picker-shows .chair-grid-image {
-  background: transparent;
+.chair-picker-books .chair-grid,
+.chair-picker-shows .chair-grid {
+  grid-auto-columns: calc(((100% - 28px) / 2) * 0.75);
+  padding-top: 29px;
 }
 
 .chair-picker-books .chair-grid-item {
   background: var(--chair-tile-bg, #fff);
 }
 
-.chair-picker-activities .chair-grid {
-  grid-auto-columns: calc(((100% - 28px) / 2) * 1.008);
-  padding-top: 52px;
-  row-gap: 28px;
+.chair-picker-shows .chair-grid-item {
+  background: var(--chair-tile-bg, #172433);
+}
+
+.chair-picker-books .chair-grid-image,
+.chair-picker-shows .chair-grid-image {
+  background: transparent;
 }
 
 .chair-picker-activities .chair-grid-item {
@@ -303,24 +306,24 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 .chair-picker-activities .chair-grid-image {
   position: relative;
   z-index: 1;
-  flex: 0 0 59%;
+  flex: 0 0 60%;
   overflow: visible;
   border-radius: 0;
-  background: #fff;
+  background: transparent;
 }
 
 .chair-picker-activities .chair-grid-image img {
   width: 100%;
-  height: 100%;
+  height: 90%;
   object-position: center center;
-  transform: translateY(-18px);
+  transform: translateY(-8px);
 }
 
 .chair-picker-activities .chair-grid-item strong {
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
-  margin-top: calc(25px + 0.7em);
+  margin-top: 15px;
   padding-top: 0;
 }
 
@@ -347,6 +350,7 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
   border: 0;
   background: transparent;
   color: var(--chair-purple);
+  box-shadow: none;
   font-size: 28px;
   font-style: italic;
   line-height: 1;
@@ -374,14 +378,16 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 .chair-alert-card {
   position: absolute;
   z-index: 25;
-  top: 218px;
-  right: 38px;
-  left: 38px;
+  top: 110px;
+  right: 28px;
+  left: 28px;
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: 1fr 96px;
-  gap: 18px;
+  grid-template-columns: 1fr 112px;
+  gap: 24px;
   align-items: center;
-  padding: 24px 24px 24px 30px;
+  min-height: 216px;
+  padding: 28px 30px 28px 36px;
   border: 4px solid rgba(32, 91, 157, 0.35);
   border-radius: 26px;
   background: linear-gradient(145deg, #e8f3fc, #cfe4f5);
@@ -398,12 +404,28 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
 }
 
 .chair-alert-card button {
-  min-height: 68px;
+  min-height: 82px;
   border-radius: 20px;
-  background: var(--chair-purple);
+  background: var(--chair-blue);
   color: #fff;
-  font-size: 24px;
+  font-size: 27px;
   font-weight: 900;
+}
+
+.chair-alert-meal {
+  border-color: rgba(47, 143, 70, 0.42);
+  background: linear-gradient(145deg, #e7f6eb, #cbe8d3);
+  color: #1f6434;
+  box-shadow: 0 18px 34px rgba(47, 143, 70, 0.22);
+}
+
+.chair-alert-meal p {
+  color: #1f6434;
+  font-size: 42px;
+}
+
+.chair-alert-meal button {
+  background: #2f8f46;
 }
 
 .chair-detail-layer {
@@ -584,12 +606,51 @@ html.chair-mode .chair-handoff-screen .handoff-put-back {
   justify-content: stretch;
 }
 
+.chair-playing-screen {
+  justify-content: stretch;
+}
+
+.chair-playing-card {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 56px;
+  text-align: center;
+}
+
+.chair-playing-card h1 {
+  color: var(--chair-blue);
+  font-family: Arial, sans-serif;
+  font-size: 68px;
+  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.chair-playing-card p {
+  margin-top: 28px;
+  color: var(--chair-ink);
+  font-family: Arial, sans-serif;
+  font-size: 42px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.chair-playing-card small {
+  display: block;
+  max-width: 680px;
+  margin-top: 38px;
+  color: #666;
+  font-size: 20px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 .chair-done-card {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   padding: 56px;
 }
 

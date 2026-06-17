@@ -92,27 +92,27 @@ html.helper-door-mode #meal-timer {
 .helper-context-details {
   display: flex;
   align-items: baseline;
-  gap: 14px;
-  margin: 0 -10px;
-  padding: 24px 10px 20px;
-  border-bottom: 3px solid rgba(49, 95, 130, 0.2);
+  gap: 18px;
+  margin: 0 -54px;
+  padding: 28px 54px 24px 68px;
+  border-bottom: 4px solid rgba(49, 95, 130, 0.2);
   color: #315f82;
-  font-size: 24px;
+  font-size: 31px;
   line-height: 1;
   font-weight: 900;
-  letter-spacing: 0.7px;
+  letter-spacing: 0.9px;
 }
 
 .helper-context-details strong {
   color: #315f82;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 38px;
+  font-family: var(--font-main);
+  font-size: 49px;
   line-height: 1;
 }
 
 .helper-context-details span + span::before {
   content: "·";
-  margin-right: 14px;
+  margin-right: 18px;
   color: rgba(49, 95, 130, 0.45);
 }
 
@@ -134,11 +134,12 @@ html.helper-door-mode #meal-timer {
 }
 
 .helper-key-time {
-  color: var(--helper-blue);
+  color: var(--helper-active-dial-color, var(--helper-purple));
+  font-size: 1.5em;
 }
 
 .helper-key-next {
-  color: var(--helper-yellow);
+  color: var(--helper-ink);
 }
 
 .helper-key-calm {
@@ -148,6 +149,55 @@ html.helper-door-mode #meal-timer {
 .helper-key-place {
   color: #10ad08;
   font-weight: 1200;
+}
+
+.helper-right-now .helper-message p {
+  font-family: var(--font-main);
+}
+
+.helper-dial-time-blue {
+  --helper-active-dial-color: #205b9d;
+}
+
+.helper-dial-time-red {
+  --helper-active-dial-color: #b44a4a;
+}
+
+.helper-dial-time-orange {
+  --helper-active-dial-color: #d66a28;
+}
+
+.helper-dial-time-gold {
+  --helper-active-dial-color: #c99719;
+}
+
+.helper-dial-time-green,
+.helper-dial-time-serving {
+  --helper-active-dial-color: #34a644;
+}
+
+.helper-right-now:not(.helper-night) .helper-message {
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  gap: 18px;
+  padding: 38px 2px 18px;
+  text-align: center;
+}
+
+.helper-right-now:not(.helper-night) .helper-message p {
+  font-size: 47px;
+  line-height: 1.18;
+}
+
+.helper-day-done .helper-message {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding-bottom: 170px;
+}
+
+.helper-day-done .helper-message p {
+  font-size: 52px;
+  line-height: 1.24;
 }
 
 .helper-date {
@@ -170,7 +220,7 @@ html.helper-door-mode #meal-timer {
   left: 54px;
   height: 156px;
   color: var(--helper-purple);
-  font-size: 25px;
+  font-size: 38px;
   line-height: 1;
   font-weight: 900;
   letter-spacing: 1.2px;
@@ -179,8 +229,8 @@ html.helper-door-mode #meal-timer {
 
 .helper-tap-prompt span {
   position: absolute;
-  right: 168px;
-  bottom: 66px;
+  right: 178px;
+  bottom: 56px;
   white-space: nowrap;
 }
 
@@ -270,6 +320,170 @@ html.helper-door-mode #meal-timer {
   display: none;
 }
 
+.helper-meal-dial {
+  --helper-dial-color: #205b9d;
+  --helper-dial-fill: rgba(32, 91, 157, 0.4);
+  --helper-dial-shadow: rgba(32, 91, 157, 0.22);
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  margin-bottom: 108px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 35px;
+  color: var(--helper-dial-color);
+  text-align: center;
+}
+
+.helper-meal-dial-blue {
+  --helper-dial-color: #205b9d;
+  --helper-dial-fill: rgba(32, 91, 157, 0.4);
+  --helper-dial-shadow: rgba(32, 91, 157, 0.24);
+}
+
+.helper-meal-dial-red {
+  --helper-dial-color: #b44a4a;
+  --helper-dial-fill: rgba(180, 74, 74, 0.4);
+  --helper-dial-shadow: rgba(180, 74, 74, 0.26);
+}
+
+.helper-meal-dial-orange {
+  --helper-dial-color: #d66a28;
+  --helper-dial-fill: rgba(214, 106, 40, 0.4);
+  --helper-dial-shadow: rgba(214, 106, 40, 0.28);
+}
+
+.helper-meal-dial-gold {
+  --helper-dial-color: #c99719;
+  --helper-dial-fill: rgba(201, 151, 25, 0.4);
+  --helper-dial-shadow: rgba(201, 151, 25, 0.28);
+}
+
+.helper-meal-dial-green,
+.helper-meal-dial-serving {
+  --helper-dial-color: #34a644;
+  --helper-dial-fill: rgba(52, 166, 68, 0.4);
+  --helper-dial-shadow: rgba(52, 166, 68, 0.3);
+}
+
+.helper-meal-dial-face {
+  box-sizing: border-box;
+  width: min(493px, 47.5vw);
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 15px solid var(--helper-dial-color);
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #ffffff 0 calc(100% - var(--helper-dial-progress)),
+    var(--helper-dial-fill) calc(100% - var(--helper-dial-progress)) 100%
+  );
+  box-shadow: 0 16px 28px var(--helper-dial-shadow);
+}
+
+.helper-meal-dial-center {
+  min-width: 55%;
+  padding: 0 10px 16px;
+  text-align: center;
+}
+
+.helper-meal-dial-number {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  transform: translate(-5px, -25px);
+  color: var(--helper-dial-color);
+  font-family: "Arial Black", Impact, var(--font-main);
+  font-size: 211px;
+  line-height: 0.9;
+  font-weight: 900;
+  letter-spacing: -8px;
+  text-shadow: none;
+}
+
+.helper-meal-dial-half {
+  display: inline-grid;
+  grid-template-rows: auto 0.08em auto;
+  align-items: center;
+  row-gap: 0.04em;
+  width: 0.56em;
+  transform: translate(8px, calc(-0.05em - 8px));
+  font-family: "Arial Black", Impact, var(--font-main);
+  font-size: 0.46em;
+  line-height: 0.76;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+}
+
+.helper-meal-dial-half i {
+  display: block;
+  height: 0.08em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.helper-meal-dial-half span:first-child {
+  transform: translateX(-2px);
+}
+
+.helper-meal-dial-unit {
+  display: block;
+  margin-top: 12px;
+  color: var(--helper-dial-color);
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.helper-meal-dial-detail {
+  margin-top: -165px;
+  color: var(--helper-dial-color);
+  font-size: 55px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
+
+.helper-meal-dial-target {
+  margin-top: 145px;
+  color: var(--helper-ink);
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.helper-meal-dial-message {
+  max-width: 760px;
+  margin-top: 18px;
+  color: var(--helper-dial-color);
+  font-family: var(--font-main);
+  font-size: 35px;
+  line-height: 1.12;
+  font-weight: 800;
+  white-space: pre-line;
+}
+
+.helper-meal-dial-serving .helper-meal-dial-number {
+  font-size: 105px;
+  letter-spacing: -4px;
+}
+
+.helper-meal-dial-serving .helper-meal-dial-target {
+  margin-top: 42px;
+  font-size: 40px;
+}
+
+.helper-meal-dial-serving .helper-meal-dial-message {
+  margin-top: 18px;
+  font-size: 36px;
+}
+
 .helper-next-strip {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -323,20 +537,20 @@ html.helper-door-mode #meal-timer {
 }
 
 .helper-night .helper-stop-sign {
-  height: 174px;
+  height: 360px;
   margin-top: 30px;
-  transform: translateY(18px);
+  transform: translateY(24px);
 }
 
 .helper-night .helper-stop-sign img {
-  width: 238px;
-  height: 238px;
+  width: 381px;
+  height: 381px;
 }
 
 .helper-night .helper-message {
   justify-content: flex-start;
   gap: 20px;
-  padding: 67px 2px 20px;
+  padding: 104px 2px 20px;
 }
 
 .helper-night .helper-message p {
@@ -347,6 +561,17 @@ html.helper-door-mode #meal-timer {
 
 .helper-night.helper-right-now .helper-next-strip {
   margin-bottom: 100px;
+}
+
+.helper-night.helper-day-done .helper-message {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding: 30px 2px 170px;
+}
+
+.helper-night.helper-day-done .helper-message p {
+  font-size: 52px;
+  line-height: 1.24;
 }
 
 .helper-idea-mark {

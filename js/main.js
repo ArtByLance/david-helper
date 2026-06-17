@@ -56,6 +56,7 @@ const IDLE_HOME_MS = 10 * 60 * 1000;
 const CHAIR_IDLE_HOME_MS = 3 * 60 * 1000;
 const IDLE_CHECK_MS = 15 * 1000;
 const CHAIR_ACTIVITY_DONE_MS = 12 * 1000;
+const CHAIR_SHOW_PLAYING_MS = 3 * 1000;
 const CHAIR_EVENT_SOON_MINUTES = 15;
 const LEGACY_SHELF_ENABLED = false;
 const CHAIR_TITLE_COLORS = [
@@ -145,7 +146,9 @@ const state = {
   chairCategory: null,
   chairDoneMessage: "",
   chairDoneTimer: null,
-  chairDismissedAlertKey: "",
+  chairPlayingItem: null,
+  chairPlayingTimer: null,
+  chairDismissedAlertKeys: new Set(),
   booksScrollLeft: 0,
   showsScrollLeft: 0,
   todayScrollLeft: 0,
@@ -592,7 +595,7 @@ function renderTakeOffLayerSlot(layer) {
   }
 
   const key = chairModeActive
-    ? `${state.selectedKind}:${state.selectedItem.id}:${state.takeOffExiting}:${state.chairDismissedAlertKey}:${getChairAlertKey(getNow())}`
+    ? `${state.selectedKind}:${state.selectedItem.id}:${state.takeOffExiting}:${getChairDismissedAlertSignature()}:${getChairAlertKey(getNow())}`
     : `${state.selectedKind}:${state.selectedItem.id}:${state.takeOffExiting}`;
   if (layer.dataset.renderKey === key) return;
 
@@ -640,8 +643,9 @@ function renderChairLayer(layer, now) {
     state.view,
     state.chairCategory,
     state.chairDoneMessage,
+    state.chairPlayingItem?.id ?? "",
     getChairAlertKey(now),
-    state.chairDismissedAlertKey,
+    getChairDismissedAlertSignature(),
     Math.floor(now.getTime() / 60000),
   ].join(":");
   if (layer.dataset.renderKey === key) return;
@@ -653,6 +657,7 @@ function renderChairLayer(layer, now) {
 function renderChair(now) {
   if (state.view === "CHAIR_PICKER") return renderChairPicker(now);
   if (state.view === "CHAIR_DONE") return renderChairDone(now);
+  if (state.view === "CHAIR_PLAYING") return renderChairPlaying(now);
   return renderChairHome(now);
 }
 
@@ -662,10 +667,14 @@ function renderChairHome(now) {
       ${renderChairTopBar(now, "WHAT CAN I DO NOW?", { breakMealDuration: true })}
       ${renderChairAlert(now)}
       <div class="chair-main">
+        <div class="chair-home-instruction" aria-hidden="true">
+          <strong>TAP BELOW</strong>
+          <span>Find Things To:</span>
+        </div>
         <div class="chair-home-options">
-          ${renderChairHomeOption("books", "READ\nA BOOK", "./assets/objects/things-to-do-books.jpg")}
-          ${renderChairHomeOption("shows", "WATCH\nA SHOW", "./assets/objects/things-to-do-tv.jpg")}
-          ${renderChairHomeOption("activities", "SOMETHING\nELSE", "./assets/objects/things-to-do-walk.jpg")}
+          ${renderChairHomeOption("books", "READ", "./assets/objects/things-to-do-books.jpg")}
+          ${renderChairHomeOption("shows", "WATCH", "./assets/objects/things-to-do-tv.jpg")}
+          ${renderChairHomeOption("activities", "DO", "./assets/objects/things-to-do-walk.jpg")}
         </div>
       </div>
     </section>
@@ -763,6 +772,22 @@ function renderChairDone(now) {
   `;
 }
 
+function renderChairPlaying(now) {
+  const title = state.chairPlayingItem?.title || "your show";
+  const debugText = getVideoLaunchDebugText();
+  return `
+    <section class="screen chair-screen chair-playing-screen" aria-label="Starting show">
+      ${renderChairTopBar(now, "WATCH TV")}
+      ${renderChairAlert(now)}
+      <div class="chair-playing-card">
+        <h1>Starting<br>${escapeHtml(title)}</h1>
+        <p>on your TV.</p>
+        ${debugText ? `<small>${escapeHtml(debugText)}</small>` : ""}
+      </div>
+    </section>
+  `;
+}
+
 function getChairDoneMealReminder(now) {
   const mealState = getMealState(now, getMealsForDate(now));
   if (mealState.hiddenForDay || mealState.firstServingHour) return "";
@@ -791,10 +816,10 @@ function renderChairTopBar(now, title = "WHAT CAN I DO NOW?", options = {}) {
 
 function renderChairAlert(now) {
   const alert = getChairAlert(now);
-  if (!alert || state.chairDismissedAlertKey === alert.key) return "";
+  if (!alert || state.chairDismissedAlertKeys.has(alert.key)) return "";
 
   return `
-    <div class="chair-alert-card" role="status">
+    <div class="chair-alert-card ${alert.tone ? `chair-alert-${escapeAttribute(alert.tone)}` : ""}" role="status">
       <p>${escapeHtml(alert.message)}</p>
       <button type="button" data-action="chair-dismiss-alert" data-alert-key="${escapeAttribute(alert.key)}">OK</button>
     </div>
@@ -908,13 +933,10 @@ function getChairEventContext(now, options = {}) {
 
 function formatChairMealDetail(mealState, options = {}) {
   if (mealState.firstServingHour) {
-    const serving = toTitleCase(
+    const serving = String(
       mealState.servingMeal?.label || mealState.label,
-    );
-    const following = toTitleCase(
-      mealState.followingMeal?.label || "Breakfast",
-    );
-    return `They're serving ${serving} now. ${following} is next.`;
+    ).toUpperCase();
+    return `They're serving ${serving} now.`;
   }
   const timeLeft = options.breakMealDuration
     ? formatChairMealTimeLeft(mealState.timeLeft)
@@ -964,14 +986,22 @@ function getChairAlertKey(now) {
   return getChairAlert(now)?.key ?? "";
 }
 
+function getChairDismissedAlertSignature() {
+  return [...state.chairDismissedAlertKeys].sort().join("|");
+}
+
 function getChairAlertContext(now) {
   if (state.readerItem || state.handoffItem) return null;
   const meals = getMealsForDate(now);
   const mealState = getMealState(now, meals);
   if (mealState.firstServingHour) {
+    const serving = String(
+      mealState.servingMeal?.label || mealState.label,
+    ).toUpperCase();
     return {
       key: `meal:${mealState.servingMeal.id}:${getDateKey(now)}`,
-      message: mealState.message,
+      tone: "meal",
+      message: `They're serving\n${serving} now!`,
     };
   }
 
@@ -2173,7 +2203,6 @@ async function handleMainClick(event) {
   if (action === "chair-open-category") {
     state.view = "CHAIR_PICKER";
     state.chairCategory = target.dataset.category || "books";
-    state.chairDismissedAlertKey = "";
     clearSelection();
     render();
     return;
@@ -2191,7 +2220,8 @@ async function handleMainClick(event) {
   }
 
   if (action === "chair-dismiss-alert") {
-    state.chairDismissedAlertKey = target.dataset.alertKey || "";
+    const alertKey = target.dataset.alertKey || "";
+    if (alertKey) state.chairDismissedAlertKeys.add(alertKey);
     render();
     return;
   }
@@ -2227,9 +2257,14 @@ async function handleMainClick(event) {
 
   if (action === "take-off") {
     const kind = target.dataset.kind;
+    const item = findItem(kind, target.dataset.itemId);
+    if (chairModeActive && kind === "shows" && item) {
+      startChairShow(item);
+      return;
+    }
     state.selectedKind = kind;
     state.takeOffExiting = false;
-    state.selectedItem = findItem(kind, target.dataset.itemId);
+    state.selectedItem = item;
     render();
     return;
   }
@@ -2726,8 +2761,10 @@ function resetIdleStateToHome() {
 function resetChairToHome() {
   window.clearTimeout(state.handoffTimer);
   window.clearTimeout(state.chairDoneTimer);
+  window.clearTimeout(state.chairPlayingTimer);
   state.handoffTimer = null;
   state.chairDoneTimer = null;
+  state.chairPlayingTimer = null;
   state.handoffItem = null;
   state.videoLaunchDebug = null;
 
@@ -2736,6 +2773,7 @@ function resetChairToHome() {
   state.activeShelf = null;
   state.chairCategory = null;
   state.chairDoneMessage = "";
+  state.chairPlayingItem = null;
 }
 
 function scrollChairPickerMore(target) {
@@ -2756,6 +2794,32 @@ function returnChairToActivities() {
   state.view = "CHAIR_PICKER";
   state.chairCategory = "activities";
   state.chairDoneMessage = "";
+}
+
+function startChairShow(item) {
+  if (!item) return;
+
+  window.clearTimeout(state.chairPlayingTimer);
+  clearSelection();
+  state.view = "CHAIR_PLAYING";
+  state.chairCategory = "shows";
+  state.chairPlayingItem = item;
+  state.videoLaunchDebug = null;
+  render();
+
+  try {
+    state.videoLaunchDebug = launchVideoItem(item);
+    markRecent("davidsStuff.recentWatched", state.recentWatched, item.id);
+    state.highlightedShowId = item.id;
+    render();
+  } catch (error) {
+    console.error(`Could not launch ${item.title}.`, error);
+  }
+
+  state.chairPlayingTimer = window.setTimeout(() => {
+    resetChairToHome();
+    render();
+  }, CHAIR_SHOW_PLAYING_MS);
 }
 
 // Snapshot the visible shelf before hiding it during an idle return.
