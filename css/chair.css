@@ -55,6 +55,7 @@ html.chair-mode #meal-timer {
 }
 
 .chair-status-track {
+  position: relative;
   flex: 1;
   height: 18px;
   margin-left: 14px;
@@ -65,7 +66,10 @@ html.chair-mode #meal-timer {
 }
 
 .chair-status-fill {
-  height: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
   border-radius: inherit;
   background: var(--chair-green);
 }
@@ -79,6 +83,7 @@ html.chair-mode #meal-timer {
   line-height: 1.12;
   font-weight: 800;
   text-align: right;
+  white-space: pre-line;
 }
 
 .chair-main {
@@ -247,6 +252,10 @@ html.chair-mode #meal-timer {
   background: transparent;
 }
 
+.chair-picker-books .chair-grid-item {
+  background: var(--chair-tile-bg, #fff);
+}
+
 .chair-picker-activities .chair-grid {
   grid-auto-columns: calc(((100% - 28px) / 2) * 1.008);
   padding-top: 52px;
@@ -292,6 +301,14 @@ html.chair-mode #meal-timer {
 }
 
 .chair-more-prompt {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 0 12px 20px;
+  border: 0;
+  background: transparent;
   color: var(--chair-purple);
   font-size: 28px;
   font-style: italic;
@@ -299,6 +316,22 @@ html.chair-mode #meal-timer {
   font-weight: 900;
   letter-spacing: 1.2px;
   text-align: right;
+}
+
+.chair-more-arrows {
+  display: inline-block;
+  animation: chairMoreNudge 1.25s ease-in-out infinite;
+}
+
+@keyframes chairMoreNudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(8px);
+  }
 }
 
 .chair-alert-card {

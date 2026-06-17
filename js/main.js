@@ -68,9 +68,9 @@ const CHAIR_TITLE_COLORS = [
 const CHAIR_BOOK_CATEGORY_TITLE_COLORS = {
   "True War Heroes": "#205b9d",
   Westerns: "#8a5a12",
-  "Jack Reacher": "#6f3fb5",
-  "Bible Heroes": "#2f7d4b",
-  "Faith & Courage": "#0f766e",
+  "Jack Reacher": "#2f7d4b",
+  "Bible Heroes": "#a34b2b",
+  "Faith & Courage": "#a34b2b",
 };
 const SHELF_PANEL_WIDTH = 800;
 const FRONT_SHELF_START_X = 1624;
@@ -652,7 +652,7 @@ function renderChair(now) {
 function renderChairHome(now) {
   return `
     <section class="screen chair-screen chair-home-screen" aria-label="Chair tablet home">
-      ${renderChairTopBar(now, "WHAT CAN I DO NOW?")}
+      ${renderChairTopBar(now, "WHAT CAN I DO NOW?", { breakMealDuration: true })}
       ${renderChairAlert(now)}
       <div class="chair-main">
         <div class="chair-home-options">
@@ -690,7 +690,10 @@ function renderChairPicker(now) {
       ${renderChairAlert(now)}
       <div class="chair-picker-header">
         <button class="chair-back-button" type="button" data-action="chair-back-main">&lt;&lt; BACK</button>
-        <div class="chair-more-prompt" aria-hidden="true">SWIPE FOR MORE &gt;&gt;</div>
+        <button class="chair-more-prompt" type="button" data-action="chair-scroll-more">
+          <span>SWIPE FOR MORE</span>
+          <span class="chair-more-arrows" aria-hidden="true">&gt;&gt;</span>
+        </button>
       </div>
       <div class="chair-grid" role="list">
         ${items.map((item) => renderChairGridItem(category.id, item)).join("")}
@@ -704,7 +707,9 @@ function renderChairGridItem(category, item) {
   const tileStyle =
     category === "shows"
       ? ` style="--chair-tile-bg:${escapeAttribute(getDarkChairTileColor(item.baseColor || item.titleTint || titleColor))}"`
-      : "";
+      : category === "books"
+        ? ` style="--chair-tile-bg:${escapeAttribute(getLightChairTileColor(titleColor))}"`
+        : "";
   return `
     <button class="chair-grid-item" type="button" role="listitem" data-action="take-off" data-kind="${escapeAttribute(category)}" data-item-id="${escapeAttribute(item.id)}"${tileStyle}>
       <span class="chair-grid-image">
@@ -757,8 +762,8 @@ function getChairDoneMealReminder(now) {
   return `Remember,\n${String(mealState.label).toUpperCase()} is in \n${mealState.timeLeft}.`;
 }
 
-function renderChairTopBar(now, title = "WHAT CAN I DO NOW?") {
-  const context = getChairEventContext(now);
+function renderChairTopBar(now, title = "WHAT CAN I DO NOW?", options = {}) {
+  const context = getChairEventContext(now, options);
   return `
     <header class="chair-context">
       <div class="helper-context-band">
@@ -867,13 +872,13 @@ function getChairItemImage(item) {
   return item.image || item.masterArt || item.cover || "";
 }
 
-function getChairEventContext(now) {
+function getChairEventContext(now, options = {}) {
   const meals = getMealsForDate(now);
   const mealState = getMealState(now, meals);
   if (!mealState.hiddenForDay) {
     return {
       label: mealState.firstServingHour ? "Meal now" : "Next meal",
-      detail: formatChairMealDetail(mealState),
+      detail: formatChairMealDetail(mealState, options),
       progressPercent: mealState.firstServingHour ? 100 : mealState.fillPercent,
     };
   }
@@ -894,7 +899,7 @@ function getChairEventContext(now) {
   };
 }
 
-function formatChairMealDetail(mealState) {
+function formatChairMealDetail(mealState, options = {}) {
   if (mealState.firstServingHour) {
     const serving = toTitleCase(
       mealState.servingMeal?.label || mealState.label,
@@ -904,7 +909,14 @@ function formatChairMealDetail(mealState) {
     );
     return `They're serving ${serving} now. ${following} is next.`;
   }
-  return `${String(mealState.label).toUpperCase()} is in ${mealState.timeLeft}`;
+  const timeLeft = options.breakMealDuration
+    ? formatChairMealTimeLeft(mealState.timeLeft)
+    : mealState.timeLeft;
+  return `${String(mealState.label).toUpperCase()}\nis in ${timeLeft}`;
+}
+
+function formatChairMealTimeLeft(timeLeft) {
+  return String(timeLeft || "").replace(/(\b\d+\s+hours?),\s+/i, "$1,\n");
 }
 
 function getChairWeekday(now) {
@@ -1740,6 +1752,14 @@ function getDarkChairTileColor(hexColor) {
   return hslToHex(hsl.h, Math.min(0.72, Math.max(0.36, hsl.s * 1.25)), 0.16);
 }
 
+function getLightChairTileColor(hexColor) {
+  const rgb = parseHexColor(hexColor);
+  if (!rgb) return "#f7f9fc";
+
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  return hslToHex(hsl.h, Math.min(0.44, Math.max(0.24, hsl.s * 0.64)), 0.83);
+}
+
 // Parse six-digit hex colors used by JSON media metadata.
 function parseHexColor(hexColor) {
   const match = String(hexColor)
@@ -2135,6 +2155,11 @@ async function handleMainClick(event) {
   if (action === "chair-back-main") {
     resetChairToHome();
     render();
+    return;
+  }
+
+  if (action === "chair-scroll-more") {
+    scrollChairPickerMore(target);
     return;
   }
 
@@ -2683,6 +2708,18 @@ function resetChairToHome() {
   state.activeShelf = null;
   state.chairCategory = null;
   state.chairDoneMessage = "";
+}
+
+function scrollChairPickerMore(target) {
+  const grid = target
+    .closest(".chair-picker-screen")
+    ?.querySelector(".chair-grid");
+  if (!grid) return;
+
+  grid.scrollBy({
+    left: Math.max(220, grid.clientWidth * 0.75),
+    behavior: "smooth",
+  });
 }
 
 function returnChairToActivities() {
