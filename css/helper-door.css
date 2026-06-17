@@ -3,6 +3,7 @@
   --helper-ink: #27231d;
   --helper-blue: #205b9d;
   --helper-green: #39754a;
+  --helper-purple: #6f3fb5;
   --helper-yellow: #9b6500;
   --helper-red: #b52a23;
 }
@@ -60,14 +61,28 @@ html.helper-door-mode #meal-timer {
 }
 
 .helper-context-band {
-  margin: -58px -54px 0;
-  padding: 30px 54px 28px;
+  position: relative;
+  width: calc(100% + 116px);
+  margin: -58px -62px 0 -54px;
+  padding: 30px 62px 28px 54px;
   background: linear-gradient(135deg, #315f82, #244b69);
   color: #fff;
   box-shadow: 0 6px 14px rgba(35, 58, 75, 0.18);
 }
 
+.helper-context-band::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -16px;
+  bottom: 0;
+  width: 24px;
+  background: #244b69;
+}
+
 .helper-context-title {
+  position: relative;
+  z-index: 1;
   font-size: 48px;
   line-height: 1;
   font-weight: 900;
@@ -154,7 +169,7 @@ html.helper-door-mode #meal-timer {
   bottom: 8px;
   left: 54px;
   height: 156px;
-  color: var(--helper-green);
+  color: var(--helper-purple);
   font-size: 25px;
   line-height: 1;
   font-weight: 900;

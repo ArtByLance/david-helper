@@ -290,6 +290,18 @@
   z-index: 3;
   touch-action: none;
   cursor: pointer;
+  background: transparent;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.reader-gesture-surface:active,
+.reader-gesture-surface:focus,
+.reader-gesture-surface:focus-visible {
+  background: transparent;
+  outline: none;
 }
 
 .reader-control {

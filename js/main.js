@@ -1040,13 +1040,16 @@ function setBooleanDataAttribute(element, name, enabled) {
 
 // Owns the supper/lunch/breakfast alert state and its dismissal window.
 function renderMealTimer(now) {
-  const mealState = getMealState(now, getMealsForDate(now));
   const mealTimer = document.getElementById("meal-timer");
-  if (chairModeActive) {
+  if (!LEGACY_SHELF_ENABLED || chairModeActive) {
+    if (mealTimer) mealTimer.hidden = true;
     mealTimer?.setAttribute("aria-hidden", "true");
     mealTimer?.classList.add("alert-card-hidden");
     return;
   }
+
+  if (mealTimer) mealTimer.hidden = false;
+  const mealState = getMealState(now, getMealsForDate(now));
   const mealName = document.getElementById("meal-name");
   const mealFill = document.getElementById("meal-bar-fill");
   const mealTarget = document.getElementById("meal-target-label");
@@ -1977,6 +1980,7 @@ function renderChairTakeOffOverlay() {
 
   const image = getChairItemImage(item);
   const summary = item.summary || item.message || "";
+  const isHelpQuestion = item.id === "help-question";
 
   return `
     <div class="chair-detail-layer${state.takeOffExiting ? " take-off-exiting" : ""}" role="dialog" aria-label="${escapeAttribute(item.title)}">
@@ -1990,9 +1994,13 @@ function renderChairTakeOffOverlay() {
           <h1>${escapeHtml(item.title)}</h1>
           ${summary ? `<p>${renderChairSummary(summary)}</p>` : ""}
         </div>
-        <div class="chair-detail-actions">
-          <button class="chair-primary-action" type="button" data-action="do-activity">DO THIS NOW</button>
-          <button class="chair-secondary-action" type="button" data-action="put-back">MAYBE LATER</button>
+        <div class="chair-detail-actions${isHelpQuestion ? " chair-detail-actions-single" : ""}">
+          ${
+            isHelpQuestion
+              ? '<button class="chair-primary-action" type="button" data-action="put-back">OK</button>'
+              : `<button class="chair-primary-action" type="button" data-action="do-activity">DO THIS NOW</button>
+                <button class="chair-secondary-action" type="button" data-action="put-back">MAYBE LATER</button>`
+          }
         </div>
       </div>
     </div>
@@ -2039,6 +2047,10 @@ function renderChairMediaTakeOffOverlay(item, category) {
 function renderChairSummary(summary) {
   return escapeHtml(summary)
     .replaceAll("\n", "<br>")
+    .replace(
+      /\b(Press the button)\b/gi,
+      '<span class="chair-key-urgent">$1</span>',
+    )
     .replace(
       /\b(tablet\s+beside your chair)\b/gi,
       '<span class="chair-key-place">$1</span>',
@@ -2241,10 +2253,11 @@ async function handleMainClick(event) {
   }
 
   if (action === "do-activity" && state.selectedItem) {
+    const item = state.selectedItem;
     clearSelection();
     state.view = "CHAIR_DONE";
     state.chairCategory = "activities";
-    state.chairDoneMessage = "Have fun!";
+    state.chairDoneMessage = item.doneMessage || "Have fun!";
     window.clearTimeout(state.chairDoneTimer);
     state.chairDoneTimer = window.setTimeout(() => {
       returnChairToActivities();

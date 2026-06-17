@@ -1,5 +1,16 @@
 [
   {
+    "id": "help-question",
+    "title": "GET HELP OR ASK A QUESTION",
+    "message": "Too hot?  Too cold? \nHave a question?\nPress the button beside your chair \nuntil the light comes on.\nSomeone will come see you\nin a few minutes.",
+    "image": "./assets/objects/things-to-do-button.jpg",
+    "priority": 1,
+    "chairOnly": true,
+    "availability": {
+      "timeRanges": [{ "start": "00:00", "end": "24:00" }]
+    }
+  },
+  {
     "id": "rest",
     "title": "GET SOME REST",
     "message": "It’s a good time\nto be in bed.",

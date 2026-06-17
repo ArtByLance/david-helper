@@ -52,10 +52,10 @@
 
     <link rel="stylesheet" href="./css/layout.css?v=assets-20260614-8" />
     <link rel="stylesheet" href="./css/text.css?v=assets-20260605-1" />
-    <link rel="stylesheet" href="./css/reader.css?v=assets-20260612-2" />
+    <link rel="stylesheet" href="./css/reader.css?v=assets-20260617-2" />
     <link rel="stylesheet" href="./css/launcher.css?v=assets-20260615-3" />
-    <link rel="stylesheet" href="./css/helper-door.css?v=assets-20260616-1" />
-    <link rel="stylesheet" href="./css/chair.css?v=assets-20260617-1" />
+    <link rel="stylesheet" href="./css/helper-door.css?v=assets-20260617-2" />
+    <link rel="stylesheet" href="./css/chair.css?v=assets-20260617-2" />
     <script>
       window.KIOSK = window.KIOSK || {};
       window.KIOSK.commsMode = "OFFSITE";
@@ -69,7 +69,7 @@
       <div id="tv-stage" data-home="true" aria-label="David's Things tablet app">
         <main id="app-main" aria-live="polite"></main>
 
-        <aside id="meal-timer" aria-label="Next meal">
+        <aside id="meal-timer" aria-label="Next meal" aria-hidden="true" hidden>
           <div id="meal-message">Loading today’s meals.</div>
           <div id="meal-progress-group">
             <div id="meal-name"></div>
@@ -86,7 +86,7 @@
       </div>
     </div>
 
-    <script type="module" src="./js/main.js?v=assets-20260617-1"></script>
+    <script type="module" src="./js/main.js?v=assets-20260617-2"></script>
     <script>
       if (
         "serviceWorker" in navigator &&

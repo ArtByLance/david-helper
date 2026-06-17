@@ -175,6 +175,7 @@ function buildRightNowContext(now) {
 
 function getAvailableActivities(context) {
   return (helperData.activities ?? [])
+    .filter((activity) => !activity.chairOnly)
     .filter((activity) => isActivityAvailable(activity, context))
     .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
 }
