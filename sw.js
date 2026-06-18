@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260617-9";
+const CACHE_VERSION = "davids-shelves-20260617-10";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -42,7 +42,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(APP_CACHE);
-      await cache.addAll(CORE_ASSETS);
+      await addFresh(cache, CORE_ASSETS);
       await warmMediaCache(cache);
       await self.skipWaiting();
     })(),
@@ -165,6 +165,16 @@ async function addExisting(cache, urls) {
     urls.map(async (url) => {
       const response = await fetch(url, { cache: "reload" });
       if (response.ok) await cache.put(url, response);
+    }),
+  );
+}
+
+async function addFresh(cache, urls) {
+  await Promise.all(
+    urls.map(async (url) => {
+      const response = await fetch(url, { cache: "reload" });
+      if (!response.ok) throw new Error(`${url} ${response.status}`);
+      await cache.put(url, response);
     }),
   );
 }
