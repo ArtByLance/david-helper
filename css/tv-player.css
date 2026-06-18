@@ -56,8 +56,17 @@ html.tv-player-mode #meal-timer {
   padding: 64px;
 }
 
+.tv-player-section-intro {
+  align-content: center;
+  justify-items: center;
+  gap: 72px;
+  padding: 64px;
+  background: #fff;
+}
+
 .tv-player-intro h1,
-.tv-player-empty h1 {
+.tv-player-empty h1,
+.tv-player-section-intro h1 {
   margin: 0;
   color: var(--tv-purple);
   font-size: 74px;
@@ -152,6 +161,82 @@ html.tv-player-mode #meal-timer {
   text-transform: uppercase;
 }
 
+.tv-player-activity-screen {
+  background: #fff;
+  padding-top: 76px;
+}
+
+.tv-player-activity-card {
+  inset: -7.5%;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 18px;
+  padding: 102px 75px 106px;
+  background: #fff;
+}
+
+.tv-player-activity-card img {
+  max-height: 100%;
+}
+
+.tv-player-activity-card strong {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.tv-player-activity-card p {
+  margin: 0;
+  color: var(--tv-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 29px;
+  line-height: 1.22;
+  font-weight: 700;
+  text-align: center;
+}
+
+.tv-player-snack-list {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 26px;
+  width: 100%;
+  margin-top: -58px;
+  color: var(--tv-ink);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.tv-player-snack-card {
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0;
+}
+
+.tv-player-snack-card img {
+  position: relative;
+  z-index: 1;
+}
+
+.tv-player-snack-line {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.tv-player-snack-line strong {
+  display: block;
+  color: #205b9d;
+  font-family: Arial, sans-serif;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tv-player-snack-line span {
+  display: block;
+  font-size: 30px;
+  line-height: 1.28;
+  font-weight: 800;
+}
+
 .tv-player-play {
   position: absolute;
   z-index: 6;
@@ -226,6 +311,10 @@ html.tv-player-mode #meal-timer {
   line-height: 1;
   font-weight: 900;
   letter-spacing: 1px;
+}
+
+.tv-player-activity-screen .tv-player-next-wrap span {
+  color: var(--tv-purple);
 }
 
 .tv-player-empty {

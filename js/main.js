@@ -62,6 +62,8 @@ const CHAIR_IDLE_HOME_MS = 3 * 60 * 1000;
 const IDLE_CHECK_MS = 15 * 1000;
 const CHAIR_ACTIVITY_DONE_MS = 12 * 1000;
 const CHAIR_SHOW_PLAYING_MS = 3 * 1000;
+const TV_IDLE_INTRO_MS = 3 * 60 * 1000;
+const TV_ACTIVITY_INTRO_ID = "tv-activity-intro";
 const CHAIR_EVENT_SOON_MINUTES = 15;
 const LEGACY_SHELF_ENABLED = false;
 const TV_ON_COMMAND = "poweron";
@@ -167,6 +169,7 @@ const state = {
   tvOutgoingIndex: 0,
   tvIncomingIndex: 0,
   tvTransitionTimer: null,
+  tvIdleTimer: null,
   chairDismissedAlertKeys: new Set(),
   booksScrollLeft: 0,
   showsScrollLeft: 0,
@@ -383,8 +386,17 @@ async function bootstrap() {
   }
   bindGlobalControls();
   if (tvModeActive) {
-    await Promise.all([loadKioskConfig(), loadShowsShelfMedia()]);
+    await Promise.all([
+      loadKioskConfig(),
+      loadScheduleSources(),
+      loadShowsShelfMedia(),
+      loadHelperActivities().then((activities) => {
+        helperActivities = activities;
+      }),
+    ]);
     render();
+    resetTvPlayerIdleTimer();
+    window.setInterval(render, 60 * 1000);
     return;
   }
   await Promise.all([
@@ -703,7 +715,8 @@ function renderChairLayer(layer, now) {
 
 function renderTvPlayerLayer(layer) {
   layer.hidden = false;
-  const activeItems = getTvPlayerItems();
+  const now = getNow();
+  const activeItems = getTvPlayerItems(now);
   const key = [
     state.tvStarted ? "started" : "intro",
     state.tvIndex,
@@ -711,7 +724,8 @@ function renderTvPlayerLayer(layer) {
     state.tvTransitionDirection,
     state.tvOutgoingIndex,
     state.tvIncomingIndex,
-    activeItems.map((item) => item.id).join(","),
+    Math.floor(now.getTime() / 60000),
+    activeItems.map((item) => `${item.tvDeckType}:${item.id}`).join(","),
   ].join(":");
   if (layer.dataset.renderKey === key) return;
 
@@ -785,9 +799,25 @@ function renderTvPlayer(items) {
       </section>
     `;
   }
+  if (item.tvDeckType === "activityIntro") {
+    return renderTvPlayerActivityIntro();
+  }
+  if (item.tvDeckType === "activity") {
+    return renderTvPlayerActivityScreen(items);
+  }
+
+  return renderTvPlayerShowScreen(items);
+}
+
+function renderTvPlayerShowScreen(items) {
+  const item = getCurrentTvPlayerItem(items);
   const outgoingItem = items[state.tvOutgoingIndex] ?? item;
   const incomingItem = items[state.tvIncomingIndex] ?? item;
-  const isTransitioning = state.tvTransitioning && items.length > 1;
+  const isTransitioning =
+    state.tvTransitioning &&
+    items.length > 1 &&
+    outgoingItem?.tvDeckType === "show" &&
+    incomingItem?.tvDeckType === "show";
   const directionClass =
     state.tvTransitionDirection === "right" ? "tv-push-right" : "tv-push-left";
 
@@ -814,6 +844,51 @@ function renderTvPlayer(items) {
   `;
 }
 
+function renderTvPlayerActivityIntro() {
+  return `
+    <section class="screen tv-player-screen tv-player-section-intro" aria-label="Some things you can do">
+      <button class="tv-player-advance-surface" type="button" data-action="tv-next" aria-label="Show activities"></button>
+      <h1>Some things<br>you can do</h1>
+      <button class="tv-player-arrow tv-player-intro-arrow" type="button" data-action="tv-next" aria-label="Show activities">
+        <img src="./assets/objects/ico-arrow-right.svg" alt="" draggable="false" />
+      </button>
+    </section>
+  `;
+}
+
+function renderTvPlayerActivityScreen(items) {
+  const item = getCurrentTvPlayerItem(items);
+  const outgoingItem = items[state.tvOutgoingIndex] ?? item;
+  const incomingItem = items[state.tvIncomingIndex] ?? item;
+  const isTransitioning =
+    state.tvTransitioning &&
+    items.length > 1 &&
+    outgoingItem?.tvDeckType === "activity" &&
+    incomingItem?.tvDeckType === "activity";
+  const directionClass =
+    state.tvTransitionDirection === "right" ? "tv-push-right" : "tv-push-left";
+
+  return `
+    <section class="screen tv-player-screen tv-player-title-screen tv-player-activity-screen ${isTransitioning ? `is-transitioning ${directionClass}` : ""}" aria-label="${escapeAttribute(item.title)}">
+      <button class="tv-player-advance-surface" type="button" data-action="tv-next" aria-label="Next activity"></button>
+      <div class="tv-player-card-stage" aria-hidden="${isTransitioning ? "true" : "false"}">
+        ${
+          isTransitioning
+            ? `${renderTvPlayerActivityCard(outgoingItem, "tv-player-card-outgoing")}
+              ${renderTvPlayerActivityCard(incomingItem, "tv-player-card-incoming")}`
+            : renderTvPlayerActivityCard(item)
+        }
+      </div>
+      <div class="tv-player-next-wrap">
+        <span>NEXT</span>
+        <button class="tv-player-arrow tv-player-next" type="button" data-action="tv-next" aria-label="Next activity">
+          <img src="./assets/objects/ico-arrow-right.svg" alt="" draggable="false" />
+        </button>
+      </div>
+    </section>
+  `;
+}
+
 function renderTvPlayerCard(item, extraClass = "") {
   return `
     <div class="tv-player-card ${extraClass}">
@@ -823,8 +898,80 @@ function renderTvPlayerCard(item, extraClass = "") {
   `;
 }
 
-function getTvPlayerItems() {
-  return showsShelfMedia.filter((item) => item.active);
+function renderTvPlayerActivityCard(item, extraClass = "") {
+  return `
+    <div class="tv-player-card tv-player-activity-card ${item.snackInventory ? "tv-player-snack-card" : ""} ${extraClass}">
+      <img src="${escapeAttribute(getChairItemImage(item))}" alt="" draggable="false" />
+      ${
+        item.snackInventory
+          ? renderTvPlayerSnackInventory(item)
+          : `<strong>${escapeHtml(item.title)}</strong>
+            ${item.message ? `<p>${renderChairSummary(item.message)}</p>` : ""}`
+      }
+    </div>
+  `;
+}
+
+function renderTvPlayerSnackInventory(item) {
+  const lines = getHelperSnackInventoryLines();
+  if (!lines.length) return `<strong>${escapeHtml(item.title)}</strong>`;
+
+  return `
+    <div class="tv-player-snack-list" aria-label="${escapeAttribute(item.title)}">
+      ${lines
+        .map(
+          ({ place, items }) => `
+            <div class="tv-player-snack-line">
+              <strong>${escapeHtml(toTitleCase(place))}</strong>
+              <span>${escapeHtml(items.join(" · "))}</span>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function getTvPlayerItems(now = getNow()) {
+  const shows = showsShelfMedia
+    .filter((item) => item.active)
+    .map((item) => ({ ...item, tvDeckType: "show" }));
+  const activities = getTimeAppropriateHelperActivities(now)
+    .filter((activity) => !activity.chairOnly)
+    .flatMap((activity) => {
+      const normalizedActivity = { ...activity, tvDeckType: "activity" };
+      if (activity.id !== "snack-here") return [normalizedActivity];
+      return [normalizedActivity, buildTvSnackInventoryActivity(activity)];
+    });
+
+  if (!activities.length) return shows;
+  return [
+    ...shows,
+    {
+      id: TV_ACTIVITY_INTRO_ID,
+      title: "Some things you can do",
+      tvDeckType: "activityIntro",
+    },
+    ...activities,
+  ];
+}
+
+function buildTvSnackInventoryActivity(activity) {
+  return {
+    ...activity,
+    id: `${activity.id}-inventory`,
+    title: "Snacks in your kitchen",
+    message: "",
+    snackInventory: true,
+    tvDeckType: "activity",
+  };
+}
+
+function getHelperSnackInventoryLines() {
+  const snacks = scheduleSources?.config?.helper?.snacks ?? {};
+  return Object.entries(snacks)
+    .filter(([, items]) => Array.isArray(items) && items.length)
+    .map(([place, items]) => ({ place, items }));
 }
 
 function getCurrentTvPlayerItem(items = getTvPlayerItems()) {
@@ -982,10 +1129,19 @@ function getChairItems(category, now = getNow()) {
 }
 
 function getChairActivities(now) {
-  const context = buildChairActivityContext(now);
-  return (helperActivities ?? [])
+  return getTimeAppropriateHelperActivities(now, { includeChairOnly: true })
     .filter((activity) => activity.id !== "read-book")
     .filter((activity) => activity.id !== "watch-tv")
+    .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
+}
+
+function getTimeAppropriateHelperActivities(
+  now,
+  { includeChairOnly = false } = {},
+) {
+  const context = buildChairActivityContext(now);
+  return (helperActivities ?? [])
+    .filter((activity) => includeChairOnly || !activity.chairOnly)
     .filter((activity) => isChairActivityAvailable(activity, context))
     .sort((a, b) => (a.priority ?? 999) - (b.priority ?? 999));
 }
@@ -2380,7 +2536,7 @@ async function handleMainClick(event) {
 
   if (action === "tv-play") {
     const item = getCurrentTvPlayerItem();
-    if (item) {
+    if (item?.tvDeckType === "show") {
       try {
         launchVideoItem(item);
         markRecent("davidsStuff.recentWatched", state.recentWatched, item.id);
@@ -2572,6 +2728,7 @@ function cancelReaderSwipe() {
 // Update idle-return bookkeeping for any meaningful user input.
 function markUserInteraction() {
   state.lastInteractionAt = Date.now();
+  resetTvPlayerIdleTimer();
 }
 
 // Capture home-shelf swipe starts from the invisible shelf tap zones.
@@ -3010,7 +3167,19 @@ function requestTvPlayerAdvance(direction = "left") {
   }
 
   const currentIndex = ((state.tvIndex % items.length) + items.length) % items.length;
-  const nextIndex = (currentIndex + 1) % items.length;
+  const isMovingBack = direction === "right";
+  if (isMovingBack && currentIndex === 0) {
+    returnTvPlayerToIntro();
+    return;
+  }
+
+  const nextIndex = isMovingBack
+    ? (currentIndex - 1 + items.length) % items.length
+    : (currentIndex + 1) % items.length;
+  if (!isMovingBack && nextIndex === 0 && items[currentIndex]?.tvDeckType === "activity") {
+    returnTvPlayerToIntro();
+    return;
+  }
   if (nextIndex === currentIndex) return;
 
   window.clearTimeout(state.tvTransitionTimer);
@@ -3026,6 +3195,34 @@ function requestTvPlayerAdvance(direction = "left") {
     state.tvTransitionTimer = null;
     render();
   }, TV_TRANSITION_MS);
+}
+
+function resetTvPlayerIdleTimer() {
+  if (!tvModeActive) return;
+
+  window.clearTimeout(state.tvIdleTimer);
+  state.tvIdleTimer = window.setTimeout(() => {
+    returnTvPlayerToIntro();
+  }, TV_IDLE_INTRO_MS);
+}
+
+function returnTvPlayerToIntro() {
+  if (!tvModeActive) return;
+
+  const wasAlreadyIntro = !state.tvStarted && !state.tvTransitioning;
+  window.clearTimeout(state.tvTransitionTimer);
+  state.tvTransitionTimer = null;
+  state.tvStarted = false;
+  state.tvIndex = 0;
+  state.tvSwipeStarted = false;
+  state.tvSuppressNextClick = false;
+  state.tvTransitioning = false;
+  state.tvTransitionDirection = "left";
+  state.tvOutgoingIndex = 0;
+  state.tvIncomingIndex = 0;
+  state.lastInteractionAt = Date.now();
+  resetTvPlayerIdleTimer();
+  if (!wasAlreadyIntro) render();
 }
 
 function handleTvPlayerPointerDown(event) {
