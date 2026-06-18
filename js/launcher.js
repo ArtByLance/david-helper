@@ -19,6 +19,14 @@ export function isChairRoute(pathname = window.location.pathname) {
   );
 }
 
+export function isTvRoute(pathname = window.location.pathname) {
+  const mode = new URLSearchParams(window.location.search).get("mode");
+  return (
+    pathname.replace(/\/+$/, "").toLowerCase() === "/tv" ||
+    mode?.toLowerCase() === "tv"
+  );
+}
+
 export function startLauncher() {
   document.documentElement.classList.add("launcher-mode");
   const stage = document.getElementById("tv-stage");
@@ -33,7 +41,7 @@ export function startLauncher() {
     <section class="screen launcher-screen" aria-label="Choose tablet mode">
       <div class="launcher-card">
         <p class="launcher-kicker">START TABLET</p>
-        <h1>Is this tablet for standing at the DOOR or for sitting in the CHAIR?</h1>
+        <h1>Is this tablet for standing at the DOOR, sitting in the CHAIR, or watching TV?</h1>
         <div class="launcher-options">
           ${renderLauncherOption({
             mode: "door",
@@ -46,6 +54,12 @@ export function startLauncher() {
             title: "CHAIR",
             description: "Sitting in the chair",
             icon: "chair",
+          })}
+          ${renderLauncherOption({
+            mode: "tv",
+            title: "TV",
+            description: "Simple TV player",
+            icon: "tv",
           })}
         </div>
         <p class="launcher-instruction">PRESS AND HOLD TO START</p>
@@ -84,17 +98,19 @@ function handleLaunchPointerDown(event) {
     cancelLaunchHold();
     if (mode === "door") {
       window.location.replace(getLaunchUrl("door"));
-    } else if (mode === "chair") {
-      window.location.replace(getLaunchUrl("chair"));
+    } else if (mode === "chair" || mode === "tv") {
+      window.location.replace(getLaunchUrl(mode));
     }
   }, HOLD_MS);
 }
 
 function getLaunchUrl(mode) {
   if (isLocalFileServer()) {
-    return mode === "door" ? "/index.html?helper=door" : "/index.html?mode=chair";
+    if (mode === "door") return "/index.html?helper=door";
+    return `/index.html?mode=${mode}`;
   }
-  return mode === "door" ? "/helper/door" : "/chair";
+  if (mode === "door") return "/helper/door";
+  return `/${mode}`;
 }
 
 function isLocalFileServer() {

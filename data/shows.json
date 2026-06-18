@@ -152,7 +152,6 @@
         {
           "id": "meet_joe_black",
           "title": "Meet Joe Black",
-          "summary": "A thoughtful movie about life, family, and making the most of your time.",
           "command": "joeblackbutton",
           "active": true
         }

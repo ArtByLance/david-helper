@@ -44,7 +44,12 @@ import {
 } from "./utils.js";
 import { getNow } from "./time.js";
 import { isDoorHelperRoute, startDoorHelper } from "./helper-door.js";
-import { isChairRoute, isLauncherRoute, startLauncher } from "./launcher.js";
+import {
+  isChairRoute,
+  isLauncherRoute,
+  isTvRoute,
+  startLauncher,
+} from "./launcher.js";
 
 const RECENT_DAYS = 7;
 const HANDOFF_MS = 60 * 1000;
@@ -59,6 +64,8 @@ const CHAIR_ACTIVITY_DONE_MS = 12 * 1000;
 const CHAIR_SHOW_PLAYING_MS = 3 * 1000;
 const CHAIR_EVENT_SOON_MINUTES = 15;
 const LEGACY_SHELF_ENABLED = false;
+const TV_ON_COMMAND = "poweron";
+const TV_TRANSITION_MS = 320;
 const CHAIR_TITLE_COLORS = [
   "#205b9d",
   "#6f3fb5",
@@ -137,6 +144,7 @@ let booksShelfMedia = [];
 let showsShelfMedia = [];
 let helperActivities = [];
 let chairModeActive = false;
+let tvModeActive = false;
 
 // Single-page view model. It intentionally stays plain so event handlers can
 // mutate state and immediately re-render without hidden framework lifecycle.
@@ -148,6 +156,17 @@ const state = {
   chairDoneTimer: null,
   chairPlayingItem: null,
   chairPlayingTimer: null,
+  tvStarted: false,
+  tvIndex: 0,
+  tvSwipeStartX: 0,
+  tvSwipeStartY: 0,
+  tvSwipeStarted: false,
+  tvSuppressNextClick: false,
+  tvTransitioning: false,
+  tvTransitionDirection: "left",
+  tvOutgoingIndex: 0,
+  tvIncomingIndex: 0,
+  tvTransitionTimer: null,
   chairDismissedAlertKeys: new Set(),
   booksScrollLeft: 0,
   showsScrollLeft: 0,
@@ -337,16 +356,25 @@ async function bootstrap() {
     return;
   }
 
-  chairModeActive = isChairRoute();
-  if (!chairModeActive && !LEGACY_SHELF_ENABLED) {
+  tvModeActive = isTvRoute();
+  chairModeActive = !tvModeActive && isChairRoute();
+  if (!chairModeActive && !tvModeActive && !LEGACY_SHELF_ENABLED) {
     startLauncher();
     return;
   }
   document.documentElement.classList.toggle("chair-mode", chairModeActive);
+  document.documentElement.classList.toggle("tv-player-mode", tvModeActive);
   document
     .getElementById("tv-stage")
     ?.setAttribute("data-chair", String(chairModeActive));
-  if (chairModeActive) {
+  document
+    .getElementById("tv-stage")
+    ?.setAttribute("data-tv-player", String(tvModeActive));
+  if (tvModeActive) {
+    state.view = "TV_PLAYER";
+    state.activeShelf = null;
+    state.alertHidden = true;
+  } else if (chairModeActive) {
     state.view = "CHAIR_HOME";
     state.activeShelf = null;
     state.alertHidden = true;
@@ -354,6 +382,11 @@ async function bootstrap() {
     applyInitialShelfRoute();
   }
   bindGlobalControls();
+  if (tvModeActive) {
+    await Promise.all([loadKioskConfig(), loadShowsShelfMedia()]);
+    render();
+    return;
+  }
   await Promise.all([
     loadKioskConfig(),
     loadScheduleSources(),
@@ -429,8 +462,15 @@ function bindGlobalControls() {
   document
     .getElementById("app-main")
     ?.addEventListener("pointerdown", handleHomeShelfPointerDown);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("pointerdown", handleTvPlayerPointerDown);
+  document
+    .getElementById("app-main")
+    ?.addEventListener("pointerup", handleTvPlayerPointerUp);
   document.addEventListener("pointerup", handleHomeShelfPointerUp);
   document.addEventListener("pointercancel", cancelHomeShelfSwipe);
+  document.addEventListener("pointercancel", cancelTvPlayerSwipe);
   document.addEventListener("keydown", markUserInteraction, {
     capture: true,
   });
@@ -451,7 +491,7 @@ function render() {
 // Lightweight timer tick used between full renders.
 function renderMealTimerOnly() {
   const now = getNow();
-  if (chairModeActive) {
+  if (chairModeActive || tvModeActive) {
     renderMain(now);
     return;
   }
@@ -494,9 +534,16 @@ function renderMain(now) {
 
   const stage = document.getElementById("tv-stage");
   setBooleanDataAttribute(stage, "data-chair", chairModeActive);
+  setBooleanDataAttribute(stage, "data-tv-player", tvModeActive);
   setBooleanDataAttribute(stage, "data-home", isHomeView());
   setBooleanDataAttribute(stage, "data-image-shell", isShelfImageView());
   setBooleanDataAttribute(stage, "data-reader", Boolean(state.readerItem));
+
+  if (tvModeActive) {
+    const tvLayer = ensureAppLayer(main, "tv-player-layer");
+    renderTvPlayerLayer(tvLayer);
+    return;
+  }
 
   if (chairModeActive) {
     const chairLayer = ensureAppLayer(main, "chair-layer");
@@ -654,6 +701,24 @@ function renderChairLayer(layer, now) {
   layer.dataset.renderKey = key;
 }
 
+function renderTvPlayerLayer(layer) {
+  layer.hidden = false;
+  const activeItems = getTvPlayerItems();
+  const key = [
+    state.tvStarted ? "started" : "intro",
+    state.tvIndex,
+    state.tvTransitioning,
+    state.tvTransitionDirection,
+    state.tvOutgoingIndex,
+    state.tvIncomingIndex,
+    activeItems.map((item) => item.id).join(","),
+  ].join(":");
+  if (layer.dataset.renderKey === key) return;
+
+  layer.innerHTML = renderTvPlayer(activeItems);
+  layer.dataset.renderKey = key;
+}
+
 function renderChair(now) {
   if (state.view === "CHAIR_PICKER") return renderChairPicker(now);
   if (state.view === "CHAIR_DONE") return renderChairDone(now);
@@ -694,6 +759,78 @@ function renderChairHomeOption(category, title, image) {
       <strong>${escapeHtml(title)}</strong>
     </button>
   `;
+}
+
+function renderTvPlayer(items) {
+  if (!state.tvStarted) {
+    return `
+      <section class="screen tv-player-screen tv-player-intro" aria-label="Find something to watch">
+        <button class="tv-player-advance-surface" type="button" data-action="tv-next" aria-label="Show first title"></button>
+        <button class="tv-player-tv-on" type="button" data-action="tv-on">TV ON</button>
+        <h1>Find<br>something<br>to watch</h1>
+        <button class="tv-player-arrow tv-player-intro-arrow" type="button" data-action="tv-next" aria-label="Show first title">
+          <img src="./assets/objects/ico-arrow-right.svg" alt="" draggable="false" />
+        </button>
+      </section>
+    `;
+  }
+
+  const item = getCurrentTvPlayerItem(items);
+  if (!item) {
+    return `
+      <section class="screen tv-player-screen tv-player-empty" aria-label="No shows available">
+        <button class="tv-player-advance-surface" type="button" data-action="tv-next" aria-label="Next"></button>
+        <button class="tv-player-tv-on" type="button" data-action="tv-on">TV ON</button>
+        <h1>No shows are ready.</h1>
+      </section>
+    `;
+  }
+  const outgoingItem = items[state.tvOutgoingIndex] ?? item;
+  const incomingItem = items[state.tvIncomingIndex] ?? item;
+  const isTransitioning = state.tvTransitioning && items.length > 1;
+  const directionClass =
+    state.tvTransitionDirection === "right" ? "tv-push-right" : "tv-push-left";
+
+  return `
+    <section class="screen tv-player-screen tv-player-title-screen ${isTransitioning ? `is-transitioning ${directionClass}` : ""}" aria-label="${escapeAttribute(item.title)}">
+      <button class="tv-player-advance-surface" type="button" data-action="tv-next" aria-label="Next title"></button>
+      <button class="tv-player-tv-on" type="button" data-action="tv-on">TV ON</button>
+      <div class="tv-player-card-stage" aria-hidden="${isTransitioning ? "true" : "false"}">
+        ${
+          isTransitioning
+            ? `${renderTvPlayerCard(outgoingItem, "tv-player-card-outgoing")}
+              ${renderTvPlayerCard(incomingItem, "tv-player-card-incoming")}`
+            : renderTvPlayerCard(item)
+        }
+      </div>
+      <button class="tv-player-play" type="button" data-action="tv-play">PLAY</button>
+      <div class="tv-player-next-wrap">
+        <span>KEEP LOOKING</span>
+        <button class="tv-player-arrow tv-player-next" type="button" data-action="tv-next" aria-label="Next title">
+          <img src="./assets/objects/ico-arrow-right.svg" alt="" draggable="false" />
+        </button>
+      </div>
+    </section>
+  `;
+}
+
+function renderTvPlayerCard(item, extraClass = "") {
+  return `
+    <div class="tv-player-card ${extraClass}">
+      <img src="${escapeAttribute(getChairItemImage(item))}" alt="" draggable="false" />
+      <strong>${escapeHtml(item.title)}</strong>
+    </div>
+  `;
+}
+
+function getTvPlayerItems() {
+  return showsShelfMedia.filter((item) => item.active);
+}
+
+function getCurrentTvPlayerItem(items = getTvPlayerItems()) {
+  if (!items.length) return null;
+  const index = ((state.tvIndex % items.length) + items.length) % items.length;
+  return items[index];
 }
 
 function renderChairPicker(now) {
@@ -1071,7 +1208,7 @@ function setBooleanDataAttribute(element, name, enabled) {
 // Owns the supper/lunch/breakfast alert state and its dismissal window.
 function renderMealTimer(now) {
   const mealTimer = document.getElementById("meal-timer");
-  if (!LEGACY_SHELF_ENABLED || chairModeActive) {
+  if (!LEGACY_SHELF_ENABLED || chairModeActive || tvModeActive) {
     if (mealTimer) mealTimer.hidden = true;
     mealTimer?.setAttribute("aria-hidden", "true");
     mealTimer?.classList.add("alert-card-hidden");
@@ -2232,6 +2369,41 @@ async function handleMainClick(event) {
     return;
   }
 
+  if (action === "tv-next") {
+    if (state.tvSuppressNextClick) {
+      state.tvSuppressNextClick = false;
+      return;
+    }
+    requestTvPlayerAdvance("left");
+    return;
+  }
+
+  if (action === "tv-play") {
+    const item = getCurrentTvPlayerItem();
+    if (item) {
+      try {
+        launchVideoItem(item);
+        markRecent("davidsStuff.recentWatched", state.recentWatched, item.id);
+      } catch (error) {
+        console.error(`Could not launch ${item.title}.`, error);
+      }
+    }
+    return;
+  }
+
+  if (action === "tv-on") {
+    try {
+      launchVideoItem({
+        id: "tv-on",
+        title: "TV ON",
+        command: TV_ON_COMMAND,
+      });
+    } catch (error) {
+      console.error("Could not turn TV on.", error);
+    }
+    return;
+  }
+
   if (action === "expand-shelf") {
     await openShelf(target.dataset.shelf);
     return;
@@ -2820,6 +2992,74 @@ function startChairShow(item) {
     resetChairToHome();
     render();
   }, CHAIR_SHOW_PLAYING_MS);
+}
+
+function advanceTvPlayer() {
+  requestTvPlayerAdvance("left");
+}
+
+function requestTvPlayerAdvance(direction = "left") {
+  const items = getTvPlayerItems();
+  if (!items.length || state.tvTransitioning) return;
+
+  if (!state.tvStarted) {
+    state.tvStarted = true;
+    state.tvIndex = 0;
+    render();
+    return;
+  }
+
+  const currentIndex = ((state.tvIndex % items.length) + items.length) % items.length;
+  const nextIndex = (currentIndex + 1) % items.length;
+  if (nextIndex === currentIndex) return;
+
+  window.clearTimeout(state.tvTransitionTimer);
+  state.tvOutgoingIndex = currentIndex;
+  state.tvIncomingIndex = nextIndex;
+  state.tvTransitionDirection = direction === "right" ? "right" : "left";
+  state.tvTransitioning = true;
+  render();
+
+  state.tvTransitionTimer = window.setTimeout(() => {
+    state.tvIndex = nextIndex;
+    state.tvTransitioning = false;
+    state.tvTransitionTimer = null;
+    render();
+  }, TV_TRANSITION_MS);
+}
+
+function handleTvPlayerPointerDown(event) {
+  if (!tvModeActive) return;
+  const surface = event.target.closest?.(".tv-player-advance-surface");
+  if (!surface) return;
+
+  state.tvSwipeStarted = true;
+  state.tvSwipeStartX = event.clientX;
+  state.tvSwipeStartY = event.clientY;
+  surface.setPointerCapture?.(event.pointerId);
+}
+
+function handleTvPlayerPointerUp(event) {
+  if (!state.tvSwipeStarted) return;
+
+  const deltaX = event.clientX - state.tvSwipeStartX;
+  const deltaY = event.clientY - state.tvSwipeStartY;
+  cancelTvPlayerSwipe();
+
+  if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2)
+    return;
+
+  state.tvSuppressNextClick = true;
+  requestTvPlayerAdvance(deltaX > 0 ? "right" : "left");
+  window.setTimeout(() => {
+    state.tvSuppressNextClick = false;
+  }, 400);
+}
+
+function cancelTvPlayerSwipe() {
+  state.tvSwipeStarted = false;
+  state.tvSwipeStartX = 0;
+  state.tvSwipeStartY = 0;
 }
 
 // Snapshot the visible shelf before hiding it during an idle return.

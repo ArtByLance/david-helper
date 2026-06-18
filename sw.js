@@ -1,4 +1,4 @@
-const CACHE_VERSION = "davids-shelves-20260617-10";
+const CACHE_VERSION = "davids-shelves-20260618-6";
 const APP_CACHE = `${CACHE_VERSION}-app`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -12,6 +12,7 @@ const CORE_ASSETS = [
   "/css/launcher.css",
   "/css/helper-door.css",
   "/css/chair.css",
+  "/css/tv-player.css",
   "/js/main.js",
   "/js/launcher.js",
   "/js/helper-door.js",
@@ -26,6 +27,7 @@ const CORE_ASSETS = [
   "/js/layout/timeline.js",
   "/assets/objects/book-front.png",
   "/assets/objects/dvd-front.png",
+  "/assets/objects/ico-arrow-right.svg",
   "/assets/fonts/BebasNeue-Regular.ttf",
   "/assets/fonts/DSEG7ClassicMini-Bold.ttf",
   "/assets/fonts/Oswald-VariableFont_wght.ttf",

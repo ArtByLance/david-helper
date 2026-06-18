@@ -62,8 +62,8 @@ html.launcher-mode #meal-timer {
 .launcher-options {
   flex: 1;
   display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 30px;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 24px;
 }
 
 .launcher-option {
@@ -92,6 +92,10 @@ html.launcher-mode #meal-timer {
   border-color: rgba(57, 117, 74, 0.32);
 }
 
+.launcher-option-tv {
+  border-color: rgba(111, 63, 181, 0.34);
+}
+
 .launcher-option strong {
   color: var(--launcher-blue);
   font-size: 62px;
@@ -102,6 +106,10 @@ html.launcher-mode #meal-timer {
 
 .launcher-option-chair strong {
   color: var(--launcher-green);
+}
+
+.launcher-option-tv strong {
+  color: #6f3fb5;
 }
 
 .launcher-option > span:not(.launcher-icon) {
@@ -140,6 +148,14 @@ html.launcher-mode #meal-timer {
   content: "CHAIR";
   color: var(--launcher-green);
   font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.launcher-icon-tv::before {
+  content: "TV";
+  color: #6f3fb5;
+  font-size: 58px;
   font-weight: 900;
   letter-spacing: 1px;
 }
